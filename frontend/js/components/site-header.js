@@ -1,55 +1,337 @@
 // ============================================================
-//  <site-header>  —  Custom Element (Web Components, chuẩn của trình duyệt)
+// <site-header>
+// Header dùng chung cho toàn bộ website Homestay Booking.
 //
-//  Viết header MỘT LẦN ở đây. Mỗi trang chỉ cần một dòng:
-//      <site-header></site-header>
+// Mỗi trang chỉ cần:
 //
-//  Không build step, không thư viện. `customElements` là API có sẵn
-//  của trình duyệt từ 2018, giống hệt <template> mà ta đang dùng.
+// <site-header active="home"></site-header>
 //
-//  TODO: sửa nội dung header ở đây — sửa một lần, mọi trang đổi theo.
+// Giá trị active:
+// home      -> Stays
+// search    -> Homestays
+// bookings  -> My bookings
+// profile   -> Profile
+// host      -> Property Management
+//
+// Chỉ sửa Header ở file này.
+// Không tạo Header riêng trong từng HTML.
 // ============================================================
+
 import { initHeader } from '../auth.js';
 
+
+// ============================================================
+// HEADER TEMPLATE
+// ============================================================
+
 const TEMPLATE = /* html */ `
+
 <header class="site-header">
-  <div class="container site-header__inner">
-    <a class="logo" href="index.html">TÊN-SẢN-PHẨM</a>
 
-    <form class="site-header__search" action="list.html" method="get" role="search">
-      <label class="visually-hidden" for="hq">Tìm kiếm</label>
-      <input class="input" id="hq" name="q" type="search" placeholder="Tìm kiếm…">
-    </form>
+  <div class="container">
 
-    <nav>
-      <a class="site-header__link" href="shop.html" data-nav="shop">Cửa hàng</a>
-      <span data-auth="guest" hidden>
-        <a class="btn" href="login.html">Đăng nhập</a>
-        <a class="btn btn--primary" href="register.html">Đăng ký</a>
-      </span>
-      <span data-auth="user" hidden>
-        <span data-user-name></span>
-        <a class="btn" href="#" data-action="logout">Thoát</a>
-      </span>
+    <!-- ======================================================
+         HÀNG TRÊN
+         Logo + VND + List your property + Register + Sign in
+         ====================================================== -->
+
+    <div class="site-header__top">
+
+      <!-- LOGO -->
+      <a
+        class="logo"
+        href="index.html">
+        Homestay Booking
+      </a>
+
+
+      <!-- ====================================================
+           CÁC NÚT BÊN PHẢI
+           ==================================================== -->
+
+      <div class="site-header__actions">
+
+        <!-- Currency -->
+        <span class="hide-sm">
+          VND
+        </span>
+
+
+        <!-- Language -->
+        <span class="hide-sm">
+          🌐
+        </span>
+
+
+        <!-- List your property -->
+        <a
+          class="site-header__link hide-sm"
+          href="host-dashboard.html">
+          List your property
+        </a>
+
+
+        <!-- ==================================================
+             KHÁCH CHƯA ĐĂNG NHẬP
+             ================================================== -->
+
+        <span data-auth="guest">
+
+          <a
+            class="btn btn--light"
+            href="register.html">
+            Register
+          </a>
+
+          <a
+            class="btn btn--light"
+            href="login.html">
+            Sign in
+          </a>
+
+        </span>
+
+
+        <!-- ==================================================
+             USER ĐÃ ĐĂNG NHẬP
+             ================================================== -->
+
+        <span data-auth="user" hidden>
+
+          <span
+            class="hide-sm"
+            data-user-name>
+          </span>
+
+          <a
+            class="btn btn--light"
+            href="#"
+            data-action="logout">
+            Sign out
+          </a>
+
+        </span>
+
+
+        <!-- ==================================================
+             MOBILE MENU
+             ================================================== -->
+
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-label="Mở menu"
+          aria-expanded="false"
+          aria-controls="mainNav">
+
+          ☰
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- ======================================================
+         THANH MENU CHÍNH
+         ====================================================== -->
+
+    <nav
+      class="main-nav"
+      id="mainNav"
+      aria-label="Main navigation">
+
+      <ul class="nav-links">
+
+
+        <!-- ==================================================
+             1. STAYS
+             ================================================== -->
+
+        <li>
+
+          <a
+            href="index.html"
+            data-nav="home">
+
+            🛏 Stays
+
+          </a>
+
+        </li>
+
+
+        <!-- ==================================================
+             2. HOMESTAYS
+             File có thật trong project:
+             host-homestays.html
+             ================================================== -->
+
+        <li>
+
+          <a
+            href="host-homestays.html"
+            data-nav="search">
+
+            🏠 Homestays
+
+          </a>
+
+        </li>
+
+
+        <!-- ==================================================
+             3. MY BOOKINGS
+             ================================================== -->
+
+        <li>
+
+          <a
+            href="booking-list.html"
+            data-nav="bookings">
+
+            📋 My bookings
+
+          </a>
+
+        </li>
+
+
+        <!-- ==================================================
+             4. PROFILE
+             ================================================== -->
+
+        <li>
+
+          <a
+            href="profile.html"
+            data-nav="profile">
+
+            👤 Profile
+
+          </a>
+
+        </li>
+
+
+        <!-- ==================================================
+             5. PROPERTY MANAGEMENT
+             ================================================== -->
+
+        <li>
+
+          <a
+            href="host-dashboard.html"
+            data-nav="host">
+
+            🏠 Property Management
+
+          </a>
+
+        </li>
+
+
+      </ul>
+
     </nav>
+
   </div>
-</header>`;
+
+</header>
+
+`;
+
+
+// ============================================================
+// SITE HEADER COMPONENT
+// ============================================================
 
 class SiteHeader extends HTMLElement {
-  connectedCallback() {
-    // innerHTML ở đây AN TOÀN vì chuỗi là hằng số do ta viết, không phải
-    // dữ liệu người dùng nhập. Quy tắc thật là: KHÔNG đưa dữ liệu người dùng
-    // qua innerHTML. Xem docs/CACH-DUNG-FILE-CHUNG.md mục 9.
-    this.innerHTML = TEMPLATE;
-    initHeader();          // bật/tắt phần Đăng nhập ↔ Tài khoản
 
-    // Truyền dữ liệu VÀO component bằng thuộc tính HTML:
-    //     <site-header active="shop"></site-header>
-    // → mục "Cửa hàng" được tô đậm. Đây là cách làm component "khác nhau
-    //   một chút" ở từng trang mà vẫn chỉ có một file nguồn.
+  connectedCallback() {
+
+    // --------------------------------------------------------
+    // Hiển thị Header
+    // --------------------------------------------------------
+
+    this.innerHTML = TEMPLATE;
+
+
+    // --------------------------------------------------------
+    // Xử lý trạng thái đăng nhập
+    //
+    // Chưa đăng nhập:
+    // Register | Sign in
+    //
+    // Đã đăng nhập:
+    // Username | Sign out
+    // --------------------------------------------------------
+
+    initHeader();
+
+
+    // --------------------------------------------------------
+    // ACTIVE MENU
+    //
+    // Ví dụ:
+    //
+    // <site-header active="home"></site-header>
+    //
+    // sẽ làm Stays được highlight.
+    // --------------------------------------------------------
+
     const active = this.getAttribute('active');
-    if (active) this.querySelector(`[data-nav="${active}"]`)?.classList.add('is-active');
+
+    if (active) {
+
+      const activeNav = this.querySelector(
+        `[data-nav="${active}"]`
+      );
+
+      if (activeNav) {
+
+        activeNav.classList.add('is-active');
+
+      }
+
+    }
+
+
+    // --------------------------------------------------------
+    // MOBILE MENU
+    // --------------------------------------------------------
+
+    const toggle = this.querySelector('.nav-toggle');
+
+    const nav = this.querySelector('#mainNav');
+
+
+    if (toggle && nav) {
+
+      toggle.addEventListener('click', () => {
+
+        const open = nav.classList.toggle('is-open');
+
+        toggle.setAttribute(
+          'aria-expanded',
+          String(open)
+        );
+
+      });
+
+    }
+
   }
+
 }
 
-customElements.define('site-header', SiteHeader);
+
+// ============================================================
+// ĐĂNG KÝ CUSTOM ELEMENT
+// ============================================================
+
+customElements.define(
+  'site-header',
+  SiteHeader
+);
