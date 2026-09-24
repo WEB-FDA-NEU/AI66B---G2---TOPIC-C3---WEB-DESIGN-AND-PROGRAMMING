@@ -1,117 +1,103 @@
-body {
-  font-family: var(--font);
-  background: var(--c-bg);
-  color: var(--c-text);
-}
+/* layout.css — bố cục: container, header, nav, hero, section, lưới, footer.
+   Mobile < 768px · Tablet < 1024px (xem tokens.css) */
+body { font-family: var(--font); background: var(--c-page); color: var(--c-text); }
+h1, h2, h3 { line-height: 1.25; }
+h1 { font-size: 32px; } h2 { font-size: 24px; } h3 { font-size: 18px; }
 
-.container {
-  width: min(100% - 2rem, var(--container));
-  margin-inline: auto;
-}
+.container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--sp-3); }
+.page    { padding-block: var(--sp-5); }
+.section { padding-block: var(--sp-5); }
+.stack > * + * { margin-top: var(--sp-3); }
+.section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.section-head p { color: var(--c-muted); }
 
-/* ---- Header ----
-   <site-header> là custom element: mặc định trình duyệt coi nó là inline.
-   Phải khai display:block, và min-height để trang không GIẬT khi component
-   gắn vào (module JS chạy sau khi HTML parse xong). */
-site-header { display: block; min-height: 64px; }
-@media (max-width: 640px) { site-header { min-height: 108px; } }
+/* ---------- Header ----------
+   <site-header> là custom element → mặc định inline. Phải display:block và có min-height
+   để trang không bị giật khi component gắn vào. */
+site-header { display: block; min-height: 118px; }
+.site-header { background: var(--c-primary); color: #fff; position: relative; z-index: 100; }
+.site-header__top { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.logo { font-size: 24px; font-weight: 700; color: #fff; text-decoration: none; white-space: nowrap; }
+.site-header__actions { display: flex; align-items: center; gap: var(--sp-2); font-size: 14px; }
+.site-header__actions [data-auth] { display: flex; align-items: center; gap: var(--sp-2); }
+.site-header__actions [hidden] { display: none; }
+.site-header__link { color: #fff; text-decoration: none; padding: 8px; }
+.site-header__link:hover { text-decoration: underline; }
 
-.site-header {
-  border-bottom: 1px solid var(--c-border);
-  background: var(--c-bg);
-  position: sticky; top: 0; z-index: 10;
-}
-.site-header__inner {
-  display: flex; align-items: center; gap: var(--sp-4);
-  padding-block: var(--sp-3);
-}
-.logo { font-weight: 700; font-size: 1.25rem; text-decoration: none; }
-.site-header__search { flex: 1; min-width: 0; }
-.site-header nav { display: flex; align-items: center; gap: var(--sp-3); }
+.main-nav { padding-bottom: 12px; }
+.nav-links { display: flex; align-items: center; gap: var(--sp-2); list-style: none; padding: 0; }
+.nav-links a { display: inline-flex; align-items: center; gap: var(--sp-2); padding: 10px 14px; color: #fff;
+  border: 1px solid transparent; border-radius: 24px; text-decoration: none; font-size: 15px; font-weight: 500;
+  transition: background .15s, border-color .15s; }
+.nav-links a:hover { background: rgba(255,255,255,.12); }
+.nav-links a.is-active { border-color: #fff; background: rgba(255,255,255,.08); }
+.nav-toggle { display: none; background: none; border: 0; color: #fff; font-size: 28px; cursor: pointer; padding: 4px 8px; }
 
-@media (max-width: 640px) {
-  .site-header__inner { flex-wrap: wrap; }
-  .site-header__search { order: 3; flex-basis: 100%; }
-}
+/* ---------- Hero + ô tìm kiếm ---------- */
+.hero { background: linear-gradient(rgba(0,59,149,.95), rgba(0,47,108,.9)); color: #fff; }
+.hero__inner { padding-block: 56px 72px; }
+.hero h1 { font-size: clamp(30px, 5vw, 44px); margin-bottom: var(--sp-2); }
+.hero p { font-size: 18px; margin-bottom: 28px; }
+.search-box { display: grid; grid-template-columns: 1.5fr 1fr 1fr .8fr auto; gap: 4px; padding: 4px;
+  background: var(--c-accent); border-radius: var(--radius); box-shadow: var(--shadow-l); }
+.search-field { display: flex; flex-direction: column; justify-content: center; min-height: 64px;
+  padding: 8px 14px; background: var(--c-bg); color: var(--c-text); border-radius: 3px; }
+.search-field label { color: var(--c-muted); font-size: 12px; font-weight: 500; margin-bottom: 2px; }
+.search-field input, .search-field select { width: 100%; border: 0; outline: 0; background: transparent; font-size: 15px; font-weight: 500; }
+.search-box__btn { min-width: 120px; padding: 0 20px; border: 0; border-radius: var(--radius-s);
+  background: var(--c-primary-l); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
+.search-box__btn:hover { background: var(--c-primary); }
 
-/* ---- Bố cục trang tìm kiếm: sidebar + lưới kết quả ---- */
-/* minmax(0, 1fr) chứ KHÔNG phải 1fr: grid item mặc định có min-width:auto,
-   nội dung rộng hơn cột sẽ đẩy cả lưới tràn ngang trên điện thoại. */
-.search-layout {
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: var(--sp-5);
-  padding-block: var(--sp-5);
-}
-@media (max-width: 860px) {
-  .search-layout { grid-template-columns: minmax(0, 1fr); }
-}
+/* ---------- Lưới ---------- */
+/* auto-fill: tự xuống dòng, không cần media query */
+.grid, .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-4); }
+.destination-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); }
 
-/* ---- Lưới thẻ: tự xuống dòng, KHÔNG cần media query ---- */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--sp-4);
-}
+/* Trang có sidebar (search.html) — minmax(0,1fr) chặn nội dung đẩy tràn ngang trên điện thoại */
+.search-layout, .shop-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--sp-4); align-items: start; padding-block: var(--sp-4); }
+.search-layout > *, .shop-layout > * { min-width: 0; }
+.filter-sidebar, .shop-sidebar { position: sticky; top: 20px; padding: var(--sp-3); background: var(--c-bg);
+  border: 1px solid var(--c-border); border-radius: var(--radius); }
 
-.page { padding-block: var(--sp-6); }
-.stack > * + * { margin-top: var(--sp-4); }
+/* Trang chi tiết: nội dung + hộp đặt phòng */
+.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sp-4); align-items: start; margin-top: var(--sp-4); }
+.detail-layout__aside { position: sticky; top: 20px; }
 
-/* ═══════════════════════════════════════════════════════════
-   LAYOUT TRANG CỬA HÀNG  (shop.html)
-   Ba vùng: sidebar bộ lọc · nội dung chính · footer nhiều cột
-   ═══════════════════════════════════════════════════════════ */
-
-.shop-layout > *,
-.search-layout > * { min-width: 0; }   /* chặn nội dung đẩy tràn cột */
-
-.shop-layout {
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);   /* minmax(0,1fr) chặn lưới bị tràn */
-  gap: var(--sp-5);
-  align-items: start;
-  padding-block: var(--sp-5);
-}
-@media (max-width: 860px) {
-  .shop-layout { grid-template-columns: minmax(0, 1fr); }
-}
-
-/* Sidebar dính khi cuộn trên desktop, ẩn/hiện bằng nút trên mobile */
-.shop-sidebar {
-  position: sticky;
-  top: 84px;                       /* = chiều cao header + khoảng thở */
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  padding: var(--sp-4);
-  background: var(--c-bg);
-}
-@media (max-width: 860px) {
-  .shop-sidebar { position: static; display: none; }
-  .shop-sidebar.is-open { display: block; }
-}
-
-/* ---- Footer ---- */
-site-footer { display: block; margin-top: var(--sp-7); }
-
-.site-footer {
-  border-top: 1px solid var(--c-border);
-  background: var(--c-surface);
-  padding-top: var(--sp-6);
-}
-.site-footer__grid {
-  display: grid;
-  grid-template-columns: 2fr repeat(3, 1fr);
-  gap: var(--sp-5);
-  padding-bottom: var(--sp-5);
-}
-@media (max-width: 860px) { .site-footer__grid { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 520px) { .site-footer__grid { grid-template-columns: 1fr; } }
-
-.site-footer__tagline { color: var(--c-muted); font-size: .875rem; margin-top: var(--sp-2); }
-.site-footer__title   { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
-                        color: var(--c-muted); margin-bottom: var(--sp-3); }
-.site-footer__col ul  { list-style: none; padding: 0; display: grid; gap: var(--sp-2); }
-.site-footer__col a   { text-decoration: none; font-size: .9rem; }
+/* ---------- Footer ---------- */
+site-footer { display: block; margin-top: var(--sp-6); }
+.site-footer { border-top: 1px solid var(--c-border); background: var(--c-bg); padding-top: var(--sp-5); }
+.site-footer__grid { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: var(--sp-4); padding-bottom: var(--sp-4); }
+.site-footer__brand .logo { color: var(--c-primary); }
+.site-footer__tagline { color: var(--c-muted); font-size: 14px; margin-top: var(--sp-2); }
+.site-footer__title { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--c-muted); margin-bottom: var(--sp-2); }
+.site-footer__col ul { list-style: none; padding: 0; display: grid; gap: var(--sp-2); }
+.site-footer__col a { text-decoration: none; font-size: 14px; color: var(--c-primary-l); }
 .site-footer__col a:hover { text-decoration: underline; }
-.site-footer__bottom  { border-top: 1px solid var(--c-border); padding-block: var(--sp-4);
-                        font-size: .8rem; color: var(--c-muted); }
+.site-footer__bottom { border-top: 1px solid var(--c-border); padding-block: var(--sp-3); font-size: 13px; color: var(--c-muted); }
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1023px) {                      /* Tablet */
+  .destination-grid { grid-template-columns: repeat(2, 1fr); }
+  .search-box { grid-template-columns: 1fr 1fr; }
+  .search-box__btn { grid-column: 1 / -1; min-height: 48px; }
+  .site-footer__grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 767px) {                       /* Mobile */
+  h1 { font-size: 26px; } h2 { font-size: 21px; }
+  site-header { min-height: 64px; }
+  .site-header__top { flex-wrap: wrap; }
+  .site-header__actions { margin-left: auto; }
+  .hide-sm { display: none !important; }
+  .nav-toggle { display: block; }
+  .main-nav { display: none; padding-bottom: var(--sp-2); }
+  .main-nav.is-open { display: block; }
+  .nav-links { flex-direction: column; align-items: stretch; }
+  .hero__inner { padding-block: 40px 48px; }
+  .search-box { grid-template-columns: 1fr; }
+  .search-layout, .shop-layout, .detail-layout { grid-template-columns: minmax(0, 1fr); }
+  .filter-sidebar, .shop-sidebar, .detail-layout__aside { position: static; }
+  .shop-sidebar, .filter-sidebar.is-collapsible { display: none; }
+  .shop-sidebar.is-open, .filter-sidebar.is-open { display: block; }
+  .section-head { flex-direction: column; align-items: flex-start; }
+  .site-footer__grid { grid-template-columns: 1fr; }
+}

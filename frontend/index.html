@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TÊN-SẢN-PHẨM</title>
+<title>Homestay Booking — Trang chủ</title>
 <link rel="stylesheet" href="css/reset.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
@@ -11,36 +11,165 @@
 </head>
 <body>
 
-<site-header></site-header>
+<site-header active="home"></site-header>
 
-<main class="container page stack">
-  <!-- TODO: đổi tiêu đề và nội dung trang chủ theo đề tài -->
-  <h1>Mới nhất</h1>
-  <div class="grid" id="results"></div>
+<main>
+  <!-- HERO + TÌM KIẾM -->
+  <section class="hero">
+    <div class="container hero__inner">
+      <h1>Tìm homestay lý tưởng cho chuyến đi của bạn</h1>
+      <p>Khám phá những nơi lưu trú tuyệt vời và đặt phòng dễ dàng.</p>
+
+      <form class="search-box" id="searchForm" action="search.html" method="get">
+        <div class="search-field">
+          <label for="destination">Địa điểm</label>
+          <input type="text" id="destination" name="destination" placeholder="Bạn muốn đi đâu?">
+        </div>
+        <div class="search-field">
+          <label for="checkin">Nhận phòng</label>
+          <input type="date" id="checkin" name="checkin">
+        </div>
+        <div class="search-field">
+          <label for="checkout">Trả phòng</label>
+          <input type="date" id="checkout" name="checkout">
+        </div>
+        <div class="search-field">
+          <label for="guests">Số khách</label>
+          <select id="guests" name="guests">
+            <option value="1">1 khách</option><option value="2" selected>2 khách</option>
+            <option value="3">3 khách</option><option value="4">4 khách</option>
+            <option value="6">6+ khách</option>
+          </select>
+        </div>
+        <button class="search-box__btn" type="submit">Tìm kiếm</button>
+      </form>
+      <p class="msg msg--error" id="searchError" style="margin:12px 0 0" hidden></p>
+    </div>
+  </section>
+
+  <!-- ĐIỂM ĐẾN -->
+  <section class="section container">
+    <div class="section-head"><div><h2>Điểm đến nổi bật</h2><p>Khám phá những địa điểm được yêu thích</p></div></div>
+    <div class="destination-grid">
+        <a class="destination-card" href="search.html?destination=Sa Pa">
+          <img src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=800&q=80" alt="Sa Pa" loading="lazy">
+          <span class="destination-card__name">Sa Pa</span>
+        </a>
+        <a class="destination-card" href="search.html?destination=Đà Lạt">
+          <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=800&q=80" alt="Đà Lạt" loading="lazy">
+          <span class="destination-card__name">Đà Lạt</span>
+        </a>
+        <a class="destination-card" href="search.html?destination=Đà Nẵng">
+          <img src="https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=800&q=80" alt="Đà Nẵng" loading="lazy">
+          <span class="destination-card__name">Đà Nẵng</span>
+        </a>
+        <a class="destination-card" href="search.html?destination=Hội An">
+          <img src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=800&q=80" alt="Hội An" loading="lazy">
+          <span class="destination-card__name">Hội An</span>
+        </a>
+    </div>
+  </section>
+
+  <!-- HOMESTAY ĐỀ XUẤT (dữ liệu tĩnh để test giao diện) -->
+  <section class="section container">
+    <div class="section-head">
+      <div><h2>Homestay được đề xuất</h2><p>Những nơi lưu trú được nhiều khách yêu thích</p></div>
+      <a class="btn btn--outline" href="search.html">Xem tất cả</a>
+    </div>
+    <div class="grid">
+        <article class="card">
+          <a class="card__link" href="detail.html?id=hs001">
+            <img class="card__img" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80" alt="Sapa Misty Hills Homestay" loading="lazy">
+            <div class="card__body">
+              <h3 class="card__title">Sapa Misty Hills Homestay</h3>
+              <p class="card__meta">📍 Bản Cát Cát, Sa Pa, Lào Cai</p>
+              <div class="card__rating"><span class="rating">4.8</span><span>Đánh giá tốt</span></div>
+              <p class="card__price">từ 200.000 VND <small>/ đêm</small></p>
+            </div>
+          </a>
+        </article>
+        <article class="card">
+          <a class="card__link" href="detail.html?id=hs002">
+            <img class="card__img" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80" alt="Hoi An River Garden" loading="lazy">
+            <div class="card__body">
+              <h3 class="card__title">Hoi An River Garden</h3>
+              <p class="card__meta">📍 Cẩm Châu, Hội An, Quảng Nam</p>
+              <div class="card__rating"><span class="rating">4.6</span><span>Đánh giá tốt</span></div>
+              <p class="card__price">từ 350.000 VND <small>/ đêm</small></p>
+            </div>
+          </a><span class="card__badge">Giảm giá</span>
+        </article>
+        <article class="card">
+          <a class="card__link" href="detail.html?id=hs003">
+            <img class="card__img" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80" alt="Đà Lạt Pine Cottage" loading="lazy">
+            <div class="card__body">
+              <h3 class="card__title">Đà Lạt Pine Cottage</h3>
+              <p class="card__meta">📍 Phường 3, Đà Lạt, Lâm Đồng</p>
+              <div class="card__rating"><span class="rating">4.7</span><span>Đánh giá tốt</span></div>
+              <p class="card__price">từ 420.000 VND <small>/ đêm</small></p>
+            </div>
+          </a>
+        </article>
+        <article class="card">
+          <a class="card__link" href="detail.html?id=hs004">
+            <img class="card__img" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80" alt="Sea Breeze Homestay" loading="lazy">
+            <div class="card__body">
+              <h3 class="card__title">Sea Breeze Homestay</h3>
+              <p class="card__meta">📍 Mỹ Khê, Đà Nẵng</p>
+              <div class="card__rating"><span class="rating">4.5</span><span>Đánh giá tốt</span></div>
+              <p class="card__price">từ 380.000 VND <small>/ đêm</small></p>
+            </div>
+          </a>
+        </article>
+    </div>
+  </section>
+
+  <!-- KHU TEST COMPONENT: xóa cả section này khi nộp bài -->
+  <section class="section container" id="component-test">
+    <div class="section-head"><div><h2>Kiểm thử component</h2><p>Khu này chỉ để cả nhóm xem nhanh giao diện chung — xóa khi nộp.</p></div></div>
+    <div class="stack">
+      <div class="flex gap-2" style="flex-wrap:wrap">
+        <button class="btn">Mặc định</button>
+        <button class="btn btn--primary">Chính</button>
+        <button class="btn btn--outline">Viền</button>
+        <button class="btn btn--danger">Hủy đặt phòng</button>
+        <button class="btn" disabled>Vô hiệu</button>
+        <span class="badge badge--success">Đã xác nhận</span>
+        <span class="badge badge--warning">Chờ xử lý</span>
+        <span class="badge badge--danger">Đã hủy</span>
+      </div>
+      <div class="form-card" style="margin:0;max-width:420px">
+        <label class="field"><span class="field__label">Họ tên</span><input class="input" placeholder="Nguyễn Văn A"></label>
+        <label class="field"><span class="field__label">Email</span><input class="input" value="abc" aria-invalid="true">
+          <span class="field__error">Email không hợp lệ</span></label>
+      </div>
+      <div class="row">
+        <img class="row__img" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80" alt="">
+        <div><a class="row__title" href="#">Sapa Misty Hills Homestay</a>
+          <p class="row__meta">Phòng Đôi View Núi · 10/10 → 12/10 (2 đêm)</p><p class="row__price">1.100.000 VND</p></div>
+        <div class="row__actions"><button class="btn btn--danger">Hủy</button></div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <site-footer></site-footer>
+<div id="toast" role="status"></div>
 
-<template id="tpl-card">
-  <article class="card">
-    <a class="card__link">
-      <img class="card__img" src="" alt="" loading="lazy">
-      <div class="card__body">
-        <h3 class="card__title"></h3>
-        <p class="card__price"></p>
-        <p class="card__meta"></p>
-      </div>
-    </a>
-    <span class="card__badge"></span>
-  </article>
-</template>
+<script type="module">
+  import './js/components/site-header.js';
+  import './js/components/site-footer.js';
 
-<template id="tpl-empty-state">
-  <div class="empty">
-    <p class="empty__title"></p><p class="empty__hint"></p><a class="btn empty__action"></a>
-  </div>
-</template>
-
-<script type="module" src="js/pages/home.js"></script>
+  // Kiểm tra ngày ở ô tìm kiếm
+  const $ = id => document.getElementById(id);
+  const today = new Date().toISOString().slice(0, 10);
+  $('checkin').min = $('checkout').min = today;
+  $('searchForm').addEventListener('submit', e => {
+    const ci = $('checkin').value, co = $('checkout').value, err = $('searchError');
+    const msg = (ci && co && co <= ci) ? 'Ngày trả phòng phải sau ngày nhận phòng.' : '';
+    err.hidden = !msg; err.textContent = msg;
+    if (msg) e.preventDefault();
+  });
+</script>
 </body>
 </html>
