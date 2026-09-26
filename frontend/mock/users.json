@@ -1,0 +1,35 @@
+{
+  "_ghi_chu": "Bảng user dùng chung cho cả site. id của host CỐ TÌNH đặt là 'host001' để khớp với HOST_ID trong api.js và hostId trong mock/host-homestays.json. password chỉ để tham khảo — login() mock hiện tại chưa thật sự kiểm tra password theo user này (xem gợi ý sửa login() ở tin nhắn trước).",
+  "users": [
+    {
+      "id": 1,
+      "display_name": "Nguyễn Quang Huy",
+      "email": "huy@test.com",
+      "phone": "0909123456",
+      "password": "12345678",
+      "role": "user",
+      "avatar": "img/placeholder.svg",
+      "createdAt": "2026-08-01T03:00:00Z"
+    },
+    {
+      "id": "host001",
+      "display_name": "Trần Văn Host",
+      "email": "host@test.com",
+      "phone": "0912345678",
+      "password": "12345678",
+      "role": "host",
+      "avatar": "img/placeholder.svg",
+      "createdAt": "2026-07-20T03:00:00Z"
+    },
+    {
+      "id": 99,
+      "display_name": "Admin LuxStay",
+      "email": "admin@test.com",
+      "phone": "0987654321",
+      "password": "12345678",
+      "role": "admin",
+      "avatar": "img/placeholder.svg",
+      "createdAt": "2026-06-01T03:00:00Z"
+    }
+  ]
+}
