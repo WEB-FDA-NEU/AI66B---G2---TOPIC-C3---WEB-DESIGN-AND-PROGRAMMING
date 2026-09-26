@@ -10,7 +10,13 @@
 <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
-<main class="container page" style="max-width:400px">
+<header class="site-header">
+  <div class="site-header__top container">
+    <a href="/" class="logo">Booking.com</a>
+  </div>
+</header>
+<main class="container page">
+    <div class="form-card">
   <h1>Tạo tài khoản</h1>
   <form id="register-form" class="stack" novalidate>
     <div class="field">
@@ -26,7 +32,7 @@
     <div class="field">
       <label class="field__label" for="phone">Số điện thoại</label>
       <input class="input" id="phone" name="phone" type="tel">
-      <p class="field__hint">Chỉ hiện cho người mua đã đăng nhập, khi họ bấm xem (BR-7).</p>
+      <p class="field__hint">Dùng để nhận thông tin xác nhận phòng và liên hệ khi cần.</p>
     </div>
     <div class="field">
       <label class="field__label" for="password">Mật khẩu</label>
@@ -39,8 +45,20 @@
       <p class="field__error"></p>
     </div>
     <button class="btn btn--primary" type="submit">Đăng ký</button>
-    <p class="field__hint">Đã có tài khoản? <a href="login.html">Đăng nhập</a></p>
+    <p class="field__hint">Đã có tài khoản? <a class="text-primary" href="login.html">Đăng nhập</a></p>
+     <footer class="login-footer mt-4 text-center field__hint">
+        <div class="text-muted"></div>
+        <p class="text-muted mt">
+          Bằng cách đăng nhập hoặc tạo tài khoản, bạn đồng ý với 
+          <a target="_blank" rel="noopener noreferrer" class="text-primary" href="https://www.booking.com/content/terms.vi.html?aid=304142">Điều khoản & Điều kiện</a> 
+          và 
+          <a target="_blank" rel="noopener noreferrer" class="text-primary" href="https://www.booking.com/content/privacy.vi.html?aid=304142">Chính sách bảo mật</a>.
+        </p>
+        <p class="text-muted mt" >Bản quyền (2006 - 2026) - Booking.com</p>
+        
+      </footer>
   </form>
+
 </main>
 <script type="module" src="js/pages/register.js"></script>
 </body>

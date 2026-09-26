@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Xác nhận đặt phòng — Booking.com</title>
+
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header__top container">
+    <a href="/" class="logo">Booking.com</a>
+  </div>
+</header>
+
+<nav class="breadcrumb container mt-4">
+  <ol>
+    <li class="text-primary">✓ Bạn chọn</li>
+    <li class="text-primary">✓ Chi tiết về bạn</li>
+    <li aria-current="page" class="text-primary">Hoàn tất đặt phòng</li>
+  </ol>
+</nav>
+
+<main class="container page">
+
+  <!-- THÔNG BÁO THÀNH CÔNG -->
+  <div class="msg msg--ok stack gap-2 mb-3" role="status">
+    <div class="flex gap-2">
+      <span>✅</span>
+      <strong>Đặt phòng thành công!</strong>
+    </div>
+    <p>Chúng tôi đã gửi email xác nhận đến hộp thư của bạn.</p>
+  </div>
+
+  <div class="detail-layout">
+
+    <!-- CỘT TRÁI: CHI TIẾT ĐẶT PHÒNG -->
+    <div class="stack">
+
+      <!-- MÃ ĐẶT PHÒNG -->
+      <section class="form-card flex-between">
+        <div>
+          <p class="field__hint">Mã đặt phòng</p>
+          <h2 class="text-primary" id="bookingCode">#BK-2026-8841</h2>
+        </div>
+        <span class="badge badge--success">Đã xác nhận</span>
+      </section>
+
+      <!-- THÔNG TIN HOMESTAY -->
+      <section class="form-card">
+        <h3 class="mb-2">Thông tin chỗ nghỉ</h3>
+        <img src="https://cf.bstatic.com/xdata/images/hotel/max1024x768/916217610.jpg?k=e116c9ab3358595bb9a3b7acb1c1f495ca44b2729ba58e5c30f538c46aa1c187&amp;o=" class="card__img mb-3" alt="Townhouse Havora Residence">
+
+        <h3>Townhouse Havora Residence</h3>
+        <p class="card__meta mb-2">51/32 Dong Me, Tu Liem, Ha Noi, Hanoi, Hà Nội, Việt Nam</p>
+
+        <div class="flex gap-2 mb-2">
+          <span class="rating">8,4</span>
+          <span><strong>Rất tốt</strong> · 5 đánh giá</span>
+        </div>
+      </section>
+
+      <!-- NGÀY & KHÁCH -->
+      <section class="form-card stack">
+        <h3>Chi tiết lưu trú</h3>
+        <div class="stack gap-2 mt-2">
+          <div class="flex-between">
+            <span class="text-muted">Nhận phòng:</span>
+            <strong>01/10/2026 (từ 14:00)</strong>
+          </div>
+          <div class="flex-between">
+            <span class="text-muted">Trả phòng:</span>
+            <strong>03/10/2026 (trước 12:00)</strong>
+          </div>
+          <div class="flex-between">
+            <span class="text-muted">Số đêm:</span>
+            <strong>2 đêm</strong>
+          </div>
+          <div class="flex-between">
+            <span class="text-muted">Số khách:</span>
+            <strong>2 khách</strong>
+          </div>
+          <div class="flex-between">
+            <span class="text-muted">Tên khách:</span>
+            <strong>Nguyễn Tuấn</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- TỔNG TIỀN -->
+      <section class="form-card stack">
+        <h3>Chi tiết thanh toán</h3>
+        <div class="stack gap-2 mt-2">
+          <div class="flex-between">
+            <span class="text-muted">Tiền phòng:</span>
+            <span>2.400.000đ</span>
+          </div>
+          <div class="flex-between">
+            <span class="text-muted">Phí dịch vụ (5%):</span>
+            <span>120.000đ</span>
+          </div>
+          <div class="filter-group flex-between">
+            <span><strong>Tổng đã thanh toán:</strong></span>
+            <span class="text-primary"><strong>2.520.000đ</strong></span>
+          </div>
+        </div>
+      </section>
+
+      <div class="flex gap-3">
+        <a href="/" class="btn btn--outline btn--block">Về trang chủ</a>
+        <button type="button" class="btn btn--primary btn--block" onclick="window.print()">In xác nhận</button>
+      </div>
+
+    </div>
+
+    <!-- CỘT PHẢI: LIÊN HỆ HOST -->
+    <aside class="detail-layout__aside stack">
+      <div class="form-card">
+        <h3 class="mb-3">Liên hệ chủ nhà</h3>
+
+        <div class="flex gap-3 mb-3">
+          <div class="rating" style="width: 48px; height: 48px; border-radius: 50%; font-size: 18px;">H</div>
+          <div>
+            <strong>Chị Hoa</strong>
+            <p class="field__hint">Chủ nhà · Phản hồi trong 1 giờ</p>
+          </div>
+        </div>
+
+        <div class="stack gap-2">
+          <div class="flex gap-2">
+            <span>📞</span>
+            <a href="tel:0987654321" class="text-primary">0987 654 321</a>
+          </div>
+          <div class="flex gap-2">
+            <span>✉️</span>
+            <a href="mailto:hoa.havora@gmail.com" class="text-primary">hoa.havora@gmail.com</a>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn--outline btn--block mt-3">Nhắn tin cho chủ nhà</button>
+      </div>
+
+      <div class="msg" style="background: var(--c-surface);">
+        <p class="field__hint">Cần hỗ trợ? Liên hệ Booking.com 24/7 qua mục Trợ giúp.</p>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<site-footer>
+  <footer class="site-footer">
+    <div class="container site-footer__bottom text-center">
+      Bản quyền thuộc về Booking.com © 2026. Mô phỏng bài tập UI/UX.
+    </div>
+  </footer>
+</site-footer>
+
+</body>
+</html>
