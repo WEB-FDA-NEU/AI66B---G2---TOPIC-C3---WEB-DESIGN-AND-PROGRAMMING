@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lý đặt phòng — Homestay Booking</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<site-header active="host"></site-header>
+
+<main class="container page">
+  <div class="breadcrumb"><ol>
+    <li><a href="host-dashboard.html">Bảng điều khiển</a></li>
+    <li aria-current="page">Đặt phòng của khách</li>
+  </ol></div>
+
+  <div class="section-head"><div><h1>Đặt phòng của khách</h1><p class="text-muted">Duyệt hoặc từ chối các yêu cầu đặt phòng.</p></div></div>
+
+  <div class="tabs" id="tabs">
+    <button class="btn is-active" data-status="">Tất cả</button>
+    <button class="btn" data-status="pending">Chờ xác nhận</button>
+    <button class="btn" data-status="confirmed">Đã xác nhận</button>
+    <button class="btn" data-status="checked_in">Đã nhận phòng</button>
+    <button class="btn" data-status="completed">Hoàn tất</button>
+    <button class="btn" data-status="cancelled">Đã hủy</button>
+    <button class="btn" data-status="rejected">Bị từ chối</button>
+  </div>
+
+  <div id="list" class="stack"></div>
+</main>
+
+<site-footer></site-footer>
+
+<!-- Modal nhập lý do từ chối -->
+<dialog id="reject-dialog">
+  <h3 class="dialog__title">Từ chối đặt phòng?</h3>
+  <p class="dialog__message">Vui lòng cho khách biết lý do — thông tin này sẽ hiện trong lịch sử đặt phòng của họ.</p>
+  <label class="field"><span class="field__label">Lý do</span>
+    <textarea class="textarea" id="rejectReason" rows="3" placeholder="Ví dụ: Phòng đang bảo trì..."></textarea>
+    <span class="field__error" id="rejectErr"></span></label>
+  <div class="dialog__actions">
+    <button class="btn" id="rejectCancel" type="button">Đóng</button>
+    <button class="btn btn--danger" id="rejectConfirm" type="button">Từ chối đặt phòng</button>
+  </div>
+</dialog>
+<script type="module" src="js/pages/host-bookings.js"></script>
+</body>
+</html>

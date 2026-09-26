@@ -1,0 +1,177 @@
+{
+  "_ghi_chu": "Homestay của host đang đăng nhập (hostId=host001). PHẢI cùng hình dạng với JSON backend trả ở Mốc 3.",
+  "homestays": [
+    {
+      "id": "hs001",
+      "hostId": "host001",
+      "name": "Sapa Misty Hills Homestay",
+      "address": "Bản Cát Cát, Sa Pa, Lào Cai",
+      "description": "Homestay ấm cúng giữa núi rừng Sa Pa, view thung lũng, gần bản Cát Cát.",
+      "amenities": [
+        "Wifi",
+        "Bãi đỗ xe",
+        "Bữa sáng",
+        "Máy sưởi"
+      ],
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "status": "active",
+      "createdAt": "2026-08-02T03:00:00Z"
+    },
+    {
+      "id": "hs002",
+      "hostId": "host001",
+      "name": "Đà Lạt Pine Cottage",
+      "address": "Phường 3, Đà Lạt, Lâm Đồng",
+      "description": "Cabin gỗ thông ấm áp, gần hồ Xuân Hương.",
+      "amenities": [
+        "Wifi",
+        "Bếp chung",
+        "Lò sưởi"
+      ],
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "status": "active",
+      "createdAt": "2026-08-03T03:00:00Z"
+    },
+    {
+      "id": "hs003",
+      "hostId": "host001",
+      "name": "Hoi An River Garden",
+      "address": "Cẩm Châu, Hội An, Quảng Nam",
+      "description": "Homestay vườn ven sông, cách phố cổ Hội An 10 phút đi xe đạp.",
+      "amenities": [
+        "Wifi",
+        "Xe đạp miễn phí",
+        "Bữa sáng"
+      ],
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "status": "active",
+      "createdAt": "2026-08-04T03:00:00Z"
+    },
+    {
+      "id": "hs004",
+      "hostId": "host001",
+      "name": "Sea Breeze Homestay",
+      "address": "Mỹ Khê, Đà Nẵng",
+      "description": "Homestay sát biển Mỹ Khê, ban công view biển.",
+      "amenities": [
+        "Wifi",
+        "Điều hòa"
+      ],
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "status": "active",
+      "createdAt": "2026-08-05T03:00:00Z"
+    },
+    {
+      "id": "hs005",
+      "hostId": "host001",
+      "name": "Phú Quốc Beach Bungalow",
+      "address": "Bãi Trường, Phú Quốc, Kiên Giang",
+      "description": "Bungalow tranh sát bãi biển, hoàng hôn tuyệt đẹp mỗi chiều.",
+      "amenities": [
+        "Wifi",
+        "Bãi đỗ xe",
+        "Cho thuê xe máy",
+        "Hồ bơi"
+      ],
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "status": "active",
+      "createdAt": "2026-08-06T03:00:00Z"
+    },
+    {
+      "id": "hs006",
+      "hostId": "host001",
+      "name": "Tam Cốc Rice Field Homestay",
+      "address": "Ninh Hải, Hoa Lư, Ninh Bình",
+      "description": "View ruộng lúa và núi đá vôi, gần bến thuyền Tam Cốc.",
+      "amenities": [
+        "Wifi",
+        "Bữa sáng",
+        "Cho thuê xe đạp"
+      ],
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "status": "active",
+      "createdAt": "2026-08-07T03:00:00Z"
+    },
+    {
+      "id": "hs007",
+      "hostId": "host001",
+      "name": "Hà Giang Cao Nguyên Homestay",
+      "address": "Đồng Văn, Hà Giang",
+      "description": "Nhà sàn người H'Mông trên cao nguyên đá, view ruộng bậc thang.",
+      "amenities": [
+        "Wifi",
+        "Bữa sáng",
+        "Đốt lửa trại"
+      ],
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "status": "active",
+      "createdAt": "2026-08-08T03:00:00Z"
+    },
+    {
+      "id": "hs008",
+      "hostId": "host001",
+      "name": "Mũi Né Sand Dune Homestay",
+      "address": "Phường Mũi Né, Phan Thiết, Bình Thuận",
+      "description": "Gần đồi cát bay, có sân vườn rộng và khu BBQ.",
+      "amenities": [
+        "Wifi",
+        "Bãi đỗ xe",
+        "Khu BBQ"
+      ],
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "status": "active",
+      "createdAt": "2026-08-09T03:00:00Z"
+    },
+    {
+      "id": "hs009",
+      "hostId": "host001",
+      "name": "Cần Thơ Mekong Homestay",
+      "address": "Phong Điền, Cần Thơ",
+      "description": "Nhà vườn ven sông, gần chợ nổi Cái Răng, có tour chèo xuồng.",
+      "amenities": [
+        "Wifi",
+        "Bữa sáng",
+        "Tour chèo xuồng"
+      ],
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "status": "active",
+      "createdAt": "2026-08-10T03:00:00Z"
+    },
+    {
+      "id": "hs010",
+      "hostId": "host001",
+      "name": "Huế Garden House",
+      "address": "Phường Vỹ Dạ, Huế",
+      "description": "Nhà vườn kiểu Huế truyền thống, yên tĩnh, gần sông Hương.",
+      "amenities": [
+        "Wifi",
+        "Bãi đỗ xe",
+        "Bữa sáng",
+        "Cho thuê xe đạp"
+      ],
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "status": "active",
+      "createdAt": "2026-08-11T03:00:00Z"
+    }
+  ]
+}
