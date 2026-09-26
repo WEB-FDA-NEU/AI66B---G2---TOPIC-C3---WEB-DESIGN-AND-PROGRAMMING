@@ -18,7 +18,7 @@
 // Không tạo Header riêng trong từng HTML.
 // ============================================================
 
-import { initHeader } from '../auth.js';
+import { initHeader, getUser } from '../auth.js';
 
 
 // ============================================================
@@ -218,9 +218,10 @@ const TEMPLATE = /* html */ `
 
         <!-- ==================================================
              5. PROPERTY MANAGEMENT
+             Chỉ hiện khi role = host.
              ================================================== -->
 
-        <li>
+        <li data-host-nav>
 
           <a
             href="host-dashboard.html"
@@ -235,7 +236,6 @@ const TEMPLATE = /* html */ `
         <!-- ==================================================
             6. ADMIN
             Chỉ hiện khi role = admin.
-            Giai đoạn mock: để tạm hiện luôn để dễ test.
           ================================================== -->
 
         <li data-admin-nav>
@@ -314,21 +314,24 @@ class SiteHeader extends HTMLElement {
       }
 
     }
+
     // --------------------------------------------------------
-    // MENU ADMIN — chỉ hiện khi role = admin
+    // ẨN/HIỆN MỤC NAV THEO ROLE
     //
-    // Giai đoạn mock: để tạm hiện luôn để cả nhóm dễ test.
-    // Khi nối API thật, bỏ comment dòng if bên dưới để chỉ
-    // admin mới thấy mục này.
+    // - Property Management: chỉ role 'host' mới thấy.
+    // - Admin: chỉ role 'admin' mới thấy.
+    //
+    // Khách chưa đăng nhập (getUser() === null) hoặc role
+    // 'user' (khách thường) sẽ không thấy cả 2 mục này.
     // --------------------------------------------------------
+
+    const role = getUser()?.role;
+
+    const hostNav = this.querySelector('[data-host-nav]');
+    if (hostNav && role !== 'host') hostNav.hidden = true;
 
     const adminNav = this.querySelector('[data-admin-nav]');
-
-    if (adminNav) {
-
-        if (getUser()?.role !== 'admin') adminNav.hidden = true;
-
-    }
+    if (adminNav && role !== 'admin') adminNav.hidden = true;
 
     // --------------------------------------------------------
     // MOBILE MENU

@@ -10,39 +10,47 @@
 <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
- 
-<!-- Chưa có mục "admin" trong menu chính (site-header.js) nên để active trống -->
-<site-header></site-header>
- 
-<main class="page container">
- 
+
+<!-- active="admin" khớp với mục data-nav="admin" trong site-header.js (đang chờ patch để ẩn/hiện theo role) -->
+<site-header active="admin"></site-header>
+
+<main class="container page">
+
   <div class="section-head">
     <div>
       <h1>Admin Dashboard</h1>
       <p>Tổng quan hệ thống và duyệt đơn xin làm host.</p>
     </div>
   </div>
- 
-  <!-- ==================== SỐ LIỆU TỔNG QUAN ==================== -->
-  <div class="grid mt-4">
-    <div class="form-card text-center" style="margin:0">
-      <p class="field__label">Tổng homestay</p>
-      <p style="font-size:32px;font-weight:700">128</p>
+
+  <!-- ==================== SỐ LIỆU TỔNG QUAN ====================
+       Dùng chung class .stat-grid/.stat-card với Host Dashboard (components.css)
+       để 2 trang nhìn đồng bộ — đừng quay lại kiểu .form-card text-center cũ. -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-card__num">128</div>
+      <div class="stat-card__label">Tổng homestay</div>
     </div>
-    <div class="form-card text-center" style="margin:0">
-      <p class="field__label">Tổng booking</p>
-      <p style="font-size:32px;font-weight:700">964</p>
+    <div class="stat-card">
+      <div class="stat-card__num">964</div>
+      <div class="stat-card__label">Tổng booking</div>
     </div>
-    <div class="form-card text-center" style="margin:0">
-      <p class="field__label">User mới hôm nay</p>
-      <p style="font-size:32px;font-weight:700">12</p>
+    <div class="stat-card">
+      <div class="stat-card__num">12</div>
+      <div class="stat-card__label">User mới hôm nay</div>
     </div>
-    <div class="form-card text-center" style="margin:0">
-      <p class="field__label">Đơn chờ duyệt</p>
-      <p style="font-size:32px;font-weight:700;color:var(--c-warning)">3</p>
+    <div class="stat-card">
+      <div class="stat-card__num is-warning">3</div>
+      <div class="stat-card__label">Đơn chờ duyệt</div>
     </div>
   </div>
- 
+
+  <!-- Hàng nút thao tác nhanh — cùng class .quick-links với Host Dashboard để 2 trang đồng bộ.
+       Admin hiện chỉ có 1 khu vực (hàng đợi đơn host) nên chỉ có 1 nút, trỏ neo xuống thẳng đó. -->
+  <div class="quick-links">
+    <a class="btn btn--primary" href="#application-list">Xem đơn chờ duyệt</a>
+  </div>
+
   <!-- ==================== HÀNG ĐỢI ĐƠN XIN LÀM HOST ==================== -->
   <section class="mt-6">
     <div class="section-head">
@@ -51,9 +59,9 @@
         <p>Duyệt hoặc từ chối đơn đăng ký trở thành host (BR-10).</p>
       </div>
     </div>
- 
+
     <div class="stack" id="application-list">
- 
+
       <article class="row" data-status="pending">
         <img class="row__img" src="img/placeholder.svg" alt="Trần Văn An">
         <div>
@@ -67,7 +75,7 @@
           <button class="btn btn--danger" type="button" data-action="reject" data-app-id="1">Từ chối</button>
         </div>
       </article>
- 
+
       <article class="row" data-status="pending">
         <img class="row__img" src="img/placeholder.svg" alt="Lê Thị Hoa">
         <div>
@@ -81,7 +89,7 @@
           <button class="btn btn--danger" type="button" data-action="reject" data-app-id="2">Từ chối</button>
         </div>
       </article>
- 
+
       <article class="row" data-status="pending">
         <img class="row__img" src="img/placeholder.svg" alt="Phạm Minh Khang">
         <div>
@@ -95,21 +103,21 @@
           <button class="btn btn--danger" type="button" data-action="reject" data-app-id="3">Từ chối</button>
         </div>
       </article>
- 
+
     </div>
- 
+
     <!-- Ẩn sẵn, chỉ hiện khi không còn đơn nào chờ duyệt -->
     <div class="empty" id="application-empty" hidden>
       <p class="empty__title">Không còn đơn nào chờ duyệt</p>
       <p class="empty__hint">Mọi đơn xin làm host đã được xử lý.</p>
     </div>
   </section>
- 
+
 </main>
- 
+
 <site-footer></site-footer>
 <div id="toast" role="status"></div>
- 
+
 <!-- Hộp xác nhận Duyệt / Từ chối -->
 <dialog id="confirm-dialog">
   <h3 class="dialog__title">Xác nhận</h3>
@@ -132,7 +140,6 @@
   </div>
 </dialog>
 
- 
 <script type="module">
   import './js/components/site-header.js';
   import './js/components/site-footer.js';
@@ -199,7 +206,6 @@
     markDone(currentArticle, 'badge--danger', 'Đã từ chối');
     toast(`Đã từ chối đơn của ${name}.`, 'error');
   };
-
 </script>
 </body>
 </html>

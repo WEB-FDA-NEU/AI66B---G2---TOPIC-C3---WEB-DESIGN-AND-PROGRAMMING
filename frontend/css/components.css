@@ -181,7 +181,11 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
 .pt-2 { padding-top: var(--sp-2); }
 
 .badge--info { background: var(--c-primary-l); }
-/* ============ Stat card (chuyển từ host-dashboard.html, dùng chung cả admin) ============ */
-.stat-card { padding: var(--sp-4); background: var(--c-bg); border: 1px solid var(--c-border); border-radius: var(--radius); }
+/* ============ Stat card (Host Dashboard, Admin Dashboard — 2 trang cùng dùng, đừng viết lại riêng) ============ */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-5); }
+.stat-card { padding: var(--sp-4); background: var(--c-bg); border: 1px solid var(--c-border); border-radius: var(--radius); text-align: center; }
 .stat-card__num { font-size: 28px; font-weight: 700; color: var(--c-primary); }
+.stat-card__num.is-warning { color: var(--c-warning); }
 .stat-card__label { color: var(--c-muted); font-size: 14px; margin-top: 4px; }
+.quick-links { display: flex; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-5); }
+@media (max-width: 1023px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
