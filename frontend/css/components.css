@@ -92,7 +92,14 @@
 #toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 #toast[data-type="error"] { background: var(--c-danger); }
 
-dialog { border: 0; border-radius: var(--radius); padding: var(--sp-4); max-width: 380px; background: var(--c-bg); color: var(--c-text); box-shadow: var(--shadow-l); }
+/* reset.css có `* { margin: 0 }`, vô tình xóa margin:auto mà trình duyệt
+   dùng để tự canh giữa <dialog> → hộp thoại bị dính góc trên trái. Canh
+   giữa lại thủ công 1 lần ở đây, áp dụng cho MỌI <dialog> trên site. */
+dialog[open] {
+  position: fixed; top: 50%; left: 50%; margin: 0; transform: translate(-50%, -50%);
+  border: 0; border-radius: var(--radius); padding: var(--sp-4);
+  max-width: 380px; width: calc(100% - 32px); background: var(--c-bg); color: var(--c-text); box-shadow: var(--shadow-l);
+}
 dialog::backdrop { background: rgba(0,0,0,.45); }
 .dialog__actions { display: flex; gap: var(--sp-2); justify-content: flex-end; margin-top: var(--sp-4); }
 

@@ -1,0 +1,257 @@
+{
+  "_ghi_chu": "Phòng thuộc các homestay ở host-homestays.json. hs010 cố tình chưa có phòng nào để test empty state.",
+  "rooms": [
+    {
+      "id": "rm001",
+      "homestayId": "hs001",
+      "name": "Phòng Gia Đình",
+      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
+      "capacity": 4,
+      "pricePerNight": 850000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": [
+        "2026-10-21"
+      ]
+    },
+    {
+      "id": "rm002",
+      "homestayId": "hs001",
+      "name": "Phòng Tập Thể (Dorm)",
+      "description": "Giường tầng, phù hợp khách du lịch bụi, tiết kiệm.",
+      "capacity": 6,
+      "pricePerNight": 150000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm003",
+      "homestayId": "hs002",
+      "name": "Phòng Đôi",
+      "description": "Giường đôi tiêu chuẩn, đầy đủ tiện nghi cơ bản.",
+      "capacity": 2,
+      "pricePerNight": 390000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": [
+        "2026-11-12"
+      ]
+    },
+    {
+      "id": "rm004",
+      "homestayId": "hs002",
+      "name": "Phòng Đôi 2",
+      "description": "Giường đôi tiêu chuẩn, đầy đủ tiện nghi cơ bản.",
+      "capacity": 2,
+      "pricePerNight": 400000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm005",
+      "homestayId": "hs003",
+      "name": "Phòng Đơn",
+      "description": "Giường đơn, gọn gàng, phù hợp khách đi một mình.",
+      "capacity": 1,
+      "pricePerNight": 410000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm006",
+      "homestayId": "hs003",
+      "name": "Phòng Đôi",
+      "description": "Giường đôi tiêu chuẩn, đầy đủ tiện nghi cơ bản.",
+      "capacity": 2,
+      "pricePerNight": 390000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm007",
+      "homestayId": "hs003",
+      "name": "Phòng Gia Đình",
+      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
+      "capacity": 4,
+      "pricePerNight": 660000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm008",
+      "homestayId": "hs004",
+      "name": "Phòng Đơn",
+      "description": "Giường đơn, gọn gàng, phù hợp khách đi một mình.",
+      "capacity": 1,
+      "pricePerNight": 360000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm009",
+      "homestayId": "hs004",
+      "name": "Phòng Đôi View Đẹp",
+      "description": "Giường đôi, ban công hoặc cửa sổ view đẹp.",
+      "capacity": 2,
+      "pricePerNight": 630000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": [
+        "2026-10-19"
+      ]
+    },
+    {
+      "id": "rm010",
+      "homestayId": "hs005",
+      "name": "Phòng Tập Thể (Dorm)",
+      "description": "Giường tầng, phù hợp khách du lịch bụi, tiết kiệm.",
+      "capacity": 6,
+      "pricePerNight": 170000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": [
+        "2026-10-21"
+      ]
+    },
+    {
+      "id": "rm011",
+      "homestayId": "hs005",
+      "name": "Phòng Đơn",
+      "description": "Giường đơn, gọn gàng, phù hợp khách đi một mình.",
+      "capacity": 1,
+      "pricePerNight": 360000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm012",
+      "homestayId": "hs006",
+      "name": "Phòng Tập Thể (Dorm)",
+      "description": "Giường tầng, phù hợp khách du lịch bụi, tiết kiệm.",
+      "capacity": 6,
+      "pricePerNight": 150000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm013",
+      "homestayId": "hs006",
+      "name": "Phòng Gia Đình",
+      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
+      "capacity": 4,
+      "pricePerNight": 860000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm014",
+      "homestayId": "hs006",
+      "name": "Phòng Đôi View Đẹp",
+      "description": "Giường đôi, ban công hoặc cửa sổ view đẹp.",
+      "capacity": 2,
+      "pricePerNight": 640000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm015",
+      "homestayId": "hs007",
+      "name": "Phòng Gia Đình",
+      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
+      "capacity": 4,
+      "pricePerNight": 760000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm016",
+      "homestayId": "hs007",
+      "name": "Phòng Đôi",
+      "description": "Giường đôi tiêu chuẩn, đầy đủ tiện nghi cơ bản.",
+      "capacity": 2,
+      "pricePerNight": 450000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": [
+        "2026-11-26"
+      ]
+    },
+    {
+      "id": "rm017",
+      "homestayId": "hs008",
+      "name": "Phòng Gia Đình",
+      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
+      "capacity": 4,
+      "pricePerNight": 930000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm018",
+      "homestayId": "hs008",
+      "name": "Phòng Gia Đình 2",
+      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
+      "capacity": 4,
+      "pricePerNight": 740000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm019",
+      "homestayId": "hs009",
+      "name": "Phòng Đơn",
+      "description": "Giường đơn, gọn gàng, phù hợp khách đi một mình.",
+      "capacity": 1,
+      "pricePerNight": 290000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm020",
+      "homestayId": "hs009",
+      "name": "Phòng Đôi",
+      "description": "Giường đôi tiêu chuẩn, đầy đủ tiện nghi cơ bản.",
+      "capacity": 2,
+      "pricePerNight": 480000,
+      "images": [
+        "img/placeholder.svg"
+      ],
+      "blockedDates": [
+        "2026-11-23"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lý phòng — Homestay Booking</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<style>
+  .room-form { display: none; margin-bottom: var(--sp-4); }
+  .room-form.is-open { display: block; }
+  .tag-list { display: flex; gap: 6px; flex-wrap: wrap; margin-top: var(--sp-2); }
+  .tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+    background: var(--c-surface); font-size: 13px; }
+  .tag button { border: 0; background: none; cursor: pointer; font-size: 14px; line-height: 1; }
+</style>
+</head>
+<body>
+<site-header active="host"></site-header>
+
+<main class="container page">
+  <div class="breadcrumb"><ol>
+    <li><a href="host-homestays.html">Homestay của tôi</a></li>
+    <li aria-current="page">Quản lý phòng</li>
+  </ol></div>
+
+  <div class="section-head">
+    <div><h1 id="title">Phòng</h1><p class="text-muted" id="homestayName">Đang tải...</p></div>
+    <button class="btn btn--primary" id="addBtn" type="button">+ Thêm phòng</button>
+  </div>
+
+  <form class="form-card room-form" id="roomForm" style="margin:0 0 var(--sp-4)" novalidate>
+    <h2 id="roomFormTitle">Thêm phòng</h2>
+    <input type="hidden" id="roomId">
+    <label class="field"><span class="field__label">Tên phòng</span>
+      <input class="input" id="rName" required><span class="field__error"></span></label>
+    <label class="field"><span class="field__label">Mô tả</span>
+      <textarea class="textarea" id="rDesc" rows="2" required></textarea><span class="field__error"></span></label>
+    <div class="flex gap-3">
+      <label class="field" style="flex:1"><span class="field__label">Sức chứa (khách)</span>
+        <input class="input" id="rCap" type="number" min="1" value="2" required><span class="field__error"></span></label>
+      <label class="field" style="flex:1"><span class="field__label">Giá / đêm (VND)</span>
+        <input class="input" id="rPrice" type="number" min="0" step="10000" required><span class="field__error"></span></label>
+    </div>
+    <div class="field">
+      <span class="field__label">Hình ảnh phòng (tối đa 6)</span>
+      <div class="uploader">
+        <input type="file" id="rImages" accept="image/*" multiple>
+        <p class="field__hint">Chọn 1–6 ảnh để khách xem trước phòng (view, giường, nhà vệ sinh...). Ảnh chỉ xem trước, chưa upload lên máy chủ ở Mốc 2.</p>
+      </div>
+      <div class="preview" id="rPreview"></div>
+      <p class="field__error" id="rImagesErr"></p>
+    </div>
+
+    <div class="field">
+      <span class="field__label">Chặn ngày (bảo trì / không nhận khách)</span>
+      <div class="flex gap-2"><input class="input" id="rBlockDate" type="date"><button class="btn" type="button" id="addBlockDate">Thêm</button></div>
+      <div class="tag-list" id="blockList"></div>
+    </div>
+    <div class="flex gap-2 mt-4">
+      <button class="btn btn--primary" type="submit">Lưu phòng</button>
+      <button class="btn" type="button" id="cancelRoomForm">Hủy</button>
+    </div>
+  </form>
+
+  <div id="list" class="stack"></div>
+</main>
+
+<site-footer></site-footer>
+<dialog id="confirm-dialog">
+  <h3 class="dialog__title"></h3><p class="dialog__message"></p>
+  <div class="dialog__actions"><button class="btn" data-cancel type="button">Hủy</button>
+    <button class="btn btn--danger" data-confirm type="button">Xóa</button></div>
+</dialog>
+<script type="module" src="js/pages/host-rooms.js"></script>
+</body>
+</html>

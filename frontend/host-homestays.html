@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lý homestay — Homestay Booking</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<site-header active="host"></site-header>
+
+<main class="container page">
+  <div class="breadcrumb"><ol>
+    <li><a href="host-dashboard.html">Bảng điều khiển</a></li>
+    <li aria-current="page">Homestay của tôi</li>
+  </ol></div>
+
+  <div class="section-head">
+    <div><h1>Homestay của tôi</h1><p id="count" class="text-muted">Đang tải...</p></div>
+    <a class="btn btn--primary" href="host-homestay-form.html">+ Thêm homestay</a>
+  </div>
+  <div id="list" class="stack"></div>
+</main>
+
+<site-footer></site-footer>
+<dialog id="confirm-dialog">
+  <h3 class="dialog__title"></h3>
+  <p class="dialog__message"></p>
+  <div class="dialog__actions">
+    <button class="btn" data-cancel type="button">Hủy</button>
+    <button class="btn btn--danger" data-confirm type="button">Xóa</button>
+  </div>
+</dialog>
+<script type="module" src="js/pages/host-homestays.js"></script>
+</body>
+</html>
