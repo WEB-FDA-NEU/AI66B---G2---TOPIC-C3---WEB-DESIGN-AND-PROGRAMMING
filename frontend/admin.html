@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homestay Booking — Admin Dashboard</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+ 
+<!-- Chưa có mục "admin" trong menu chính (site-header.js) nên để active trống -->
+<site-header></site-header>
+ 
+<main class="page container">
+ 
+  <div class="section-head">
+    <div>
+      <h1>Admin Dashboard</h1>
+      <p>Tổng quan hệ thống và duyệt đơn xin làm host.</p>
+    </div>
+  </div>
+ 
+  <!-- ==================== SỐ LIỆU TỔNG QUAN ==================== -->
+  <div class="grid mt-4">
+    <div class="form-card text-center" style="margin:0">
+      <p class="field__label">Tổng homestay</p>
+      <p style="font-size:32px;font-weight:700">128</p>
+    </div>
+    <div class="form-card text-center" style="margin:0">
+      <p class="field__label">Tổng booking</p>
+      <p style="font-size:32px;font-weight:700">964</p>
+    </div>
+    <div class="form-card text-center" style="margin:0">
+      <p class="field__label">User mới hôm nay</p>
+      <p style="font-size:32px;font-weight:700">12</p>
+    </div>
+    <div class="form-card text-center" style="margin:0">
+      <p class="field__label">Đơn chờ duyệt</p>
+      <p style="font-size:32px;font-weight:700;color:var(--c-warning)">3</p>
+    </div>
+  </div>
+ 
+  <!-- ==================== HÀNG ĐỢI ĐƠN XIN LÀM HOST ==================== -->
+  <section class="mt-6">
+    <div class="section-head">
+      <div>
+        <h2>Đơn xin làm host chờ duyệt</h2>
+        <p>Duyệt hoặc từ chối đơn đăng ký trở thành host (BR-10).</p>
+      </div>
+    </div>
+ 
+    <div class="stack" id="application-list">
+ 
+      <article class="row" data-status="pending">
+        <img class="row__img" src="img/placeholder.svg" alt="Trần Văn An">
+        <div>
+          <a class="row__title" href="#">Trần Văn An</a>
+          <p class="row__meta">Homestay: Pine Cottage · Đà Lạt, Lâm Đồng</p>
+          <p class="row__meta">Nộp đơn: 20/09/2026</p>
+        </div>
+        <div class="row__actions">
+          <span class="badge badge--warning">Chờ duyệt</span>
+          <button class="btn btn--primary" type="button" data-action="approve" data-app-id="1">Duyệt</button>
+          <button class="btn btn--danger" type="button" data-action="reject" data-app-id="1">Từ chối</button>
+        </div>
+      </article>
+ 
+      <article class="row" data-status="pending">
+        <img class="row__img" src="img/placeholder.svg" alt="Lê Thị Hoa">
+        <div>
+          <a class="row__title" href="#">Lê Thị Hoa</a>
+          <p class="row__meta">Homestay: Sea Breeze Homestay · Đà Nẵng</p>
+          <p class="row__meta">Nộp đơn: 21/09/2026</p>
+        </div>
+        <div class="row__actions">
+          <span class="badge badge--warning">Chờ duyệt</span>
+          <button class="btn btn--primary" type="button" data-action="approve" data-app-id="2">Duyệt</button>
+          <button class="btn btn--danger" type="button" data-action="reject" data-app-id="2">Từ chối</button>
+        </div>
+      </article>
+ 
+      <article class="row" data-status="pending">
+        <img class="row__img" src="img/placeholder.svg" alt="Phạm Minh Khang">
+        <div>
+          <a class="row__title" href="#">Phạm Minh Khang</a>
+          <p class="row__meta">Homestay: Sapa Misty Hills · Sapa, Lào Cai</p>
+          <p class="row__meta">Nộp đơn: 22/09/2026</p>
+        </div>
+        <div class="row__actions">
+          <span class="badge badge--warning">Chờ duyệt</span>
+          <button class="btn btn--primary" type="button" data-action="approve" data-app-id="3">Duyệt</button>
+          <button class="btn btn--danger" type="button" data-action="reject" data-app-id="3">Từ chối</button>
+        </div>
+      </article>
+ 
+    </div>
+ 
+    <!-- Ẩn sẵn, chỉ hiện khi không còn đơn nào chờ duyệt -->
+    <div class="empty" id="application-empty" hidden>
+      <p class="empty__title">Không còn đơn nào chờ duyệt</p>
+      <p class="empty__hint">Mọi đơn xin làm host đã được xử lý.</p>
+    </div>
+  </section>
+ 
+</main>
+ 
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
+ 
+<!-- Hộp xác nhận Duyệt / Từ chối -->
+<dialog id="confirm-dialog">
+  <h3 class="dialog__title">Xác nhận</h3>
+  <p class="dialog__message"></p>
+  <div class="dialog__actions">
+    <button class="btn" type="button" data-cancel>Đóng</button>
+    <button class="btn btn--primary" type="button" data-confirm>Xác nhận</button>
+  </div>
+</dialog>
+<!-- Modal nhập lý do từ chối đơn xin làm host -->
+<dialog id="reject-dialog">
+  <h3 class="dialog__title">Từ chối đơn xin làm host?</h3>
+  <p class="dialog__message">Vui lòng cho người nộp đơn biết lý do — thông tin này sẽ được gửi kèm thông báo.</p>
+  <label class="field"><span class="field__label">Lý do</span>
+    <textarea class="textarea" id="rejectReason" rows="3" placeholder="Ví dụ: Hồ sơ pháp lý chưa đầy đủ..."></textarea>
+    <span class="field__error" id="rejectErr"></span></label>
+  <div class="dialog__actions">
+    <button class="btn" id="rejectCancel" type="button">Đóng</button>
+    <button class="btn btn--danger" id="rejectConfirm" type="button">Từ chối đơn</button>
+  </div>
+</dialog>
+
+ 
+<script type="module">
+  import './js/components/site-header.js';
+  import './js/components/site-footer.js';
+  import { confirmAction, toast } from './js/ui.js';
+
+  // Giai đoạn mock: xử lý đơn ngay trên DOM.
+  // TODO khi có API thật: fetch danh sách đơn, gọi API duyệt/từ chối (kèm lý do),
+  // chỉ cho vào trang khi getUser().role === 'admin'.
+  const list = document.getElementById('application-list');
+  const empty = document.getElementById('application-empty');
+  const rejectDlg = document.getElementById('reject-dialog');
+  const rejectReason = document.getElementById('rejectReason');
+  const rejectErr = document.getElementById('rejectErr');
+  let currentArticle = null;
+
+  function markDone(article, badgeClass, badgeText) {
+    article.dataset.status = 'done';
+    const badge = article.querySelector('.badge');
+    badge.className = `badge ${badgeClass}`;
+    badge.textContent = badgeText;
+    article.querySelectorAll('button').forEach(b => b.remove());
+    if (!list.querySelector('[data-status="pending"]')) {
+      list.hidden = true;
+      empty.hidden = false;
+    }
+  }
+
+  list.addEventListener('click', async e => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const article = btn.closest('article');
+    const name = article.querySelector('.row__title').textContent;
+
+    if (btn.dataset.action === 'approve') {
+      const ok = await confirmAction({
+        title: 'Duyệt đơn xin làm host?',
+        message: `Đồng ý cho "${name}" trở thành host?`,
+        confirmText: 'Duyệt',
+      });
+      if (!ok) return;
+      markDone(article, 'badge--success', 'Đã duyệt');
+      toast(`Đã duyệt đơn của ${name}.`);
+    }
+
+    if (btn.dataset.action === 'reject') {
+      currentArticle = article;
+      rejectReason.value = '';
+      rejectErr.textContent = '';
+      rejectReason.removeAttribute('aria-invalid');
+      rejectDlg.showModal();   // có <textarea> nhập lý do, không dùng confirm-dialog chung
+    }
+  });
+
+  rejectDlg.querySelector('#rejectCancel').onclick = () => rejectDlg.close();
+  rejectDlg.querySelector('#rejectConfirm').onclick = () => {
+    const reason = rejectReason.value.trim();
+    if (!reason) {
+      rejectErr.textContent = 'Vui lòng nhập lý do từ chối.';
+      rejectReason.setAttribute('aria-invalid', 'true');
+      return;
+    }
+    const name = currentArticle.querySelector('.row__title').textContent;
+    rejectDlg.close();
+    markDone(currentArticle, 'badge--danger', 'Đã từ chối');
+    toast(`Đã từ chối đơn của ${name}.`, 'error');
+  };
+
+</script>
+</body>
+</html>

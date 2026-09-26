@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homestay Booking — Lịch sử đặt phòng</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+ 
+<site-header active="bookings"></site-header>
+ 
+<main class="page container">
+ 
+  <div class="section-head">
+    <div>
+      <h1>Lịch sử đặt phòng</h1>
+      <p>Xem lại các homestay bạn đã đặt và trạng thái hiện tại.</p>
+    </div>
+  </div>
+ 
+  <!-- TODO: khi có dữ liệu thật, gắn data-status vào từng nút và lọc bằng JS -->
+  <div class="tabs">
+    <button class="btn is-active" type="button" data-filter="all">Tất cả</button>
+    <button class="btn" type="button" data-filter="pending">Chờ xác nhận</button>
+    <button class="btn" type="button" data-filter="confirmed">Đã xác nhận</button>
+    <button class="btn" type="button" data-filter="checked-in">Đã nhận phòng</button>
+    <button class="btn" type="button" data-filter="completed">Hoàn thành</button>
+    <button class="btn" type="button" data-filter="cancelled">Đã huỷ</button>
+  </div>
+ 
+  <!-- ========================================================
+       DANH SÁCH BOOKING
+       Đây là dữ liệu MẪU để xem giao diện. Khi có mock/bookings.json,
+       phần này sẽ được thay bằng JS render (giống render.js), mỗi
+       .row ứng với 1 booking, class .row lặp lại cho từng item.
+       ======================================================== -->
+  <div class="stack" id="booking-list">
+ 
+    <article class="row" data-status="pending">
+      <img class="row__img" src="img/placeholder.svg" alt="Đà Lạt Pine Cottage">
+      <div>
+        <a class="row__title" href="booking-detail.html?id=1">Đà Lạt Pine Cottage</a>
+        <p class="row__meta">Phòng Đôi View Rừng Thông · 12/10/2026 → 14/10/2026 (2 đêm)</p>
+        <p class="row__price">890.000 VND</p>
+      </div>
+      <div class="row__actions">
+        <span class="badge badge--warning">Chờ xác nhận</span>
+        <a class="btn btn--outline" href="booking-detail.html?id=1">Xem chi tiết</a>
+        <button class="btn btn--danger" type="button" data-action="cancel" data-booking-id="1">Huỷ</button>
+      </div>
+    </article>
+ 
+    <article class="row" data-status="confirmed">
+      <img class="row__img" src="img/placeholder.svg" alt="Sapa Misty Hills Homestay">
+      <div>
+        <a class="row__title" href="booking-detail.html?id=2">Sapa Misty Hills Homestay</a>
+        <p class="row__meta">Phòng Đôi View Núi · 10/10/2026 → 12/10/2026 (2 đêm)</p>
+        <p class="row__price">1.100.000 VND</p>
+      </div>
+      <div class="row__actions">
+        <span class="badge badge--success">Đã xác nhận</span>
+        <a class="btn btn--outline" href="booking-detail.html?id=2">Xem chi tiết</a>
+        <button class="btn btn--danger" type="button" data-action="cancel" data-booking-id="2">Huỷ</button>
+      </div>
+    </article>
+ 
+    <article class="row" data-status="completed">
+      <img class="row__img" src="img/placeholder.svg" alt="Sea Breeze Homestay">
+      <div>
+        <a class="row__title" href="booking-detail.html?id=3">Sea Breeze Homestay</a>
+        <p class="row__meta">Phòng Đơn View Biển · 20/08/2026 → 22/08/2026 (2 đêm)</p>
+        <p class="row__price">760.000 VND</p>
+      </div>
+      <div class="row__actions">
+        <span class="badge">Hoàn thành</span>
+        <a class="btn btn--outline" href="booking-detail.html?id=3">Xem chi tiết</a>
+        <a class="btn" href="booking-detail.html?id=3#review">Viết đánh giá</a>
+      </div>
+    </article>
+ 
+    <article class="row" data-status="cancelled">
+      <img class="row__img" src="img/placeholder.svg" alt="Đà Lạt Pine Cottage">
+      <div>
+        <a class="row__title" href="booking-detail.html?id=4">Đà Lạt Pine Cottage</a>
+        <p class="row__meta">Phòng Đôi View Rừng Thông · 01/07/2026 → 03/07/2026 (2 đêm)</p>
+        <p class="row__price">890.000 VND</p>
+      </div>
+      <div class="row__actions">
+        <span class="badge badge--danger">Đã huỷ</span>
+        <a class="btn btn--outline" href="booking-detail.html?id=4">Xem chi tiết</a>
+      </div>
+    </article>
+ 
+  </div>
+ 
+  <!-- ========================================================
+       TRẠNG THÁI RỖNG — chỉ hiện khi không có booking nào (ẩn sẵn).
+       Khi có JS thật: nếu danh sách rỗng thì hiện khối này thay
+       cho #booking-list, và có thể xoá phần data mẫu ở trên.
+       ======================================================== -->
+  <div class="empty" id="booking-empty" hidden>
+    <p class="empty__title">Bạn chưa có đặt phòng nào</p>
+    <p class="empty__hint">Tìm một homestay ưng ý và đặt phòng ngay hôm nay.</p>
+    <a class="btn btn--primary empty__action" href="search.html">Tìm homestay</a>
+  </div>
+ 
+</main>
+ 
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
+ 
+<!-- Hộp xác nhận Huỷ — dùng chung cho mọi nút [data-action="cancel"] -->
+<dialog id="confirm-dialog">
+  <h3 class="dialog__title">Huỷ đặt phòng?</h3>
+  <p class="dialog__message">Bạn có chắc muốn huỷ đặt phòng này không?</p>
+  <div class="dialog__actions">
+    <button class="btn" type="button" data-cancel>Đóng</button>
+    <button class="btn btn--danger" type="button" data-confirm>Huỷ đặt phòng</button>
+  </div>
+</dialog>
+ 
+<script type="module">
+  import './js/components/site-header.js';
+  import './js/components/site-footer.js';
+  // TODO: khi có dữ liệu thật, thêm booking-list.js để:
+  // 1) fetch mock/bookings.json (hoặc gọi API), render vào #booking-list
+  // 2) lọc theo .tabs (data-filter) khớp với [data-status] của từng .row
+  // 3) gắn confirmAction() (từ js/ui.js) vào nút [data-action="cancel"]
+  // 4) hiện #booking-empty khi danh sách rỗng, ẩn #booking-list
+</script>
+</body>
+</html>

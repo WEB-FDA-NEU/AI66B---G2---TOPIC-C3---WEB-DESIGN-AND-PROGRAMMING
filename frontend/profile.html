@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homestay Booking — Hồ sơ cá nhân</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+ 
+<site-header active="profile"></site-header>
+ 
+<main class="page container">
+ 
+  <div class="section-head">
+    <div>
+      <h1>Hồ sơ cá nhân</h1>
+      <p>Quản lý thông tin tài khoản của bạn.</p>
+    </div>
+  </div>
+ 
+  <div class="stack" style="max-width:560px">
+ 
+    <!-- ==================== THÔNG TIN CÁ NHÂN ==================== -->
+    <section class="form-card" style="margin:0">
+      <h3>Thông tin cá nhân</h3>
+ 
+      <!-- Avatar -->
+      <div class="flex gap-3 mt-4" style="align-items:center">
+        <img src="img/placeholder.svg" alt="Ảnh đại diện" width="72" height="72"
+             style="border-radius:50%;object-fit:cover">
+        <div class="uploader" style="padding:var(--sp-2) var(--sp-3);flex:1">
+          <label class="field__label" for="avatar">Đổi ảnh đại diện</label>
+          <input class="input" type="file" id="avatar" name="avatar" accept="image/png,image/jpeg,image/webp">
+          <p class="field__hint">JPEG, PNG hoặc WebP, tối đa 5MB.</p>
+        </div>
+      </div>
+ 
+      <form class="stack mt-4">
+        <label class="field">
+          <span class="field__label">Họ và tên</span>
+          <input class="input" type="text" name="display_name" value="Nguyễn Quang Huy">
+          <span class="field__error"></span>
+        </label>
+ 
+        <label class="field">
+          <span class="field__label">Email</span>
+          <input class="input" type="email" name="email" value="quanghuy@example.com">
+          <span class="field__hint">Dùng email này để đăng nhập.</span>
+          <span class="field__error"></span>
+        </label>
+ 
+        <label class="field">
+          <span class="field__label">Số điện thoại</span>
+          <input class="input" type="tel" name="phone" value="0909123456">
+          <span class="field__error"></span>
+        </label>
+ 
+        <button class="btn btn--primary mt-4" type="submit">Lưu thay đổi</button>
+      </form>
+    </section>
+ 
+    <!-- ==================== ĐỔI MẬT KHẨU ==================== -->
+    <section class="form-card" style="margin:0">
+      <h3>Đổi mật khẩu</h3>
+      <form class="stack mt-4">
+        <label class="field">
+          <span class="field__label">Mật khẩu hiện tại</span>
+          <input class="input" type="password" name="current_password">
+          <span class="field__error"></span>
+        </label>
+ 
+        <label class="field">
+          <span class="field__label">Mật khẩu mới</span>
+          <input class="input" type="password" name="new_password">
+          <span class="field__hint">Tối thiểu 8 ký tự.</span>
+          <span class="field__error"></span>
+        </label>
+ 
+        <label class="field">
+          <span class="field__label">Nhập lại mật khẩu mới</span>
+          <input class="input" type="password" name="confirm_password">
+          <span class="field__error"></span>
+        </label>
+ 
+        <button class="btn btn--primary mt-4" type="submit">Đổi mật khẩu</button>
+      </form>
+    </section>
+ 
+    <!-- ==================== TRỞ THÀNH HOST ==================== -->
+    <section class="form-card" style="margin:0">
+      <h3>Bạn có homestay muốn cho thuê?</h3>
+      <p class="mt-3 text-muted">Đăng ký làm host để bắt đầu quản lý homestay của riêng bạn.</p>
+      <a class="btn btn--outline mt-3" href="host-dashboard.html">Trở thành Host</a>
+    </section>
+ 
+  </div>
+ 
+</main>
+ 
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
+ 
+<script type="module">
+  import './js/components/site-header.js';
+  import './js/components/site-footer.js';
+  // TODO: khi có dữ liệu thật, thêm profile.js để:
+  // 1) getUser() (từ js/auth.js) đổ giá trị thật vào 3 ô name/email/phone
+  // 2) validate + gọi API cập nhật hồ sơ khi submit form đầu
+  // 3) validate mật khẩu mới trùng khớp + gọi API đổi mật khẩu khi submit form 2
+  // 4) toast() (từ js/ui.js) báo thành công/thất bại sau khi lưu
+</script>
+</body>
+</html>

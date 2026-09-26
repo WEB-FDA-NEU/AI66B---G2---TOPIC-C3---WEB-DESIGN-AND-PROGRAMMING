@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homestay Booking — Chi tiết đặt phòng</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+ 
+<site-header active="bookings"></site-header>
+ 
+<main class="page container">
+ 
+  <nav class="breadcrumb" aria-label="breadcrumb">
+    <ol>
+      <li><a href="booking-list.html">Lịch sử đặt phòng</a></li>
+      <li aria-current="page">Chi tiết đặt phòng</li>
+    </ol>
+  </nav>
+ 
+  <div class="section-head">
+    <div>
+      <h1>Đà Lạt Pine Cottage</h1>
+      <p>Mã đặt phòng: <strong>#BK000001</strong></p>
+    </div>
+    <span class="badge badge--success">Đã xác nhận</span>
+  </div>
+ 
+  <!-- ========================================================
+       TIMELINE TRẠNG THÁI (BR-3): Pending -> Confirmed ->
+       Checked-in -> Completed, có nhánh Cancelled/Rejected.
+       Đây là markup demo, class .is-done/.is-current chỉ để
+       hiển thị tĩnh — khi có dữ liệu thật thì JS sẽ set class
+       theo status thực tế của booking.
+       ======================================================== -->
+  <div class="tabs" aria-label="Trạng thái đặt phòng">
+    <span class="btn is-active" data-step="pending">1. Chờ xác nhận</span>
+    <span class="btn is-active" data-step="confirmed">2. Đã xác nhận</span>
+    <span class="btn" data-step="checked-in">3. Đã nhận phòng</span>
+    <span class="btn" data-step="completed">4. Hoàn thành</span>
+  </div>
+ 
+  <div class="detail-layout">
+ 
+    <!-- ---------------- NỘI DUNG CHÍNH ---------------- -->
+    <div class="stack">
+ 
+      <section class="form-card" style="margin:0">
+        <h3>Thông tin homestay</h3>
+        <div class="row" style="border:none;padding:0;margin-top:var(--sp-3)">
+          <img class="row__img" src="img/placeholder.svg" alt="Đà Lạt Pine Cottage">
+          <div>
+            <a class="row__title" href="detail.html?id=1">Đà Lạt Pine Cottage</a>
+            <p class="row__meta">📍 Phường 3, Đà Lạt, Lâm Đồng</p>
+            <p class="row__meta">Phòng Đôi View Rừng Thông · 2 khách</p>
+          </div>
+        </div>
+      </section>
+ 
+      <section class="form-card" style="margin:0">
+        <h3>Thời gian lưu trú</h3>
+        <div class="flex-between mt-3">
+          <div>
+            <p class="field__label">Nhận phòng</p>
+            <p>12/10/2026</p>
+          </div>
+          <div>
+            <p class="field__label">Trả phòng</p>
+            <p>14/10/2026</p>
+          </div>
+          <div>
+            <p class="field__label">Số đêm</p>
+            <p>2 đêm</p>
+          </div>
+        </div>
+      </section>
+ 
+      <!-- Liên hệ homestay — chỉ hiện đầy đủ sau khi booking đã xác nhận (BR-13) -->
+      <section class="form-card" style="margin:0">
+        <h3>Liên hệ homestay</h3>
+        <p class="mt-3">📍 Địa chỉ đầy đủ: 12 Đường Hoa Hồng, Phường 3, Đà Lạt, Lâm Đồng</p>
+        <p>📞 Điện thoại: 0909 123 456</p>
+      </section>
+ 
+      <!-- Chỉ hiện khi booking đã Hoàn thành (BR-9) -->
+      <section class="form-card" id="review-section" style="margin:0" hidden>
+        <h3>Đánh giá của bạn</h3>
+        <p class="mt-3 text-muted">Bạn chưa đánh giá lượt lưu trú này.</p>
+        <a class="btn btn--primary mt-3" href="#">Viết đánh giá</a>
+      </section>
+ 
+    </div>
+ 
+    <!-- ---------------- HỘP TỔNG TIỀN + HÀNH ĐỘNG ---------------- -->
+    <aside class="detail-layout__aside">
+      <div class="booking-summary stack">
+        <h3>Chi tiết thanh toán</h3>
+        <div class="flex-between">
+          <span>890.000 VND × 2 đêm</span>
+          <span>1.780.000 VND</span>
+        </div>
+        <div class="flex-between">
+          <span>Phí dịch vụ (5%)</span>
+          <span>89.000 VND</span>
+        </div>
+        <hr>
+        <div class="flex-between">
+          <strong>Tổng cộng</strong>
+          <strong class="booking-summary__price">1.869.000 VND</strong>
+        </div>
+ 
+        <div class="stack mt-4">
+          <button class="btn btn--danger btn--block" type="button" data-action="cancel" data-booking-id="1">
+            Huỷ đặt phòng
+          </button>
+          <button class="btn btn--block" type="button" data-action="change-dates" disabled>
+            Yêu cầu đổi ngày
+          </button>
+          <p class="field__hint">Huỷ trước 3 ngày nhận phòng để được hoàn tiền toàn bộ.</p>
+        </div>
+      </div>
+    </aside>
+ 
+  </div>
+ 
+</main>
+ 
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
+ 
+<!-- Hộp xác nhận Huỷ -->
+<dialog id="confirm-dialog">
+  <h3 class="dialog__title">Huỷ đặt phòng?</h3>
+  <p class="dialog__message">Bạn có chắc muốn huỷ đặt phòng này không?</p>
+  <div class="dialog__actions">
+    <button class="btn" type="button" data-cancel>Đóng</button>
+    <button class="btn btn--danger" type="button" data-confirm>Huỷ đặt phòng</button>
+  </div>
+</dialog>
+ 
+<script type="module">
+  import './js/components/site-header.js';
+  import './js/components/site-footer.js';
+  // TODO: khi có dữ liệu thật, thêm booking-detail.js để:
+  // 1) đọc ?id= trên URL, gọi getBooking(id) đổ dữ liệu thật vào trang
+  // 2) set class .is-done/.is-current trên .tabs theo status thực tế
+  // 3) chỉ hiện #review-section khi status === 'completed'
+  // 4) gắn confirmAction() (từ js/ui.js) vào nút [data-action="cancel"]
+</script>
+</body>
+</html>

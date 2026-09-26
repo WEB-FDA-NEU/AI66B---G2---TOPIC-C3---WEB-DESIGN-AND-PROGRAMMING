@@ -65,22 +65,46 @@ export function getItem(id) {
 }
 
 // ══════════ NGƯỜI 2 — tài khoản ══════════
+/** Cache danh sách user đọc từ mock/users.json — dùng chung cho login() và register(). */
+let MOCK_USERS = null;
+async function loadMockUsers() {
+  if (!MOCK_USERS) {
+    const data = await request(`${MOCK_BASE}/users.json`);
+    MOCK_USERS = data.users ?? [];
+  }
+  return MOCK_USERS;
+}
 
-export function login(email, password) {
+export async function login(email, password) {
   if (USE_MOCK) {
-    if (password === 'sai') return Promise.reject(new ApiError(401, 'Email hoặc mật khẩu không đúng.'));
-    return Promise.resolve({
-      access_token: 'mock-token', token_type: 'bearer',
-      user: { id: 1, display_name: 'Người dùng mẫu', role: 'user' },
-    });
+    const users = await loadMockUsers();
+    const found = users.find(u => u.email === email.trim().toLowerCase());
+    if (!found || found.password !== password)
+      throw new ApiError(401, 'Email hoặc mật khẩu không đúng.');
+    const { password: _pw, ...user } = found;   // không bao giờ trả password về client
+    return { access_token: 'mock-token', token_type: 'bearer', user };
   }
   return request(`${API_BASE}/auth/login`, { method: 'POST', body: { email, password } });
 }
 
-export function register(payload) {
-  if (USE_MOCK)
-    return Promise.resolve({ access_token: 'mock-token',
-                             user: { id: 2, display_name: payload.display_name, role: 'user' } });
+export async function register(payload) {
+  if (USE_MOCK) {
+    const users = await loadMockUsers();
+    const email = payload.email.trim().toLowerCase();
+    if (users.some(u => u.email === email))
+      throw new ApiError(409, 'Email đã được đăng ký.');
+    const user = {
+      id: users.length + 1,
+      display_name: payload.display_name,
+      email,
+      phone: payload.phone ?? '',
+      role: 'user',
+      avatar: 'img/placeholder.svg',
+      createdAt: new Date().toISOString(),
+    };
+    users.push(user);
+    return { access_token: 'mock-token', token_type: 'bearer', user };
+  }
   return request(`${API_BASE}/auth/register`, { method: 'POST', body: payload });
 }
 

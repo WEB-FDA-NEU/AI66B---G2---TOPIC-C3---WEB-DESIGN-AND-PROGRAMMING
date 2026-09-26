@@ -12,6 +12,7 @@
 // bookings  -> My bookings
 // profile   -> Profile
 // host      -> Property Management
+// admin     -> Admin
 //
 // Chỉ sửa Header ở file này.
 // Không tạo Header riêng trong từng HTML.
@@ -171,7 +172,7 @@ const TEMPLATE = /* html */ `
         <li>
 
           <a
-            href="host-homestays.html"
+            href="search.html"
             data-nav="search">
 
             🏠 Homestays
@@ -231,6 +232,23 @@ const TEMPLATE = /* html */ `
 
         </li>
 
+        <!-- ==================================================
+            6. ADMIN
+            Chỉ hiện khi role = admin.
+            Giai đoạn mock: để tạm hiện luôn để dễ test.
+          ================================================== -->
+
+        <li data-admin-nav>
+
+          <a
+            href="admin.html"
+            data-nav="admin">
+
+            🛡 Admin
+
+          </a>
+
+        </li>
 
       </ul>
 
@@ -296,7 +314,21 @@ class SiteHeader extends HTMLElement {
       }
 
     }
+    // --------------------------------------------------------
+    // MENU ADMIN — chỉ hiện khi role = admin
+    //
+    // Giai đoạn mock: để tạm hiện luôn để cả nhóm dễ test.
+    // Khi nối API thật, bỏ comment dòng if bên dưới để chỉ
+    // admin mới thấy mục này.
+    // --------------------------------------------------------
 
+    const adminNav = this.querySelector('[data-admin-nav]');
+
+    if (adminNav) {
+
+        if (getUser()?.role !== 'admin') adminNav.hidden = true;
+
+    }
 
     // --------------------------------------------------------
     // MOBILE MENU

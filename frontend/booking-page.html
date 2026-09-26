@@ -3,25 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Booking Page — Booking.com</title>
-
+  <title>Homestay Booking — Đặt phòng & Thanh toán</title>
+ 
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
-<header class="site-header">
-  <div class="site-header__top container">
-    <a href="/" class="logo">Booking.com</a>
-
-    <a href="/thong-tin-tai-khoan.html" class="avatar-btn" aria-label="Tài khoản của tôi">
-      <img src="https://q-xx.bstatic.com/backend_static/common/img/header/avatar.png" alt="" loading="lazy">
-      <span class="visually-hidden">Tài khoản của tôi</span>
-    </a>
-  </div>
-</header>
-
+ 
+<site-header></site-header>
+ 
 <nav class="breadcrumb container mt-4">
   <ol>
     <li class="text-primary">✓ Bạn chọn</li>
@@ -29,269 +21,233 @@
     <li>Hoàn tất đặt phòng</li>
   </ol>
 </nav>
+ 
 <main class="container page">
-  <!-- STEPPER -->
-   
-      
-    <!-- BỐ CỤC 2 CỘT: CỘT FORM VẼ TRƯỚC (BÊN TRÁI) - CỘT TÓM TẮT VẼ SAU (BÊN PHẢI) -->
-    <div class="detail-layout">
-
-      <!-- ========================================================= -->
-      <!-- CỘT TRÁI: FORM NHẬP THÔNG TIN (Viết trước theo DOM)       -->
-      <!-- ========================================================= -->
-      <div class="stack">
-
-        <!-- CẢNH BÁO LỖI TỔNG -->
-        <div id="errorAlert" class="msg msg--error stack gap-2" role="alert" aria-live="polite">
+ 
+  <div class="detail-layout">
+ 
+    <!-- ---------------- CỘT TRÁI: FORM ---------------- -->
+    <div class="stack">
+ 
+      <div id="errorAlert" class="msg msg--error stack gap-2" role="alert" aria-live="polite" hidden>
+        <div class="flex gap-2">
+          <span class="icon-error">!</span>
+          <span>Vui lòng điền tất cả các ô bắt buộc để tiếp tục</span>
+        </div>
+        <div>
+          <a href="#checkoutForm" class="text-primary underline">Hiển thị</a>
+        </div>
+      </div>
+ 
+      <div class="form-card flex gap-3">
+        <div class="avatar-icon">👤</div>
+        <div>
+          <strong>Bạn đã được đăng nhập</strong>
+          <p class="field__hint">Tài khoản của bạn</p>
+        </div>
+      </div>
+ 
+      <section class="form-card">
+        <h3>Nhập thông tin chi tiết của bạn</h3>
+ 
+        <div class="msg mt-3 mb-3 stack gap-1">
           <div class="flex gap-2">
-            <span class="icon-error">!</span>
-            <span>Vui lòng điền tất cả các ô bắt buộc để tiếp tục</span>
+            <span class="icon-info">i</span>
+            <span>Gần xong rồi! Chỉ cần điền phần thông tin <span class="text-danger">*</span> bắt buộc</span>
           </div>
-          <div>
-            <a href="#checkoutForm" class="text-primary underline">Hiển thị</a>
-          </div>
+          <p class="field__hint">Vui lòng nhập thông tin của bạn bằng ký tự Latin để chỗ nghỉ có thể hiểu được</p>
         </div>
-
-        <!-- TRẠNG THÁI ĐĂNG NHẬP -->
-        <div class="form-card flex gap-3">
-          <div class="avatar-icon">👤</div>
-          <div>
-            <strong>Bạn đã được đăng nhập</strong>
-            <p class="field__hint">Tài khoản của bạn</p>
-          </div>
-        </div>
-
-        <!-- FORM CHÍNH -->
-        <section class="form-card">
-          <h3>Nhập thông tin chi tiết của bạn</h3>
-
-          <div class="msg mt-3 mb-3 stack gap-1">
-            <div class="flex gap-2">
-              <span class="icon-info">i</span>
-              <span>Gần xong rồi! Chỉ cần điền phần thông tin <span class="text-danger">*</span> bắt buộc</span>
-            </div>
-            <p class="field__hint">Vui lòng nhập thông tin của bạn bằng ký tự Latin để chỗ nghỉ có thể hiểu được</p>
-          </div>
-
-          <form id="checkoutForm" class="stack gap-3" novalidate>
-            
-            <!-- HỌ & TÊN -->
-            <div class="grid gap-3">
-              <div class="field">
-                <label class="field__label" for="lastname">Họ (tiếng Anh) *</label>
-                <div class="field__input-wrapper">
-                  <input class="input" id="lastname" type="text" placeholder="ví dụ: Nguyễn" aria-invalid="true" required>
-                  <span class="field__icon-danger">!</span>
-                </div>
-                <div class="field__error">Vui lòng nhập họ của bạn</div>
+ 
+        <form id="checkoutForm" class="stack gap-3" novalidate>
+ 
+          <div class="grid gap-3">
+            <label class="field">
+              <span class="field__label">Họ (tiếng Anh) *</span>
+              <div class="field__input-wrapper">
+                <input class="input" id="lastname" type="text" placeholder="ví dụ: Nguyễn" required>
+                <span class="field__icon-danger" hidden>!</span>
               </div>
-
-              <div class="field">
-                <label class="field__label" for="firstname">Tên (tiếng Anh) *</label>
-                <div class="field__input-wrapper">
-                  <input class="input" id="firstname" type="text" placeholder="ví dụ: Tuấn" aria-invalid="true" required>
-                  <span class="field__icon-danger">!</span>
-                </div>
-                <div class="field__error">Vui lòng điền tên của bạn</div>
+              <span class="field__error"></span>
+            </label>
+ 
+            <label class="field">
+              <span class="field__label">Tên (tiếng Anh) *</span>
+              <div class="field__input-wrapper">
+                <input class="input" id="firstname" type="text" placeholder="ví dụ: Tuấn" required>
+                <span class="field__icon-danger" hidden>!</span>
               </div>
-            </div>
-
-            <!-- EMAIL -->
-            <div class="field">
-              <label class="field__label" for="email">Địa chỉ Email *</label>
-              <input class="input" id="email" type="email" value="hoanglinhtla@gmail.com" required>
-              <div class="field__error"></div>
-            </div>
-
-            <hr class="divider">
-
-            <!-- THANH TOÁN -->
-            <h3 class="text-primary">Thông tin thanh toán giả lập</h3>
-
-            <div class="field">
-              <label class="field__label" for="cardNum">Số thẻ Visa/Mastercard *</label>
-              <input class="input" id="cardNum" type="text" placeholder="4532 •••• •••• 8899" maxlength="19" required>
-              <div class="field__error"></div>
-            </div>
-
-            <div class="grid gap-3">
-              <div class="field">
-                <label class="field__label" for="cardExp">Hạn thẻ (MM/YY) *</label>
-                <input class="input" id="cardExp" type="text" placeholder="12/28" maxlength="5" required>
-                <div class="field__error"></div>
-              </div>
-              <div class="field">
-                <label class="field__label" for="cardCvv">Mã CVC/CVV *</label>
-                <input class="input" id="cardCvv" type="password" placeholder="123" maxlength="3" required>
-                <div class="field__error"></div>
-              </div>
-            </div>
-
-            <button type="submit" class="btn btn--primary btn--block mt-3" id="btnSubmit">
-              Xác nhận & Thanh toán (<span id="btnPayAmount">2.520.000đ</span>)
-            </button>
-          </form>
-        </section>
-
-      </div>
-
-      <!-- ========================================================= -->
-      <!-- CỘT PHẢI: TÓM TẮT THÔNG TIN PHÒNG & GIÁ TIỀN               -->
-      <!-- ========================================================= -->
-      <aside class="detail-layout__aside stack">
-        
-        <!-- THÔNG TIN KHÁCH SẠN -->
-        <div class="form-card">
-          <img src="https://cf.bstatic.com/xdata/images/hotel/max1024x768/916217610.jpg?k=e116c9ab3358595bb9a3b7acb1c1f495ca44b2729ba58e5c30f538c46aa1c187&amp;o=" alt="Townhouse Havora Residence" class="hotel-card__img mb-3">
-          
-          <div class="flex gap-1 mb-2">
-            <span class="text-warning">★★</span>
-            <span class="badge badge--warning">Mới trên Booking.com</span>
+              <span class="field__error"></span>
+            </label>
           </div>
-
-          <h3 class="mb-2">Townhouse Havora Residence</h3>
-          <p class="text-muted mb-2">51/32 Dong Me, Tu Liem, Ha Noi, Hanoi, Hà Nội, Việt Nam</p>
-          
-          <p class="text-success font-semibold mb-3">Vị trí tuyệt vời — 8,5</p>
-
-          <div class="flex gap-2 mb-3">
-            <span class="badge badge--info font-bold">8,4</span>
-            <span><strong>Rất tốt</strong> · 5 đánh giá</span>
+ 
+          <label class="field">
+            <span class="field__label">Địa chỉ Email *</span>
+            <input class="input" id="email" type="email" placeholder="ban@vidu.com" required>
+            <span class="field__error"></span>
+          </label>
+ 
+          <hr class="divider">
+ 
+          <h3 class="text-primary">Thông tin thanh toán giả lập</h3>
+ 
+          <label class="field">
+            <span class="field__label">Số thẻ Visa/Mastercard *</span>
+            <input class="input" id="cardNum" type="text" placeholder="4532 •••• •••• 8899" maxlength="19" required>
+            <span class="field__error"></span>
+          </label>
+ 
+          <div class="grid gap-3">
+            <label class="field">
+              <span class="field__label">Hạn thẻ (MM/YY) *</span>
+              <input class="input" id="cardExp" type="text" placeholder="12/28" maxlength="5" required>
+              <span class="field__error"></span>
+            </label>
+            <label class="field">
+              <span class="field__label">Mã CVC/CVV *</span>
+              <input class="input" id="cardCvv" type="password" placeholder="123" maxlength="3" required>
+              <span class="field__error"></span>
+            </label>
           </div>
-
-          <div class="border-top pt-2">
-            📶 WiFi miễn phí
-          </div>
-        </div>
-
-        <!-- CHI TIẾT ĐẶT PHÒNG & GIÁ -->
-        <div class="form-card stack">
-          <h3>Chi tiết đặt phòng của bạn</h3>
-          
-          <div class="stack gap-2 mt-2">
-            <div class="flex-between">
-              <span class="text-muted">Nhận phòng:</span>
-              <strong id="checkinDisplay">01/10/2026</strong>
-            </div>
-            <div class="flex-between">
-              <span class="text-muted">Trả phòng:</span>
-              <strong id="checkoutDisplay">03/10/2026</strong>
-            </div>
-            <div class="flex-between">
-              <span class="text-muted">Số đêm ở:</span>
-              <strong id="nightsVal">2 đêm</strong>
-            </div>
-            <hr class="divider-dashed">
-            <div class="flex-between">
-              <span class="text-muted">Tiền phòng:</span>
-              <span id="roomSubtotalVal">2.400.000đ</span>
-            </div>
-            <div class="flex-between">
-              <span class="text-muted">Phí dịch vụ (5%):</span>
-              <span id="serviceFeeVal">120.000đ</span>
-            </div>
-            <hr class="divider-dashed">
-            <div class="flex-between text-large font-bold">
-              <span>Tổng tiền:</span>
-              <span class="text-primary" id="grandTotalVal">2.520.000đ</span>
-            </div>
-          </div>
-        </div>
-
-      </aside>
-
+ 
+          <div class="msg msg--error mt-3" id="formMsg" style="display:none"></div>
+ 
+          <button type="submit" class="btn btn--primary btn--block mt-3" id="btnSubmit">
+            Xác nhận &amp; Thanh toán (<span id="btnPayAmount">2.520.000 VND</span>)
+          </button>
+        </form>
+      </section>
+ 
     </div>
-  </main>
-
-  <!-- FOOTER -->
-  <site-footer>
-    <footer class="site-footer">
-      <div class="container site-footer__bottom text-center">
-        Bản quyền thuộc về group 2-AI66B. Mô phỏng bài tập UI/UX.
+ 
+    <!-- ---------------- CỘT PHẢI: TÓM TẮT ---------------- -->
+    <aside class="detail-layout__aside stack">
+ 
+      <div class="form-card">
+        <img src="img/placeholder.svg" alt="Đà Lạt Pine Cottage" class="hotel-card__img mb-3">
+ 
+        <div class="flex gap-1 mb-2">
+          <span class="text-warning">★★</span>
+          <span class="badge badge--warning">Mới trên LuxStay</span>
+        </div>
+ 
+        <h3 class="mb-2">Đà Lạt Pine Cottage</h3>
+        <p class="text-muted mb-2">Phường 3, Đà Lạt, Lâm Đồng</p>
+ 
+        <p class="text-success font-semibold mb-3">Vị trí tuyệt vời — 8,5</p>
+ 
+        <div class="flex gap-2 mb-3">
+          <span class="badge badge--info font-bold">8,4</span>
+          <span><strong>Rất tốt</strong> · 5 đánh giá</span>
+        </div>
+ 
+        <div class="border-top pt-2">
+          📶 WiFi miễn phí
+        </div>
       </div>
-    </footer>
-  </site-footer>
-
-  <!-- TOAST NOTIFICATION -->
-  <div id="toast">Thông báo hệ thống</div>
-
-  <!-- JS LOGIC -->
-  <script>
-    const ROOM_PRICE_PER_NIGHT = 1200000;
-    const SERVICE_FEE_RATE = 0.05;
-
-    const nightsVal = document.getElementById('nightsVal');
-    const roomSubtotalVal = document.getElementById('roomSubtotalVal');
-    const serviceFeeVal = document.getElementById('serviceFeeVal');
-    const grandTotalVal = document.getElementById('grandTotalVal');
-    const btnPayAmount = document.getElementById('btnPayAmount');
-    
-    const checkoutForm = document.getElementById('checkoutForm');
-    const errorAlert = document.getElementById('errorAlert');
-    const toast = document.getElementById('toast');
-
-    function formatVND(amount) {
-      return amount.toLocaleString('vi-VN') + 'đ';
-    }
-
-    // TỰ ĐỘNG FORMAT SỐ THẺ VISA
-    document.getElementById('cardNum').addEventListener('input', (e) => {
-      let val = e.target.value.replace(/\D/g, '');
-      e.target.value = val.replace(/(.{4})/g, '$1 ').trim();
-    });
-
-    // TỰ ĐỘNG FORMAT HẠN THẺ (MM/YY)
-    document.getElementById('cardExp').addEventListener('input', (e) => {
-      let val = e.target.value.replace(/\D/g, '');
-      if (val.length >= 2) {
-        e.target.value = val.slice(0, 2) + '/' + val.slice(2, 4);
-      } else {
-        e.target.value = val;
-      }
-    });
-
-    // XỬ LÝ SUBMIT FORM
-checkoutForm.addEventListener('submit', (e) => {
+ 
+      <div class="form-card stack">
+        <h3>Chi tiết đặt phòng của bạn</h3>
+ 
+        <div class="stack gap-2 mt-2">
+          <div class="flex-between">
+            <span class="text-muted">Nhận phòng:</span>
+            <strong id="checkinDisplay">01/10/2026</strong>
+          </div>
+          <div class="flex-between">
+            <span class="text-muted">Trả phòng:</span>
+            <strong id="checkoutDisplay">03/10/2026</strong>
+          </div>
+          <div class="flex-between">
+            <span class="text-muted">Số đêm ở:</span>
+            <strong id="nightsVal">2 đêm</strong>
+          </div>
+          <hr class="divider-dashed">
+          <div class="flex-between">
+            <span class="text-muted">Tiền phòng:</span>
+            <span id="roomSubtotalVal">2.400.000 VND</span>
+          </div>
+          <div class="flex-between">
+            <span class="text-muted">Phí dịch vụ (5%):</span>
+            <span id="serviceFeeVal">120.000 VND</span>
+          </div>
+          <hr class="divider-dashed">
+          <div class="flex-between text-large font-bold">
+            <span>Tổng tiền:</span>
+            <span class="text-primary" id="grandTotalVal">2.520.000 VND</span>
+          </div>
+        </div>
+      </div>
+ 
+    </aside>
+ 
+  </div>
+</main>
+ 
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
+ 
+<script type="module">
+  import './js/components/site-header.js';
+  import './js/components/site-footer.js';
+  import { setFieldError, clearFieldErrors, toast } from './js/ui.js';
+ 
+  const ROOM_PRICE_PER_NIGHT = 1200000;
+  const SERVICE_FEE_RATE = 0.05;
+ 
+  const form = document.getElementById('checkoutForm');
+  const errorAlert = document.getElementById('errorAlert');
+  const formMsg = document.getElementById('formMsg');
+ 
+  // Tự động format số thẻ / hạn thẻ khi gõ
+  document.getElementById('cardNum').addEventListener('input', e => {
+    const val = e.target.value.replace(/\D/g, '');
+    e.target.value = val.replace(/(.{4})/g, '$1 ').trim();
+  });
+  document.getElementById('cardExp').addEventListener('input', e => {
+    const val = e.target.value.replace(/\D/g, '');
+    e.target.value = val.length >= 2 ? val.slice(0, 2) + '/' + val.slice(2, 4) : val;
+  });
+ 
+  const REQUIRED_MSG = {
+    lastname: 'Vui lòng nhập họ của bạn.',
+    firstname: 'Vui lòng nhập tên của bạn.',
+    email: 'Vui lòng nhập email hợp lệ.',
+    cardNum: 'Vui lòng nhập số thẻ.',
+    cardExp: 'Vui lòng nhập hạn thẻ.',
+    cardCvv: 'Vui lòng nhập mã CVV.',
+  };
+ 
+  form.addEventListener('submit', e => {
     e.preventDefault();
-    
-    let isValid = true;
-    const inputs = checkoutForm.querySelectorAll('.input[required]');
-
-    inputs.forEach(input => {
-      const fieldContainer = input.closest('.field');
-      const errorDiv = fieldContainer ? fieldContainer.querySelector('.field__error') : null;
-      
-      if (!input.value.trim()) {
-        input.setAttribute('aria-invalid', 'true');
-        if (errorDiv) errorDiv.style.display = 'block';
-        isValid = false;
-      } else {
-        input.removeAttribute('aria-invalid');
-        if (errorDiv) errorDiv.style.display = 'none';
+    clearFieldErrors(form);
+    errorAlert.hidden = true;
+    formMsg.style.display = 'none';
+ 
+    let ok = true;
+    Object.keys(REQUIRED_MSG).forEach(id => {
+      const input = document.getElementById(id);
+      if (!input.value.trim() || (input.type === 'email' && !input.validity.valid)) {
+        setFieldError(input, REQUIRED_MSG[id]);
+        ok = false;
       }
     });
-
-    if (!isValid) {
-      if (errorAlert) {
-        errorAlert.removeAttribute('hidden');
-        window.scrollTo({ top: errorAlert.offsetTop - 20, behavior: 'smooth' });
-      }
-    } else {
-      if (errorAlert) errorAlert.setAttribute('hidden', 'true');
-      
-      const btnSubmit = document.getElementById('btnSubmit');
-      if (btnSubmit) {
-        btnSubmit.disabled = true;
-        btnSubmit.textContent = 'Đang xử lý giao dịch...';
-      }
-
-      // Giả lập xử lý trong 1.5 giây rồi nhảy sang trang xác nhận thành công
-      setTimeout(() => {
-        window.location.href = 'booking-confirmed.html';
-      }, 1500);
+ 
+    if (!ok) {
+      errorAlert.hidden = false;
+      errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
     }
-});
-  </script>
+ 
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.textContent = 'Đang xử lý giao dịch...';
+ 
+    // TODO: khi có dữ liệu thật, gọi API tạo booking thay vì setTimeout giả lập
+    setTimeout(() => {
+      toast('Thanh toán thành công!');
+      window.location.href = 'booking-confirmed.html';
+    }, 1500);
+  });
+</script>
 </body>
 </html>
-
