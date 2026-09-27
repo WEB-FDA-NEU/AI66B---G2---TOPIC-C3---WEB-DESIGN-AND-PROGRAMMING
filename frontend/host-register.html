@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đăng ký Host — Homestay Booking</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<site-header></site-header>
+
+<main class="container page">
+  <div class="form-card">
+    <a class="text-muted underline" href="index.html">← Quay lại trang chủ</a>
+    <p class="field__hint mt-3">TRỞ THÀNH HOST</p>
+    <h1>Đăng ký tài khoản Host</h1>
+    <p class="field__hint">Tạo tài khoản để quản lý homestay, phòng và các đặt phòng của khách.</p>
+
+    <form id="host-register-form" class="stack mt-4" novalidate>
+
+      <div class="field">
+        <label class="field__label" for="host-display-name">Họ và tên</label>
+        <input class="input" id="host-display-name" name="display_name" type="text" placeholder="Nhập họ và tên" required>
+        <p class="field__error"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="host-email">Email</label>
+        <input class="input" id="host-email" name="email" type="email" placeholder="example@email.com" autocomplete="email" required>
+        <p class="field__error"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="host-phone">Số điện thoại</label>
+        <input class="input" id="host-phone" name="phone" type="tel" placeholder="Nhập số điện thoại">
+        <p class="field__hint">Dùng để khách liên hệ và nhận thông tin đặt phòng.</p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="host-password">Mật khẩu</label>
+        <div class="field__input-wrapper">
+          <input class="input" id="host-password" name="password" type="password" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" minlength="8" required>
+          <button type="button" class="field__toggle-password" data-target="host-password" aria-label="Hiện mật khẩu">👁</button>
+        </div>
+        <p class="field__error"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="host-confirm">Nhập lại mật khẩu</label>
+        <div class="field__input-wrapper">
+          <input class="input" id="host-confirm" name="confirm" type="password" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required>
+          <button type="button" class="field__toggle-password" data-target="host-confirm" aria-label="Hiện mật khẩu">👁</button>
+        </div>
+        <p class="field__error"></p>
+      </div>
+
+      <p class="field__hint"><strong>Lưu ý:</strong> Sau khi tạo tài khoản, bạn có thể sử dụng chức năng quản lý homestay và phòng.</p>
+
+      <button class="btn btn--primary btn--block" type="submit">Đăng ký Host</button>
+
+      <p class="field__hint">Đã có tài khoản? <a class="text-primary" href="login.html">Đăng nhập</a></p>
+
+    </form>
+  </div>
+</main>
+
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
+
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
+<script type="module" src="js/pages/host-register.js"></script>
+</body>
+</html>

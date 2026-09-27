@@ -31,33 +31,49 @@ const STATUS_LABEL = { active: 'Đang hoạt động', sold: 'Đã bán', hidden
 export function renderCard(item) {
   const node = document.getElementById('tpl-card').content.cloneNode(true);
 
-  node.querySelector('.card__link').href = `detail.html?id=${item.id}`;
-  node.querySelector('.card__img').src   = item.cover_url;
-  node.querySelector('.card__img').alt   = item.title;
+  const link = node.querySelector('.card__link');
+  link.href = `detail.html?id=${item.id}`;
 
-  // TODO: đổi các trường cho khớp đề tài. LUÔN dùng textContent.
+  const img = node.querySelector('.card__img');
+  img.src = item.cover_url;
+  img.alt = item.title;
+
   node.querySelector('.card__title').textContent = item.title;
+
+  node.querySelector('.card__meta').textContent =
+    item.location ?? item.meta ?? '';
+
   const priceEl = node.querySelector('.card__price');
-  priceEl.textContent = formatVND(item.price);
-  // Giá gốc gạch ngang — chỉ hiện khi bản ghi CÓ trường price_old.
-  // Dùng createElement + textContent, không nối chuỗi HTML.
-  if (item.price_old && item.price_old > item.price) {
-    const old = document.createElement('span');
-    old.className = 'card__price-old';
-    old.textContent = formatVND(item.price_old);
-    priceEl.append(old);
+  priceEl.textContent = `${formatVND(item.price)} / đêm`;
+
+  if (item.rating != null) {
+    const ratingWrap = document.createElement('div');
+    ratingWrap.className = 'card__rating';
+
+    const rating = document.createElement('span');
+    rating.className = 'rating';
+    rating.textContent = `⭐ ${item.rating.toFixed(1)}`;
+
+    const text = document.createElement('span');
+    text.textContent = ' · Đánh giá tốt';
+
+    ratingWrap.append(rating, text);
+
+    priceEl.before(ratingWrap);
   }
-  node.querySelector('.card__meta').textContent  = `${item.meta} · ${timeAgo(item.created_at)}`;
 
   const badge = node.querySelector('.card__badge');
-  if (item.status && item.status !== 'active') {
-    badge.textContent = STATUS_LABEL[item.status] ?? item.status;
-    badge.dataset.status = item.status;
-  } else if (item.price_old && item.price_old > item.price) {
-    const off = Math.round((1 - item.price / item.price_old) * 100);
-    badge.textContent = `-${off}%`;
+
+  if (item.price_old && item.price_old > item.price) {
+    const discount = Math.round(
+      (1 - item.price / item.price_old) * 100
+    );
+
+    badge.textContent = `-${discount}%`;
     badge.dataset.status = 'sale';
-  } else badge.remove();
+  } else {
+    badge.remove();
+  }
 
   return node;
 }

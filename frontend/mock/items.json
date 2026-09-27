@@ -1,5 +1,5 @@
 {
-  "_ghi_chu": "Dữ liệu mẫu homestay dùng cho search.html/list.js. File này PHẢI trùng hình dạng với JSON mà FastAPI trả ở Mốc 3 — xem docs/api-contract.md.",
+  "_ghi_chu": "Dữ liệu mock homestay cho HomeBooking",
   "items": [
     {
       "id": 1,
@@ -7,131 +7,410 @@
       "location": "Bản Cát Cát, Sa Pa, Lào Cai",
       "meta": "Bản Cát Cát, Sa Pa, Lào Cai",
       "room_type": "Toàn bộ homestay",
-      "amenities": ["Wi-fi", "Bãi đỗ xe", "Bếp"],
+      "amenities": [
+        "Wi-fi",
+        "Bãi đỗ xe",
+        "Bếp"
+      ],
       "rating": 4.8,
       "price": 450000,
-      "cover_url": "img/placeholder.svg",
+      "price_old": 520000,
+      "cover_url": "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+      "images": [
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+      ],
       "status": "active",
-      "created_at": "2026-09-07T07:00:00Z"
+      "created_at": "2026-09-07T07:00:00Z",
+      "description": "Một không gian lưu trú giữa núi rừng Sa Pa, có view thung lũng và không gian yên tĩnh, phù hợp cho gia đình hoặc nhóm bạn.",
+      "reviews": [
+        {
+          "id": "rv101",
+          "name": "Minh Anh",
+          "rating": 5,
+          "comment": "View đẹp, phòng sạch và chủ nhà rất thân thiện.",
+          "created_at": "2026-09-10T09:00:00Z"
+        },
+        {
+          "id": "rv102",
+          "name": "Quốc Bảo",
+          "rating": 4,
+          "comment": "Không gian yên tĩnh, rất hợp để nghỉ dưỡng.",
+          "created_at": "2026-09-12T14:30:00Z"
+        }
+      ]
     },
+
     {
       "id": 2,
       "title": "Hoi An River Garden",
       "location": "Cẩm Châu, Hội An, Quảng Nam",
       "meta": "Cẩm Châu, Hội An, Quảng Nam",
       "room_type": "Phòng riêng",
-      "amenities": ["Wi-fi", "Bếp"],
+      "amenities": [
+        "Wi-fi",
+        "Bếp",
+        "Hồ bơi"
+      ],
       "rating": 4.6,
       "price": 380000,
       "price_old": 480000,
-      "cover_url": "img/placeholder.svg",
+      "cover_url": "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+      "images": [
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+      ],
       "status": "active",
-      "created_at": "2026-09-06T22:00:00Z"
+      "created_at": "2026-09-06T22:00:00Z",
+      "description": "Homestay gần khu phố cổ Hội An, không gian xanh và thoáng, phù hợp cho kỳ nghỉ cuối tuần.",
+      "reviews": [
+        {
+          "id": "rv201",
+          "name": "Lan",
+          "rating": 5,
+          "comment": "Không gian rất đẹp, phòng sạch và nhiều cây xanh.",
+          "created_at": "2026-09-08T09:15:00Z"
+        },
+        {
+          "id": "rv202",
+          "name": "Tuấn",
+          "rating": 4,
+          "comment": "Vị trí thuận tiện, chủ nhà hỗ trợ nhanh.",
+          "created_at": "2026-09-10T16:00:00Z"
+        }
+      ]
     },
+
     {
       "id": 3,
       "title": "Đà Lạt Pine Cottage",
       "location": "Phường 3, Đà Lạt, Lâm Đồng",
       "meta": "Phường 3, Đà Lạt, Lâm Đồng",
       "room_type": "Toàn bộ homestay",
-      "amenities": ["Wi-fi", "Bãi đỗ xe"],
+      "amenities": [
+        "Wi-fi",
+        "Bãi đỗ xe",
+        "Bếp"
+      ],
       "rating": 4.7,
       "price": 420000,
-      "cover_url": "img/placeholder.svg",
+      "cover_url": "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+      "images": [
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+      ],
       "status": "active",
-      "created_at": "2026-09-06T13:00:00Z"
+      "created_at": "2026-09-06T13:00:00Z",
+      "description": "Căn homestay phong cách gỗ giữa không gian xanh của Đà Lạt, phù hợp cho nhóm bạn hoặc gia đình nhỏ.",
+      "reviews": [
+        {
+          "id": "rv301",
+          "name": "Ngọc Anh",
+          "rating": 5,
+          "comment": "Không gian rất chill, buổi tối cực kỳ đẹp.",
+          "created_at": "2026-09-08T12:00:00Z"
+        },
+        {
+          "id": "rv302",
+          "name": "Quang Minh",
+          "rating": 4,
+          "comment": "Phòng rộng và đầy đủ tiện nghi.",
+          "created_at": "2026-09-11T18:30:00Z"
+        }
+      ]
     },
+
     {
       "id": 4,
       "title": "Sea Breeze Homestay",
       "location": "Mỹ Khê, Đà Nẵng",
       "meta": "Mỹ Khê, Đà Nẵng",
       "room_type": "Phòng riêng",
-      "amenities": ["Wi-fi", "Hồ bơi"],
+      "amenities": [
+        "Wi-fi",
+        "Hồ bơi",
+        "Bãi đỗ xe"
+      ],
       "rating": 4.5,
       "price": 380000,
-      "cover_url": "img/placeholder.svg",
+      "cover_url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+      "images": [
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+      ],
       "status": "active",
-      "created_at": "2026-09-06T04:00:00Z"
+      "created_at": "2026-09-06T04:00:00Z",
+      "description": "Không gian nghỉ dưỡng gần biển Mỹ Khê, thích hợp cho những chuyến đi ngắn ngày tại Đà Nẵng.",
+      "reviews": [
+        {
+          "id": "rv401",
+          "name": "Hà My",
+          "rating": 5,
+          "comment": "Gần biển, phòng sạch và rất tiện đi lại.",
+          "created_at": "2026-09-08T08:00:00Z"
+        },
+        {
+          "id": "rv402",
+          "name": "Đức Anh",
+          "rating": 4,
+          "comment": "Không gian thoải mái, nhân viên hỗ trợ tốt.",
+          "created_at": "2026-09-12T10:30:00Z"
+        }
+      ]
     },
+
     {
       "id": 5,
       "title": "Sài Gòn Urban Loft",
       "location": "Quận 1, TP. Hồ Chí Minh",
       "meta": "Quận 1, TP. Hồ Chí Minh",
       "room_type": "Toàn bộ homestay",
-      "amenities": ["Wi-fi", "Bãi đỗ xe", "Bếp"],
+      "amenities": [
+        "Wi-fi",
+        "Bãi đỗ xe",
+        "Bếp"
+      ],
       "rating": 4.4,
       "price": 550000,
-      "cover_url": "img/placeholder.svg",
+      "cover_url": "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+      "images": [
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+      ],
       "status": "active",
-      "created_at": "2026-09-05T19:00:00Z"
+      "created_at": "2026-09-05T19:00:00Z",
+      "description": "Không gian hiện đại ngay trung tâm Quận 1, phù hợp cho khách du lịch, công tác và khám phá thành phố.",
+      "reviews": [
+        {
+          "id": "rv501",
+          "name": "Thanh",
+          "rating": 5,
+          "comment": "Vị trí trung tâm, đi đâu cũng rất thuận tiện.",
+          "created_at": "2026-09-07T14:00:00Z"
+        },
+        {
+          "id": "rv502",
+          "name": "Nam",
+          "rating": 4,
+          "comment": "Phòng đẹp, hiện đại và sạch sẽ.",
+          "created_at": "2026-09-09T17:20:00Z"
+        }
+      ]
     },
+
     {
       "id": 6,
       "title": "Ninh Bình Rice Field View",
       "location": "Tam Cốc, Ninh Bình",
       "meta": "Tam Cốc, Ninh Bình",
       "room_type": "Phòng chung",
-      "amenities": ["Wi-fi"],
+      "amenities": [
+        "Wi-fi",
+        "Bãi đỗ xe"
+      ],
       "rating": 4.3,
       "price": 300000,
-      "cover_url": "img/placeholder.svg",
+      "cover_url": "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+      "images": [
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+      ],
       "status": "active",
-      "created_at": "2026-09-05T10:00:00Z"
+      "created_at": "2026-09-05T10:00:00Z",
+      "description": "Homestay gần Tam Cốc với không gian gần gũi thiên nhiên, phù hợp cho những chuyến khám phá Ninh Bình.",
+      "reviews": [
+        {
+          "id": "rv601",
+          "name": "Hương",
+          "rating": 4,
+          "comment": "Không gian yên bình và rất gần thiên nhiên.",
+          "created_at": "2026-09-07T09:00:00Z"
+        },
+        {
+          "id": "rv602",
+          "name": "Khoa",
+          "rating": 5,
+          "comment": "Giá hợp lý, trải nghiệm rất đáng nhớ.",
+          "created_at": "2026-09-10T11:45:00Z"
+        }
+      ]
     },
+
     {
       "id": 7,
       "title": "Phú Quốc Beachfront Bungalow",
       "location": "Bãi Trường, Phú Quốc, Kiên Giang",
       "meta": "Bãi Trường, Phú Quốc, Kiên Giang",
       "room_type": "Toàn bộ homestay",
-      "amenities": ["Wi-fi", "Hồ bơi", "Bãi đỗ xe"],
+      "amenities": [
+        "Wi-fi",
+        "Hồ bơi",
+        "Bãi đỗ xe"
+      ],
       "rating": 4.9,
       "price": 650000,
-"price_old": 800000,
-"cover_url": "img/placeholder.svg",
+      "price_old": 800000,
+      "cover_url": "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+      "images": [
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+      ],
       "status": "active",
-      "created_at": "2026-09-05T01:00:00Z"
+      "created_at": "2026-09-05T01:00:00Z",
+      "description": "Bungalow nghỉ dưỡng gần biển Bãi Trường, phù hợp cho các cặp đôi và gia đình nhỏ.",
+      "reviews": [
+        {
+          "id": "rv701",
+          "name": "Mai",
+          "rating": 5,
+          "comment": "Khung cảnh rất đẹp, cảm giác như một kỳ nghỉ thật sự.",
+          "created_at": "2026-09-06T10:00:00Z"
+        },
+        {
+          "id": "rv702",
+          "name": "Phúc",
+          "rating": 5,
+          "comment": "Không gian đẹp và dịch vụ rất tốt.",
+          "created_at": "2026-09-09T13:40:00Z"
+        }
+      ]
     },
+
     {
       "id": 8,
       "title": "Hà Nội Old Quarter Room",
       "location": "Hoàn Kiếm, Hà Nội",
       "meta": "Hoàn Kiếm, Hà Nội",
       "room_type": "Phòng riêng",
-      "amenities": ["Wi-fi"],
+      "amenities": [
+        "Wi-fi",
+        "Bếp"
+      ],
       "rating": 4.1,
       "price": 250000,
-      "cover_url": "img/placeholder.svg",
+      "cover_url": "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+      "images": [
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
+      ],
       "status": "active",
-      "created_at": "2026-09-04T16:00:00Z"
+      "created_at": "2026-09-04T16:00:00Z",
+      "description": "Phòng nghỉ nhỏ gọn tại khu phố cổ Hà Nội, thích hợp cho khách muốn khám phá trung tâm thành phố.",
+      "reviews": [
+        {
+          "id": "rv801",
+          "name": "Linh",
+          "rating": 4,
+          "comment": "Vị trí rất tiện, đi bộ được nhiều điểm tham quan.",
+          "created_at": "2026-09-06T15:00:00Z"
+        },
+        {
+          "id": "rv802",
+          "name": "Dũng",
+          "rating": 4,
+          "comment": "Phòng gọn gàng, phù hợp với chuyến đi ngắn.",
+          "created_at": "2026-09-09T08:30:00Z"
+        }
+      ]
     },
+
     {
       "id": 9,
       "title": "Mộc Châu Tea Hill Homestay",
       "location": "Mộc Châu, Sơn La",
       "meta": "Mộc Châu, Sơn La",
       "room_type": "Phòng chung",
-      "amenities": ["Wi-fi", "Bếp"],
+      "amenities": [
+        "Wi-fi",
+        "Bếp",
+        "Bãi đỗ xe"
+      ],
       "rating": 4.2,
       "price": 350000,
-      "cover_url": "img/placeholder.svg",
+      "cover_url": "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+      "images": [
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+      ],
       "status": "active",
-      "created_at": "2026-09-04T07:00:00Z"
+      "created_at": "2026-09-04T07:00:00Z",
+      "description": "Homestay giữa đồi chè Mộc Châu, không gian mộc mạc và yên tĩnh, phù hợp cho những chuyến nghỉ dưỡng.",
+      "reviews": [
+        {
+          "id": "rv901",
+          "name": "An",
+          "rating": 5,
+          "comment": "Không khí trong lành, sáng dậy nhìn đồi chè rất đẹp.",
+          "created_at": "2026-09-06T07:30:00Z"
+        },
+        {
+          "id": "rv902",
+          "name": "Vy",
+          "rating": 4,
+          "comment": "Không gian bình yên, chủ nhà dễ thương.",
+          "created_at": "2026-09-10T12:20:00Z"
+        }
+      ]
     },
+
     {
       "id": 10,
       "title": "Vũng Tàu Sea View Apartment",
       "location": "Bãi Sau, Vũng Tàu",
       "meta": "Bãi Sau, Vũng Tàu",
       "room_type": "Toàn bộ homestay",
-      "amenities": ["Wi-fi", "Hồ bơi", "Bãi đỗ xe", "Bếp"],
+      "amenities": [
+        "Wi-fi",
+        "Hồ bơi",
+        "Bãi đỗ xe",
+        "Bếp"
+      ],
       "rating": 4.0,
       "price": 480000,
-      "cover_url": "img/placeholder.svg",
+      "cover_url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+      "images": [
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+      ],
       "status": "active",
-      "created_at": "2026-09-03T22:00:00Z"
+      "created_at": "2026-09-03T22:00:00Z",
+      "description": "Căn hộ nghỉ dưỡng gần Bãi Sau, có không gian thoáng và phù hợp cho nhóm bạn hoặc gia đình.",
+      "reviews": [
+        {
+          "id": "rv1001",
+          "name": "Thảo",
+          "rating": 4,
+          "comment": "Gần biển và có nhiều tiện ích xung quanh.",
+          "created_at": "2026-09-05T10:00:00Z"
+        },
+        {
+          "id": "rv1002",
+          "name": "Hùng",
+          "rating": 4,
+          "comment": "Phòng rộng, phù hợp đi theo nhóm.",
+          "created_at": "2026-09-08T16:30:00Z"
+        }
+      ]
     }
   ],
   "total": 10,

@@ -109,7 +109,9 @@ async function load() {
       });
     }
 
-    summary.textContent = `${total} kết quả`;
+    summary.textContent = f.q
+      ? `${total} chỗ nghỉ tại "${f.q}"`
+      : `${total} kết quả`;
     if (resultsCount) resultsCount.textContent = `${total} chỗ nghỉ`;
     renderList(grid, items, renderCard);                 // 3. CÓ DỮ LIỆU
     renderPagination(total, f.page);

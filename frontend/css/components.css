@@ -407,4 +407,41 @@ margin-left: 4px;
     width: 100%;
     box-sizing: border-box;
   }
+
+/* ============ Search card ============ */
+
+.search-results .card {
+  overflow: hidden;
+}
+
+.search-results .card__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.search-results .card__body {
+  padding: 14px 16px 16px;
+}
+
+.search-results .card__title {
+  margin-bottom: 6px;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.search-results .card__price {
+  margin-bottom: 5px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+
+.search-results .card__meta {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--c-muted);
+}
 }

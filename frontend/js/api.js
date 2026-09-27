@@ -64,8 +64,24 @@ export function getItems(params = {}) {
   return request(`${API_BASE}/items?${qs}`);
 }
 
-export function getItem(id) {
-  if (USE_MOCK) return request(`${MOCK_BASE}/item-${id}.json`);
+export async function getItem(id) {
+  if (USE_MOCK) {
+    const data = await request(`${MOCK_BASE}/items.json`);
+
+    const item = data.items.find(
+      homestay => String(homestay.id) === String(id)
+    );
+
+    if (!item) {
+      throw new ApiError(
+        404,
+        'Không tìm thấy homestay.'
+      );
+    }
+
+    return item;
+  }
+
   return request(`${API_BASE}/items/${id}`);
 }
 
@@ -130,7 +146,7 @@ export async function register(payload) {
       display_name: payload.display_name,
       email,
       phone: payload.phone ?? '',
-      role: 'user',
+      role: payload.role ?? 'user',
       avatar: 'img/placeholder.svg',
       createdAt: new Date().toISOString(),
     };
