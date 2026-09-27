@@ -1,5 +1,5 @@
 {
-  "_ghi_chu": "Homestay của host đang đăng nhập (hostId=host001). PHẢI cùng hình dạng với JSON backend trả ở Mốc 3.",
+  "_ghi_chu": "Homestay của host đang đăng nhập (hostId=host001). PHẢI cùng hình dạng với JSON backend trả ở Mốc 3. Ảnh lấy từ mock/items.json (Người 1) theo địa điểm gần nhất — mượn tạm cho các homestay chưa có ảnh thật (Hà Giang/Mũi Né/Cần Thơ/Huế).",
   "homestays": [
     {
       "id": "hs001",
@@ -14,7 +14,10 @@
         "Máy sưởi"
       ],
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-02T03:00:00Z"
@@ -31,7 +34,10 @@
         "Lò sưởi"
       ],
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-03T03:00:00Z"
@@ -48,7 +54,10 @@
         "Bữa sáng"
       ],
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-04T03:00:00Z"
@@ -64,7 +73,10 @@
         "Điều hòa"
       ],
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-05T03:00:00Z"
@@ -82,7 +94,10 @@
         "Hồ bơi"
       ],
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-06T03:00:00Z"
@@ -99,7 +114,10 @@
         "Cho thuê xe đạp"
       ],
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-07T03:00:00Z"
@@ -116,7 +134,10 @@
         "Đốt lửa trại"
       ],
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-08T03:00:00Z"
@@ -133,7 +154,10 @@
         "Khu BBQ"
       ],
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-09T03:00:00Z"
@@ -150,7 +174,10 @@
         "Tour chèo xuồng"
       ],
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-10T03:00:00Z"
@@ -168,7 +195,10 @@
         "Cho thuê xe đạp"
       ],
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-11T03:00:00Z"

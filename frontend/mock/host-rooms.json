@@ -1,5 +1,5 @@
 {
-  "_ghi_chu": "Phòng thuộc các homestay ở host-homestays.json. hs010 cố tình chưa có phòng nào để test empty state.",
+  "_ghi_chu": "Phòng thuộc các homestay ở host-homestays.json. hs010 cố tình chưa có phòng nào để test empty state. Mỗi phòng lấy 1 ảnh khác nhau trong bộ ảnh của homestay cha (mock/items.json) để không trùng ảnh.",
   "rooms": [
     {
       "id": "rm001",
@@ -9,7 +9,7 @@
       "capacity": 4,
       "pricePerNight": 850000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": [
         "2026-10-21"
@@ -23,7 +23,7 @@
       "capacity": 6,
       "pricePerNight": 150000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -35,7 +35,7 @@
       "capacity": 2,
       "pricePerNight": 390000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": [
         "2026-11-12"
@@ -49,7 +49,7 @@
       "capacity": 2,
       "pricePerNight": 400000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -61,7 +61,7 @@
       "capacity": 1,
       "pricePerNight": 410000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -73,7 +73,7 @@
       "capacity": 2,
       "pricePerNight": 390000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -85,7 +85,7 @@
       "capacity": 4,
       "pricePerNight": 660000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -97,7 +97,7 @@
       "capacity": 1,
       "pricePerNight": 360000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -109,7 +109,7 @@
       "capacity": 2,
       "pricePerNight": 630000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": [
         "2026-10-19"
@@ -123,7 +123,7 @@
       "capacity": 6,
       "pricePerNight": 170000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": [
         "2026-10-21"
@@ -137,7 +137,7 @@
       "capacity": 1,
       "pricePerNight": 360000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -149,7 +149,7 @@
       "capacity": 6,
       "pricePerNight": 150000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -161,7 +161,7 @@
       "capacity": 4,
       "pricePerNight": 860000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -173,7 +173,7 @@
       "capacity": 2,
       "pricePerNight": 640000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -185,7 +185,7 @@
       "capacity": 4,
       "pricePerNight": 760000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -197,7 +197,7 @@
       "capacity": 2,
       "pricePerNight": 450000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": [
         "2026-11-26"
@@ -211,7 +211,7 @@
       "capacity": 4,
       "pricePerNight": 930000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -223,7 +223,7 @@
       "capacity": 4,
       "pricePerNight": 740000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -235,7 +235,7 @@
       "capacity": 1,
       "pricePerNight": 290000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": []
     },
@@ -247,7 +247,7 @@
       "capacity": 2,
       "pricePerNight": 480000,
       "images": [
-        "img/placeholder.svg"
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
       ],
       "blockedDates": [
         "2026-11-23"
