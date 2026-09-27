@@ -6,7 +6,7 @@
 //  thêm hàm vào vùng của mình.
 // ============================================================
 import { USE_MOCK, API_BASE, MOCK_BASE } from './config.js';
-import { getToken } from './auth.js';
+import { getToken, getUser } from './auth.js';
 
 export class ApiError extends Error {
   constructor(status, detail) {
@@ -141,6 +141,27 @@ export async function register(payload) {
 }
 
 // ══════════ NGƯỜI 3 — TODO: thêm vùng của em ở đây ══════════
+
+export async function getBookings() {
+  if (USE_MOCK) {
+    const list = await readTable('customerBookings', 'bookings.json');
+    const me = getUser();
+    return me ? list.filter(b => b.userId === me.id) : list;
+  }
+  return request(`${API_BASE}/me/bookings`);
+}
+
+export async function cancelBooking(id) {
+  if (USE_MOCK) {
+    const list = await readTable('customerBookings', 'bookings.json');
+    const idx = list.findIndex(b => String(b.id) === String(id));
+    if (idx === -1) throw new ApiError(404, 'Không tìm thấy booking.');
+    list[idx].status = 'cancelled';
+    writeTable('customerBookings', list);
+    return list[idx];
+  }
+  return request(`${API_BASE}/me/bookings/${id}/cancel`, { method: 'POST' });
+}
 
 // ══════════ NGƯỜI 4 — quản lý của host: homestay, phòng, đặt phòng ══════════
 // TODO: khi có đăng nhập thật cho role host, lấy HOST_ID từ getUser().id

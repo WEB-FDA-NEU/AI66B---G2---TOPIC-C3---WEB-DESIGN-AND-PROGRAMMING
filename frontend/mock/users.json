@@ -8,7 +8,7 @@
       "phone": "0909123456",
       "password": "12345678",
       "role": "user",
-      "avatar": "img/placeholder.svg",
+      "avatar": "img/anh-dai-dien.jpg",
       "createdAt": "2026-08-01T03:00:00Z"
     },
     {
@@ -18,7 +18,7 @@
       "phone": "0912345678",
       "password": "12345678",
       "role": "host",
-      "avatar": "img/placeholder.svg",
+      "avatar": "img/anh-dai-dien.jpg",
       "createdAt": "2026-07-20T03:00:00Z"
     },
     {
@@ -28,7 +28,7 @@
       "phone": "0987654321",
       "password": "12345678",
       "role": "admin",
-      "avatar": "img/placeholder.svg",
+      "avatar": "img/anh-dai-dien.jpg",
       "createdAt": "2026-06-01T03:00:00Z"
     }
   ]

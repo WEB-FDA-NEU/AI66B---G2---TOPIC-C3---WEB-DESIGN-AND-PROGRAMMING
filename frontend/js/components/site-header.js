@@ -33,7 +33,7 @@ const TEMPLATE = /* html */ `
 
     <!-- ======================================================
          HÀNG TRÊN
-         Logo + VND + List your property + Register + Sign in
+         Logo + VND + Register + Sign in
          ====================================================== -->
 
     <div class="site-header__top">
@@ -63,13 +63,6 @@ const TEMPLATE = /* html */ `
           🌐
         </span>
 
-
-        <!-- List your property -->
-        <a
-          class="site-header__link hide-sm"
-          href="host-dashboard.html">
-          List your property
-        </a>
 
 
         <!-- ==================================================
