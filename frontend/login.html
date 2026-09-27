@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Đăng nhập — Booking.com</title>
+  <title>Đăng nhập — Homestay Booking</title>
 
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/tokens.css">
@@ -12,18 +12,15 @@
 </head>
 <body>
 
-<header class="site-header">
-  <div class="site-header__top container">
-    <a href="/" class="logo">Booking.com</a>
-  </div>
-</header>
+<site-header></site-header>
 
   <!-- 2. Bao bọc form trong khối `.form-card` có sẵn của components.css -->
   <main class="container page">
     <div class="form-card">
+      <a class="text-muted underline" href="index.html">← Quay lại trang chủ</a>
       <div class="login-header stack mb-3">
         <h1>Đăng nhập</h1>
-        <p class="text-muted">Bạn có thể đăng nhập tài khoản Booking.com của mình để truy cập các dịch vụ của chúng tôi.</p>
+        <p class="text-muted">Đăng nhập để đặt phòng, xem lịch sử đặt phòng và quản lý hồ sơ của bạn.</p>
       </div>
 
       <form id="login-form" class="stack" novalidate>
@@ -45,30 +42,15 @@
         <!-- Thêm nút .btn--block để nút trải dài đẹp mắt -->
         <button class="btn btn--primary btn--block" type="submit">Đăng nhập</button>
 
-        <div class="text-center mt-3 stack field__hint">
-          <span class="text-muted">Bạn mất quyền truy cập vào email?</span> 
-          <a class="text-primary" href="#">Khôi phục tài khoản</a>
-        </div>
-
         <p class="field__hint text-center">
           Chưa có tài khoản? <a class="text-primary" href="register.html">Đăng ký ngay</a>
         </p>
       </form>
-
-      <!-- Footer nằm lọt lòng trong thẻ form-card hoặc nằm ngay bên dưới -->
-      <footer class="login-footer mt-4 text-center field__hint">
-        <div class="text-muted"></div>
-        <p class="text-muted mt">
-          Bằng cách đăng nhập hoặc tạo tài khoản, bạn đồng ý với 
-          <a target="_blank" rel="noopener noreferrer" class="text-primary" href="https://www.booking.com/content/terms.vi.html?aid=304142">Điều khoản & Điều kiện</a> 
-          và 
-          <a target="_blank" rel="noopener noreferrer" class="text-primary" href="https://www.booking.com/content/privacy.vi.html?aid=304142">Chính sách bảo mật</a>.
-        </p>
-        <p class="text-muted mt" >Bản quyền (2006 - 2026) - Booking.com</p>
-        
-      </footer>
     </div>
   </main>
+
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
 
   <script type="module" src="js/pages/login.js"></script>
 </body>

@@ -42,7 +42,8 @@ const TEMPLATE = /* html */ `
       <a
         class="logo"
         href="index.html">
-        Homestay Booking
+        <span class="logo__mark">H</span>
+        <span class="logo__text">Homestay Booking</span>
       </a>
 
 

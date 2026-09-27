@@ -81,3 +81,15 @@ export function clearFieldErrors(form) {
   form.querySelectorAll('.field__error').forEach(e => (e.textContent = ''));
   form.querySelectorAll('[aria-invalid]').forEach(e => e.removeAttribute('aria-invalid'));
 }
+
+// Nút hiện/ẩn mật khẩu — dùng chung cho mọi ô password có markup .field__toggle-password
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.field__toggle-password');
+  if (!btn) return;
+  const input = document.getElementById(btn.dataset.target);
+  if (!input) return;
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  btn.textContent = show ? '👁' : '👁';
+  btn.setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+});

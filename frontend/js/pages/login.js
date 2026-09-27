@@ -1,6 +1,8 @@
 import { login, ApiError } from '../api.js';
 import { saveSession, returnAfterLogin } from '../auth.js';
 import { setFieldError, clearFieldErrors, toast } from '../ui.js';
+import '../components/site-header.js';
+import '../components/site-footer.js';
 
 const form = document.getElementById('login-form');
 

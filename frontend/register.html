@@ -10,56 +10,54 @@
 <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
-<header class="site-header">
-  <div class="site-header__top container">
-    <a href="/" class="logo">Homestay Booking</a>
-  </div>
-</header>
-<main class="container page">
-    <div class="form-card">
-  <h1>Tạo tài khoản</h1>
-  <form id="register-form" class="stack" novalidate>
-    <div class="field">
-      <label class="field__label" for="display_name">Tên hiển thị</label>
-      <input class="input" id="display_name" name="display_name" required>
-      <p class="field__error"></p>
-    </div>
-    <div class="field">
-      <label class="field__label" for="email">Email</label>
-      <input class="input" id="email" name="email" type="email" required autocomplete="email">
-      <p class="field__error"></p>
-    </div>
-    <div class="field">
-      <label class="field__label" for="phone">Số điện thoại</label>
-      <input class="input" id="phone" name="phone" type="tel">
-      <p class="field__hint">Dùng để nhận thông tin xác nhận phòng và liên hệ khi cần.</p>
-    </div>
-    <div class="field">
-      <label class="field__label" for="password">Mật khẩu</label>
-      <input class="input" id="password" name="password" type="password" required minlength="8" autocomplete="new-password">
-      <p class="field__error"></p>
-    </div>
-    <div class="field">
-      <label class="field__label" for="confirm">Nhập lại mật khẩu</label>
-      <input class="input" id="confirm" name="confirm" type="password" required autocomplete="new-password">
-      <p class="field__error"></p>
-    </div>
-    <button class="btn btn--primary" type="submit">Đăng ký</button>
-    <p class="field__hint">Đã có tài khoản? <a class="text-primary" href="login.html">Đăng nhập</a></p>
-     <footer class="login-footer mt-4 text-center field__hint">
-        <div class="text-muted"></div>
-        <p class="text-muted mt">
-          Bằng cách đăng nhập hoặc tạo tài khoản, bạn đồng ý với 
-          <a target="_blank" rel="noopener noreferrer" class="text-primary" href="https://www.booking.com/content/terms.vi.html?aid=304142">Điều khoản & Điều kiện</a> 
-          và 
-          <a target="_blank" rel="noopener noreferrer" class="text-primary" href="https://www.booking.com/content/privacy.vi.html?aid=304142">Chính sách bảo mật</a>.
-        </p>
-        <p class="text-muted mt" >Bản quyền (2006 - 2026) - Booking.com</p>
-        
-      </footer>
-  </form>
 
+<site-header></site-header>
+
+<main class="container page">
+  <div class="form-card">
+    <a class="text-muted underline" href="index.html">← Quay lại trang chủ</a>
+    <h1>Tạo tài khoản</h1>
+    <form id="register-form" class="stack" novalidate>
+      <div class="field">
+        <label class="field__label" for="display_name">Tên hiển thị</label>
+        <input class="input" id="display_name" name="display_name" required>
+        <p class="field__error"></p>
+      </div>
+      <div class="field">
+        <label class="field__label" for="email">Email</label>
+        <input class="input" id="email" name="email" type="email" required autocomplete="email">
+        <p class="field__error"></p>
+      </div>
+      <div class="field">
+        <label class="field__label" for="phone">Số điện thoại</label>
+        <input class="input" id="phone" name="phone" type="tel">
+        <p class="field__hint">Dùng để nhận thông tin xác nhận phòng và liên hệ khi cần.</p>
+      </div>
+      <div class="field">
+      <label class="field__label" for="password">Mật khẩu</label>
+      <div class="field__input-wrapper">
+        <input class="input" id="password" name="password" type="password" required minlength="8" autocomplete="new-password">
+        <button type="button" class="field__toggle-password" data-target="password" aria-label="Hiện mật khẩu">👁</button>
+      </div>
+      <p class="field__error"></p>
+      </div>
+      <div class="field">
+      <label class="field__label" for="confirm">Nhập lại mật khẩu</label>
+      <div class="field__input-wrapper">
+        <input class="input" id="confirm" name="confirm" type="password" required autocomplete="new-password">
+        <button type="button" class="field__toggle-password" data-target="confirm" aria-label="Hiện mật khẩu">👁</button>
+      </div>
+      <p class="field__error"></p>
+      </div>
+      <button class="btn btn--primary" type="submit">Đăng ký</button>
+      <p class="field__hint">Đã có tài khoản? <a class="text-primary" href="login.html">Đăng nhập</a></p>
+    </form>
+  </div>
 </main>
+
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
+
 <script type="module" src="js/pages/register.js"></script>
 </body>
 </html>
