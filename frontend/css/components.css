@@ -444,4 +444,137 @@ margin-left: 4px;
   line-height: 1.4;
   color: var(--c-muted);
 }
+
+
+/* ============================================================
+   Booking History — nâng cấp giao diện riêng cho booking-list.html
+   Scope trong .bookings-page để không đụng .row/.badge/.tabs dùng
+   chung ở host-bookings.html và các trang khác.
+   ============================================================ */
+
+.bookings-page .section-head h1 {
+  display: flex; align-items: center; gap: 10px;
+}
+.bookings-page .section-head h1::before {
+  content: '🗓️'; font-size: 26px; line-height: 1;
+}
+
+/* ---- Tabs: dạng pill, cuộn ngang trên mobile, không bị bể dòng ---- */
+.bookings-page .tabs {
+  flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; margin-bottom: var(--sp-4);
+  scrollbar-width: thin;
+}
+.bookings-page .tabs .btn {
+  flex: none; border-radius: 999px; white-space: nowrap;
+}
+.bookings-page .tabs .btn.is-active {
+  box-shadow: 0 2px 8px rgba(0,59,149,.28);
+}
+.bookings-page .tab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
+  background: rgba(0,0,0,.08); font-size: 12px; font-weight: 700;
+}
+.bookings-page .tabs .btn.is-active .tab-count { background: rgba(255,255,255,.25); color: #fff; }
+.bookings-page .tab-count:empty { display: none; }
+.bookings-page .tabs .btn:not(.is-active)[data-filter="pending"]   .tab-count { background: var(--c-warning); color: #fff; }
+.bookings-page .tabs .btn:not(.is-active)[data-filter="confirmed"] .tab-count,
+.bookings-page .tabs .btn:not(.is-active)[data-filter="checked_in"] .tab-count { background: var(--c-success); color: #fff; }
+.bookings-page .tabs .btn:not(.is-active)[data-filter="cancelled"] .tab-count { background: var(--c-danger); color: #fff; }
+
+/* ---- Row: thẻ booking nổi bật hơn, có viền màu theo trạng thái ---- */
+.bookings-page .row {
+  position: relative;
+  grid-template-columns: 112px 1fr 216px; /* cột hành động rộng CỐ ĐỊNH -> mọi dòng thẳng hàng, không lởm chởm */
+  border-radius: var(--radius-l);
+  border-left: 4px solid var(--c-border);
+  box-shadow: var(--shadow-s);
+  transition: transform .18s var(--ease-out, ease), box-shadow .18s ease, border-color .18s ease;
+  animation: bookingRowIn .4s var(--ease-out, ease) both;
+}
+.bookings-page .row:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+
+/* Actions luôn xếp dọc, canh phải, nút full-width trong cột cố định
+   -> chiều rộng cột giống hệt nhau ở mọi dòng dù số nút khác nhau. */
+.bookings-page .row__actions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 7px;
+}
+.bookings-page .row__actions .badge { align-self: flex-end; }
+.bookings-page .row__actions .btn { width: 100%; }
+
+@media (max-width: 767px) {
+  .bookings-page .row { grid-template-columns: 80px 1fr; }
+  .bookings-page .row__actions {
+    grid-column: 1 / -1; flex-direction: row; align-items: center; flex-wrap: wrap;
+  }
+  .bookings-page .row__actions .badge { align-self: auto; }
+  .bookings-page .row__actions .btn { width: auto; }
+}
+.bookings-page .row[data-status="pending"]    { border-left-color: var(--c-warning); }
+.bookings-page .row[data-status="confirmed"]  { border-left-color: var(--c-success); }
+.bookings-page .row[data-status="checked_in"] { border-left-color: var(--c-primary-l); }
+.bookings-page .row[data-status="completed"]  { border-left-color: var(--c-muted); }
+.bookings-page .row[data-status="cancelled"],
+.bookings-page .row[data-status="rejected"]   { border-left-color: var(--c-danger); opacity: .82; }
+
+.bookings-page .row__img {
+  width: 112px; height: 112px; aspect-ratio: 1 / 1; box-shadow: var(--shadow-s);
+}
+@media (max-width: 767px) { .bookings-page .row__img { width: 80px; height: 80px; } }
+
+.bookings-page .row__title { font-size: 16px; color: var(--c-primary); }
+.bookings-page .row__title:hover { text-decoration: underline; }
+.bookings-page .row__price { color: var(--c-primary); font-size: 16px; margin-top: 2px; }
+.bookings-page .row__meta { margin-top: 3px; }
+
+.bookings-page .row .badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 28px; padding: 0 14px; line-height: 1;
+  font-size: 12.5px; letter-spacing: .01em; white-space: nowrap;
+  box-shadow: var(--shadow-s);
+}
+.bookings-page .row .badge::before {
+  content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.35);
+}
+
+/* Booking đang chờ xác nhận -> nhấp nháy nhẹ viền để thu hút chú ý */
+.bookings-page .row[data-status="pending"] .badge {
+  animation: pendingPulse 2.2s ease-in-out infinite;
+}
+@keyframes pendingPulse {
+  0%, 100% { box-shadow: var(--shadow-s), 0 0 0 0 rgba(178,106,0,.38); }
+  50%      { box-shadow: var(--shadow-s), 0 0 0 5px rgba(178,106,0,0); }
+}
+
+@keyframes bookingRowIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.bookings-page .stack > .row:nth-child(1) { animation-delay: .02s; }
+.bookings-page .stack > .row:nth-child(2) { animation-delay: .07s; }
+.bookings-page .stack > .row:nth-child(3) { animation-delay: .12s; }
+.bookings-page .stack > .row:nth-child(4) { animation-delay: .17s; }
+.bookings-page .stack > .row:nth-child(n+5) { animation-delay: .22s; }
+
+/* ---- Skeleton khi đang tải ---- */
+.bookings-page .row-skeleton {
+  height: 112px; border-radius: var(--radius-l);
+}
+.bookings-page .row-skeleton + .row-skeleton { margin-top: var(--sp-3); }
+
+/* ---- Empty state: hộp bo tròn, có icon ---- */
+.bookings-page .empty {
+  background: var(--c-bg); border: 1px dashed var(--c-border); border-radius: var(--radius-l);
+  padding: var(--sp-6) var(--sp-3);
+}
+.bookings-page .empty::before {
+  content: '🧳'; display: block; font-size: 40px; margin-bottom: var(--sp-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bookings-page .row,
+  .bookings-page .row[data-status="pending"] .badge {
+    animation: none !important; transition: none !important;
+  }
+}
 }

@@ -69,6 +69,15 @@ function renderRow(b) {
   return node;
 }
 
+function updateTabCounts() {
+  document.querySelectorAll('.tabs .btn').forEach(btn => {
+    const filter = btn.dataset.filter;
+    const count = filter === 'all' ? bookings.length : bookings.filter(b => b.status === filter).length;
+    const countEl = btn.querySelector('.tab-count');
+    if (countEl) countEl.textContent = count > 0 ? count : '';
+  });
+}
+
 function renderList() {
   listEl.innerHTML = '';
   const filtered = currentFilter === 'all'
@@ -82,6 +91,18 @@ function renderList() {
     listEl.hidden = false;
     emptyEl.hidden = true;
     filtered.forEach(b => listEl.appendChild(renderRow(b)));
+  }
+  updateTabCounts();
+}
+
+function showLoadingSkeleton() {
+  emptyEl.hidden = true;
+  listEl.hidden = false;
+  listEl.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const d = document.createElement('div');
+    d.className = 'skeleton-card row-skeleton';
+    listEl.appendChild(d);
   }
 }
 
@@ -115,6 +136,7 @@ listEl.addEventListener('click', async e => {
 });
 
 async function load() {
+  showLoadingSkeleton();
   try {
     bookings = await getBookings();
     renderList();

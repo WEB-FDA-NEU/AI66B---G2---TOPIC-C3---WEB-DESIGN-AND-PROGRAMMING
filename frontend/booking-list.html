@@ -8,12 +8,13 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/motion.css">
 </head>
 <body>
  
 <site-header active="bookings"></site-header>
  
-<main class="page container">
+<main class="page container bookings-page">
  
   <div class="section-head">
     <div>
@@ -24,12 +25,12 @@
  
   <!-- TODO: khi có dữ liệu thật, gắn data-status vào từng nút và lọc bằng JS -->
   <div class="tabs">
-    <button class="btn is-active" type="button" data-filter="all">Tất cả</button>
-    <button class="btn" type="button" data-filter="pending">Chờ xác nhận</button>
-    <button class="btn" type="button" data-filter="confirmed">Đã xác nhận</button>
-    <button class="btn" type="button" data-filter="checked_in">Đã nhận phòng</button>
-    <button class="btn" type="button" data-filter="completed">Hoàn thành</button>
-    <button class="btn" type="button" data-filter="cancelled">Đã huỷ</button>
+    <button class="btn is-active" type="button" data-filter="all">Tất cả <span class="tab-count"></span></button>
+    <button class="btn" type="button" data-filter="pending">Chờ xác nhận <span class="tab-count"></span></button>
+    <button class="btn" type="button" data-filter="confirmed">Đã xác nhận <span class="tab-count"></span></button>
+    <button class="btn" type="button" data-filter="checked_in">Đã nhận phòng <span class="tab-count"></span></button>
+    <button class="btn" type="button" data-filter="completed">Hoàn thành <span class="tab-count"></span></button>
+    <button class="btn" type="button" data-filter="cancelled">Đã huỷ <span class="tab-count"></span></button>
   </div>
  
   <!-- ========================================================
