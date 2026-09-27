@@ -42,8 +42,7 @@ const TEMPLATE = /* html */ `
       <a
         class="logo"
         href="index.html">
-        <span class="logo__mark">H</span>
-        <span class="logo__text">Homestay Booking</span>
+        Homestay Booking
       </a>
 
 
@@ -157,7 +156,7 @@ const TEMPLATE = /* html */ `
             href="index.html"
             data-nav="home">
 
-            🛏 Stays
+            🛏 Home Page
 
           </a>
 
@@ -185,9 +184,10 @@ const TEMPLATE = /* html */ `
 
         <!-- ==================================================
              3. MY BOOKINGS
+             Chỉ dành cho khách hàng — ẩn khi role là host hoặc admin.
              ================================================== -->
 
-        <li>
+        <li data-customer-nav>
 
           <a
             href="booking-list.html"
@@ -333,6 +333,11 @@ class SiteHeader extends HTMLElement {
 
     const adminNav = this.querySelector('[data-admin-nav]');
     if (adminNav && role !== 'admin') adminNav.hidden = true;
+
+    // "My bookings" chỉ dành cho khách hàng (guest hoặc role 'user') —
+    // host và admin không đặt phòng nên không cần thấy mục này.
+    const customerNav = this.querySelector('[data-customer-nav]');
+    if (customerNav && (role === 'host' || role === 'admin')) customerNav.hidden = true;
 
     // --------------------------------------------------------
     // MOBILE MENU

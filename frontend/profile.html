@@ -90,8 +90,11 @@
       </form>
     </section>
  
-    <!-- ==================== TRỞ THÀNH HOST ==================== -->
-    <section class="form-card" style="margin:0">
+    <!-- ==================== TRỞ THÀNH HOST ====================
+         Chỉ dành cho khách hàng (role 'user') hoặc khách chưa đăng nhập.
+         Host đã là host rồi, admin không cần thấy lời mời này — ẩn bằng
+         script cuối trang (xem role === 'host' || role === 'admin'). -->
+    <section class="form-card" style="margin:0" id="become-host-section">
       <h3>Bạn có homestay muốn cho thuê?</h3>
       <p class="mt-3 text-muted">Đăng ký làm host để bắt đầu quản lý homestay của riêng bạn.</p>
       <a class="btn btn--outline mt-3" href="host-dashboard.html">Trở thành Host</a>
@@ -107,6 +110,14 @@
 <script type="module">
   import './js/components/site-header.js';
   import './js/components/site-footer.js';
+  import { getUser } from './js/auth.js';
+
+  // Ẩn khối "Trở thành Host" nếu người dùng đã là host hoặc admin.
+  const role = getUser()?.role;
+  if (role === 'host' || role === 'admin') {
+    document.getElementById('become-host-section')?.remove();
+  }
+
   // TODO: khi có dữ liệu thật, thêm profile.js để:
   // 1) getUser() (từ js/auth.js) đổ giá trị thật vào 3 ô name/email/phone
   // 2) validate + gọi API cập nhật hồ sơ khi submit form đầu
