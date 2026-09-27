@@ -1,7 +1,4 @@
-// ============================================================
-//  Đăng ký tài khoản Host — cùng logic validate với js/pages/register.js,
-//  chỉ khác: gán role 'host' và đưa thẳng vào host-dashboard.html sau khi tạo xong.
-// ============================================================
+
 import { register } from '../api.js';
 import { saveSession } from '../auth.js';
 import { setFieldError, clearFieldErrors, toast } from '../ui.js';
