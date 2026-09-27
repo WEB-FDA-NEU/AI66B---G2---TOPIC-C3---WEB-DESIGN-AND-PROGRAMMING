@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đà Lạt Pine Cottage — Homestay Booking</title>
+ 
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+ 
+<site-header></site-header>
+
+<!-- Thanh Search Bar sát dưới Header -->
+<div class="hero">
+  <div class="container">
+    <form class="search-box">
+      <div class="search-field">
+        <label for="dest">Địa điểm</label>
+        <input type="text" id="dest" value="Đà Lạt, Lâm Đồng">
+      </div>
+      <div class="search-field">
+        <label for="checkin">Ngày nhận - trả phòng</label>
+        <input type="text" value="01/10/2026 — 03/10/2026" readonly>
+      </div>
+      <div class="search-field">
+        <label for="guests">Khách &amp; Phòng</label>
+        <select id="guests">
+          <option selected>2 người lớn · 0 trẻ em · 1 phòng</option>
+        </select>
+      </div>
+      <button type="submit" class="search-box__btn">Tìm</button>
+    </form>
+  </div>
+</div>
+
+<!-- Breadcrumb -->
+<nav class="breadcrumb container mt-3">
+  <ol>
+    <li><a href="#">Trang chủ</a></li>
+    <li><a href="#">Khách sạn</a></li>
+    <li><a href="#">Việt Nam</a></li>
+    <li><a href="#">Lâm Đồng</a></li>
+    <li aria-current="page">Đà Lạt Pine Cottage</li>
+  </ol>
+</nav>
+
+<!-- Sub-navigation (Menu phụ chuyển tab) -->
+<nav class="sub-nav mt-3">
+  <div class="container">
+    <ul class="sub-nav__links">
+      <li><a href="#overview" class="sub-nav__link is-active">Tổng quan</a></li>
+      <li><a href="#availability" class="sub-nav__link">Thông tin &amp; giá</a></li>
+      <li><a href="#amenities" class="sub-nav__link">Tiện nghi</a></li>
+      <li><a href="#rules" class="sub-nav__link">Quy tắc chung</a></li>
+      <li><a href="#reviews" class="sub-nav__link">Đánh giá của khách (5)</a></li>
+    </ul>
+  </div>
+</nav>
+ 
+<main class="container page stack">
+
+  <!-- Header Thông tin Chỗ nghỉ -->
+  <div class="flex-between align-start" id="overview">
+    <div class="stack gap-1">
+      <div class="flex gap-2">
+        <span class="badge badge--info font-bold">Genius</span>
+        <span class="text-warning">★★</span>
+        <span class="badge badge--success">Có xe đưa đón</span>
+      </div>
+      
+      <h2>Đà Lạt Pine Cottage</h2>
+      
+      <p class="text-muted">
+        📍 Phường 3, Đà Lạt, Lâm Đồng — 
+        <a href="#" class="text-primary font-bold underline">Vị trí tuyệt vời — Hiển thị bản đồ</a>
+      </p>
+    </div>
+
+    <!-- Nút Đặt ngay + Đánh giá -->
+    <div class="stack text-right gap-2">
+      <div class="flex gap-2 justify-end">
+        <div>
+          <div class="font-bold">Rất tốt</div>
+          <small class="text-muted">5 đánh giá</small>
+        </div>
+        <span class="rating">8,4</span>
+      </div>
+      <a href="#availability" class="btn btn--primary">Đặt ngay</a>
+    </div>
+  </div>
+
+  <!-- Gallery Ảnh (Dùng class .detail-gallery trong components.css) -->
+  <section class="detail-gallery">
+    <img src="img/da lat.png" alt="Ảnh chính Đà Lạt Pine Cottage">
+    <div class="detail-gallery__thumbs">
+      <img src="img/da lat.png" alt="Ảnh góc 1">
+      <img src="img/da lat.png" alt="Ảnh góc 2">
+      <img src="img/da lat.png" alt="Ảnh góc 3">
+      <img src="img/da lat.png" alt="Ảnh góc 4">
+    </div>
+  </section>
+
+  <!-- Khối Bảng chọn phòng (Thông tin & Giá) -->
+  <section id="availability" class="stack gap-3 mt-4">
+    <div class="section-head">
+      <h2>Những phòng còn trống</h2>
+    </div>
+
+    <div class="detail-layout">
+      <!-- Cột trái: Bảng danh sách phòng -->
+      <div>
+        <table class="room-table">
+          <thead>
+            <tr>
+              <th>Loại phòng</th>
+              <th>Sức chứa</th>
+              <th>Giá 2 đêm</th>
+              <th>Chọn số lượng</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <strong class="text-primary text-large">Phòng Superior Giường Đôi</strong>
+                <div class="text-muted font-semibold mt-1">
+                  🛏 1 giường đôi lớn · 📐 25 m²
+                </div>
+                <div class="text-success font-semibold mt-2">
+                  ✓ Miễn phí hủy phòng<br>
+                  ✓ Không cần thanh toán trước
+                </div>
+              </td>
+              <td>👥 2 khách</td>
+              <td>
+                <div class="text-primary font-bold text-large">2.400.000 VND</div>
+                <small class="text-muted">Đã bao gồm thuế &amp; phí</small>
+              </td>
+              <td>
+                <select class="select room-select" data-price="2400000">
+                  <option value="0">0</option>
+                  <option value="1" selected>1 (2.400.000 VND)</option>
+                  <option value="2">2 (4.800.000 VND)</option>
+                </select>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <strong class="text-primary text-large">Deluxe Studio Hướng Núi</strong>
+                <div class="text-muted font-semibold mt-1">
+                  🛏 1 giường cực lớn + 1 Sofa · 📐 35 m²
+                </div>
+                <span class="badge badge--warning mt-2">Bao gồm ăn sáng</span>
+              </td>
+              <td>👥 3 khách</td>
+              <td>
+                <div class="text-primary font-bold text-large">3.200.000 VND</div>
+                <small class="text-muted">Đã bao gồm thuế &amp; phí</small>
+              </td>
+              <td>
+                <select class="select room-select" data-price="3200000">
+                  <option value="0" selected>0</option>
+                  <option value="1">1 (3.200.000 VND)</option>
+                  <option value="2">2 (6.400.000 VND)</option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Cột phải: Tóm tắt đặt phòng -->
+      <aside class="detail-layout__aside">
+        <div class="form-card stack gap-3">
+          <h3>Tóm tắt lựa chọn</h3>
+
+          <div class="stack gap-2">
+            <div class="flex-between">
+              <span class="text-muted">Số phòng đã chọn:</span>
+              <strong id="selectedCount" class="text-primary">1 phòng</strong>
+            </div>
+            <div class="flex-between">
+              <span class="text-muted">Thời gian:</span>
+              <strong>2 đêm</strong>
+            </div>
+            <hr class="divider-dashed">
+            <div class="flex-between text-large font-bold">
+              <span>Tổng giá:</span>
+              <span class="text-primary" id="totalVal">2.400.000 VND</span>
+            </div>
+          </div>
+
+          <a href="booking-page.html" id="btnGoToCheckout" class="btn btn--primary btn--block">
+            Tôi sẽ đặt &gt;&gt;
+          </a>
+
+          <p class="field__hint text-center">● Xác nhận đặt phòng tức thì</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+</main>
+ 
+<site-footer></site-footer>
+
+<script type="module">
+  import './js/components/site-header.js';
+  import './js/components/site-footer.js';
+
+  const roomSelects = document.querySelectorAll('.room-select');
+  const selectedCountEl = document.getElementById('selectedCount');
+  const totalValEl = document.getElementById('totalVal');
+
+  function updateSummary() {
+    let count = 0;
+    let total = 0;
+
+    roomSelects.forEach(select => {
+      const qty = parseInt(select.value, 10) || 0;
+      const price = parseInt(select.dataset.price, 10) || 0;
+      count += qty;
+      total += qty * price;
+    });
+
+    selectedCountEl.textContent = `${count} phòng`;
+    totalValEl.textContent = total.toLocaleString('vi-VN') + ' VND';
+  }
+
+  roomSelects.forEach(s => s.addEventListener('change', updateSummary));
+  updateSummary();
+</script>
+</body>
+</html>
