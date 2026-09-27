@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/motion.css">
 </head>
 <body>
 
@@ -18,7 +19,12 @@
   <section class="hero">
     <div class="container hero__inner">
       <h1>Tìm homestay lý tưởng cho chuyến đi của bạn</h1>
-      <p>Khám phá những nơi lưu trú tuyệt vời và đặt phòng dễ dàng.</p>
+      <p class="hero-sub">Khám phá những nơi lưu trú tuyệt vời và đặt phòng dễ dàng.</p>
+      <div class="hero-trust">
+        <span><b>10+</b> homestay tuyển chọn</span>
+        <span><b>9</b> tỉnh thành</span>
+        <span><b>4.5</b>★ đánh giá trung bình</span>
+      </div>
 
       <form class="search-box" id="searchForm" action="search.html" method="get">
         <div class="search-field">
@@ -48,7 +54,7 @@
   </section>
 
   <!-- ĐIỂM ĐẾN -->
-  <section class="section container">
+  <section class="section container" data-reveal>
     <div class="section-head"><div><h2>Điểm đến nổi bật</h2><p>Khám phá những địa điểm được yêu thích</p></div></div>
     <div class="destination-grid">
         <a class="destination-card" href="search.html?q=Sa%20Pa">
@@ -70,60 +76,37 @@
     </div>
   </section>
 
-  <!-- HOMESTAY ĐỀ XUẤT (dữ liệu tĩnh để test giao diện) -->
+  <!-- HOMESTAY ĐỀ XUẤT (render động bằng js/pages/home.js, dữ liệu thật từ mock/items.json) -->
   <section class="section container">
-    <div class="section-head">
+    <div class="section-head" data-reveal>
       <div><h2>Homestay được đề xuất</h2><p>Những nơi lưu trú được nhiều khách yêu thích</p></div>
       <a class="btn btn--outline" href="search.html">Xem tất cả</a>
     </div>
-    <div class="grid">
-        <article class="card">
-          <a class="card__link" href="detail.html?id=1">
-            <img class="card__img" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80" alt="Sapa Misty Hills Homestay" loading="lazy">
-            <div class="card__body">
-              <h3 class="card__title">Sapa Misty Hills Homestay</h3>
-              <p class="card__meta">📍 Bản Cát Cát, Sa Pa, Lào Cai</p>
-              <div class="card__rating"><span class="rating">4.8</span><span>Đánh giá tốt</span></div>
-              <p class="card__price">từ 200.000 VND <small>/ đêm</small></p>
-            </div>
-          </a>
-        </article>
-        <article class="card">
-          <a class="card__link" href="detail.html?id=2">
-            <img class="card__img" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80" alt="Hoi An River Garden" loading="lazy">
-            <div class="card__body">
-              <h3 class="card__title">Hoi An River Garden</h3>
-              <p class="card__meta">📍 Cẩm Châu, Hội An, Quảng Nam</p>
-              <div class="card__rating"><span class="rating">4.6</span><span>Đánh giá tốt</span></div>
-              <p class="card__price">từ 350.000 VND <small>/ đêm</small></p>
-            </div>
-          </a><span class="card__badge">Giảm giá</span>
-        </article>
-        <article class="card">
-          <a class="card__link" href="detail.html?id=3">
-            <img class="card__img" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80" alt="Đà Lạt Pine Cottage" loading="lazy">
-            <div class="card__body">
-              <h3 class="card__title">Đà Lạt Pine Cottage</h3>
-              <p class="card__meta">📍 Phường 3, Đà Lạt, Lâm Đồng</p>
-              <div class="card__rating"><span class="rating">4.7</span><span>Đánh giá tốt</span></div>
-              <p class="card__price">từ 420.000 VND <small>/ đêm</small></p>
-            </div>
-          </a>
-        </article>
-        <article class="card">
-          <a class="card__link" href="detail.html?id=4">
-            <img class="card__img" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80" alt="Sea Breeze Homestay" loading="lazy">
-            <div class="card__body">
-              <h3 class="card__title">Sea Breeze Homestay</h3>
-              <p class="card__meta">📍 Mỹ Khê, Đà Nẵng</p>
-              <div class="card__rating"><span class="rating">4.5</span><span>Đánh giá tốt</span></div>
-              <p class="card__price">từ 380.000 VND <small>/ đêm</small></p>
-            </div>
-          </a>
-        </article>
-    </div>
+    <div id="results" class="grid"></div>
   </section>
 </main>
+
+<template id="tpl-card">
+  <article class="card">
+    <a class="card__link">
+      <img class="card__img" src="" alt="" loading="lazy">
+      <div class="card__body">
+        <h3 class="card__title"></h3>
+        <p class="card__price"></p>
+        <p class="card__meta"></p>
+      </div>
+    </a>
+    <span class="card__badge"></span>
+  </article>
+</template>
+
+<template id="tpl-empty-state">
+  <div class="empty">
+    <p class="empty__title"></p>
+    <p class="empty__hint"></p>
+    <a class="btn btn--primary empty__action"></a>
+  </div>
+</template>
 
 <site-footer></site-footer>
 <div id="toast" role="status"></div>
@@ -143,5 +126,7 @@
     if (msg) e.preventDefault();
   });
 </script>
+<script type="module" src="js/pages/home.js"></script>
+<script type="module" src="js/motion.js"></script>
 </body>
 </html>

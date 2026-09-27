@@ -23,7 +23,7 @@ async function load() {
       return showEmpty(grid, {
         title: 'Chưa có dữ liệu',
         hint : 'Hãy quay lại sau.',
-        actionText: 'Xem tất cả', actionHref: 'list.html',
+        actionText: 'Xem tất cả', actionHref: 'search.html',
       });
     }
     renderList(grid, items.slice(0, 8), renderCard);      // 3. CÓ DỮ LIỆU
