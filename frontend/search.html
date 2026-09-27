@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tìm homestay — Homestay Booking</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<site-header active="search"></site-header>
+
+<main class="container page">
+
+  <section class="section-head">
+    <div>
+      <p class="text-muted">KHÁM PHÁ HOMESTAY</p>
+      <h1>Tìm nơi lưu trú phù hợp</h1>
+    </div>
+  </section>
+
+  <div class="search-layout">
+
+    <!-- FILTER SIDEBAR -->
+    <aside class="filter-sidebar">
+
+      <div class="flex-between mb-3">
+        <h2>Bộ lọc</h2>
+        <button type="button" class="btn btn--outline" id="clear-filters">Xóa lọc</button>
+      </div>
+
+      <form id="filter-form" class="stack">
+
+        <div class="field">
+          <label class="field__label" for="q">Địa điểm</label>
+          <input class="input" id="q" name="q" type="search" placeholder="Ví dụ: Sa Pa">
+        </div>
+
+        <fieldset class="filter-group">
+          <legend class="filter-group__title">Giá mỗi đêm</legend>
+          <div class="price-range">
+            <input class="input" id="min_price" name="min_price" type="number" min="0" placeholder="Từ">
+            <span>–</span>
+            <input class="input" id="max_price" name="max_price" type="number" min="0" placeholder="Đến">
+          </div>
+        </fieldset>
+
+        <fieldset class="filter-group">
+          <legend class="filter-group__title">Loại phòng</legend>
+          <div class="filter-list">
+            <label class="filter-option"><input type="checkbox" name="room_type" value="Toàn bộ homestay"> Toàn bộ homestay</label>
+            <label class="filter-option"><input type="checkbox" name="room_type" value="Phòng riêng"> Phòng riêng</label>
+            <label class="filter-option"><input type="checkbox" name="room_type" value="Phòng chung"> Phòng chung</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="filter-group">
+          <legend class="filter-group__title">Tiện ích</legend>
+          <div class="filter-list">
+            <label class="filter-option"><input type="checkbox" name="amenity" value="Wi-fi"> Wi-Fi</label>
+            <label class="filter-option"><input type="checkbox" name="amenity" value="Bãi đỗ xe"> Chỗ đỗ xe</label>
+            <label class="filter-option"><input type="checkbox" name="amenity" value="Hồ bơi"> Hồ bơi</label>
+            <label class="filter-option"><input type="checkbox" name="amenity" value="Bếp"> Nhà bếp</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="filter-group">
+          <legend class="filter-group__title">Đánh giá</legend>
+          <div class="filter-list">
+<label class="filter-option"><input type="radio" name="rating" value="4.5"> ★ 4.5 trở lên</label>
+            <label class="filter-option"><input type="radio" name="rating" value="4"> ★ 4.0 trở lên</label>
+            <label class="filter-option"><input type="radio" name="rating" value="3.5"> ★ 3.5 trở lên</label>
+          </div>
+        </fieldset>
+
+        <button class="btn btn--primary btn--block" type="submit">Áp dụng bộ lọc</button>
+      </form>
+
+    </aside>
+
+    <!-- RESULTS -->
+    <section>
+
+      <div class="toolbar">
+        <div>
+          <strong id="results-count"></strong>
+          <p id="result-summary" class="toolbar__count"></p>
+        </div>
+
+        <label class="toolbar__sort">
+          <span>Sắp xếp:</span>
+          <select id="sort" name="sort" class="select">
+            <option value="newest">Mới nhất</option>
+            <option value="price_asc">Giá thấp → cao</option>
+            <option value="price_desc">Giá cao → thấp</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="results" class="grid"></div>
+
+      <nav id="pagination" class="pagination" aria-label="Phân trang"></nav>
+
+    </section>
+
+  </div>
+
+</main>
+
+<template id="tpl-card">
+  <article class="card">
+    <a class="card__link">
+      <img class="card__img" src="" alt="" loading="lazy">
+      <div class="card__body">
+        <h3 class="card__title"></h3>
+        <p class="card__price"></p>
+        <p class="card__meta"></p>
+      </div>
+    </a>
+    <span class="card__badge"></span>
+  </article>
+</template>
+
+<template id="tpl-empty-state">
+  <div class="empty">
+    <p class="empty__title"></p>
+    <p class="empty__hint"></p>
+    <a class="btn btn--primary empty__action"></a>
+  </div>
+</template>
+
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
+
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
+<script type="module" src="js/pages/list.js"></script>
+</body>
+</html>

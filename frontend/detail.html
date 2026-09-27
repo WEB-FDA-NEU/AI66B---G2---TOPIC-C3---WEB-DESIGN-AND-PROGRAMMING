@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chi tiết — TÊN-SẢN-PHẨM</title>
+<title>Chi tiết homestay — Homestay Booking</title>
 <link rel="stylesheet" href="css/reset.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
@@ -11,19 +11,126 @@
 </head>
 <body>
 
-<site-header></site-header>
+<site-header active="search"></site-header>
 
 <main class="container page">
-  <article id="detail" hidden class="stack">
-    <h1 id="title"></h1>
-    <!-- TODO: thêm các trường của đề tài -->
-    <!-- TODO: nếu có hành động cần đăng nhập, đặt nút ở đây -->
-  </article>
+
+  <p id="detail-loading">Đang tải thông tin homestay...</p>
+
+  <section id="detail-content" hidden>
+
+    <!-- GALLERY -->
+    <div class="detail-gallery">
+      <div class="detail-gallery__main">
+        <img id="detail-image" src="" alt="">
+      </div>
+      <div id="detail-gallery-thumbs" class="detail-gallery__thumbs"></div>
+    </div>
+
+    <div class="detail-layout">
+
+      <!-- CỘT TRÁI: THÔNG TIN -->
+      <div class="stack">
+        <p id="detail-location" class="text-muted"></p>
+        <h1 id="detail-title"></h1>
+        <div class="flex gap-2">
+          <span id="detail-rating" class="rating"></span>
+          <span class="text-muted">Đánh giá tốt</span>
+        </div>
+        <p id="detail-room-type"></p>
+
+        <section class="stack">
+          <h2>Mô tả</h2>
+          <p id="detail-description"></p>
+        </section>
+
+        <section class="stack">
+          <h2>Tiện ích</h2>
+          <p id="detail-amenities"></p>
+        </section>
+      </div>
+
+      <!-- CỘT PHẢI: ĐẶT PHÒNG -->
+      <aside class="detail-layout__aside">
+        <div class="booking-summary stack">
+          <p class="booking-summary__price"><span id="detail-price"></span> <small class="text-muted">/ đêm</small></p>
+          <button type="button" class="btn btn--primary btn--block" id="book-btn">Đặt phòng</button>
+          <a class="btn btn--outline btn--block" href="search.html">Quay lại tìm kiếm</a>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- ĐÁNH GIÁ -->
+    <section class="stack mt-4" id="reviews-section">
+      <div class="section-head">
+        <div>
+          <h2>Đánh giá của khách</h2>
+          <p id="review-summary" class="text-muted"></p>
+        </div>
+        <button type="button" class="btn" id="write-review-btn">Viết đánh giá</button>
+      </div>
+
+      <div id="review-form-wrapper" class="form-card" hidden>
+        <form id="review-form" class="stack" novalidate>
+          <div class="field">
+            <label class="field__label" for="review-name">Tên của bạn</label>
+            <input class="input" id="review-name" name="name" type="text" placeholder="Nhập tên" required>
+            <p class="field__error"></p>
+          </div>
+          <div class="field">
+            <label class="field__label" for="review-rating">Đánh giá</label>
+            <select class="select" id="review-rating" name="rating" required>
+              <option value="">Chọn số sao</option>
+<option value="5">⭐ 5 sao</option>
+<option value="4">⭐ 4 sao</option>
+              <option value="3">⭐ 3 sao</option>
+              <option value="2">⭐ 2 sao</option>
+              <option value="1">⭐ 1 sao</option>
+            </select>
+            <p class="field__error"></p>
+          </div>
+          <div class="field">
+            <label class="field__label" for="review-comment">Nhận xét</label>
+            <textarea class="textarea" id="review-comment" name="comment" rows="4" placeholder="Chia sẻ trải nghiệm của bạn..." required></textarea>
+            <p class="field__error"></p>
+          </div>
+          <div class="flex gap-2">
+            <button type="submit" class="btn btn--primary">Gửi đánh giá</button>
+            <button type="button" class="btn btn--outline" id="cancel-review-btn">Hủy</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="reviews-list" class="stack"></div>
+    </section>
+
+  </section>
+
+  <section id="detail-not-found" class="empty" hidden>
+    <p class="empty__title">Không tìm thấy homestay</p>
+    <p class="empty__hint">Homestay bạn đang tìm không tồn tại hoặc đã được gỡ khỏi hệ thống.</p>
+    <a class="btn btn--primary empty__action" href="search.html">Xem các homestay khác</a>
+  </section>
+
 </main>
 
+<template id="tpl-review">
+  <article class="review-card">
+    <div class="review-card__head">
+      <strong class="review-card__name"></strong>
+      <span class="review-card__rating"></span>
+    </div>
+    <p class="review-card__date"></p>
+    <p class="review-card__comment"></p>
+  </article>
+</template>
+
 <site-footer></site-footer>
+<div id="toast" role="status"></div>
 
-
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
 <script type="module" src="js/pages/detail.js"></script>
 </body>
 </html>

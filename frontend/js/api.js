@@ -53,15 +53,47 @@ function normalizeDetail(detail) {
 
 export function getItems(params = {}) {
   if (USE_MOCK) return request(`${MOCK_BASE}/items.json`).then(d => filterMock(d, params));
-  const qs = new URLSearchParams(
-    Object.entries(params).filter(([, v]) => v !== '' && v != null)
-  );
+  // Một số bộ lọc (room_type, amenity) có thể là MẢNG — mỗi giá trị cần 1 cặp
+  // key=value riêng trên querystring, nên không thể đưa thẳng cho URLSearchParams(object).
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v == null || v === '') continue;
+    if (Array.isArray(v)) v.forEach(val => val !== '' && qs.append(k, val));
+    else qs.set(k, v);
+  }
   return request(`${API_BASE}/items?${qs}`);
 }
 
 export function getItem(id) {
   if (USE_MOCK) return request(`${MOCK_BASE}/item-${id}.json`);
   return request(`${API_BASE}/items/${id}`);
+}
+
+// ---------- Đánh giá (reviews) của trang chi tiết ----------
+// Mock: đọc/ghi vào localStorage, seed lần đầu từ mảng "reviews" có sẵn trong mock/item-<id>.json.
+const reviewsKey = id => `reviews_${id}`;
+
+export async function getReviews(itemId) {
+  if (USE_MOCK) {
+    const cached = localStorage.getItem(reviewsKey(itemId));
+    if (cached) return JSON.parse(cached);
+    const item = await getItem(itemId);
+    const seed = item.reviews ?? [];
+    localStorage.setItem(reviewsKey(itemId), JSON.stringify(seed));
+    return seed;
+  }
+  return request(`${API_BASE}/items/${itemId}/reviews`);
+}
+
+export async function addReview(itemId, review) {
+  if (USE_MOCK) {
+    const list = await getReviews(itemId);
+    const entry = { id: `rv${Date.now()}`, created_at: new Date().toISOString(), ...review };
+    list.unshift(entry);
+    localStorage.setItem(reviewsKey(itemId), JSON.stringify(list));
+    return entry;
+  }
+  return request(`${API_BASE}/items/${itemId}/reviews`, { method: 'POST', body: review });
 }
 
 // ══════════ NGƯỜI 2 — tài khoản ══════════
@@ -260,12 +292,23 @@ export async function updateBookingStatus(id, status, reason = '') {
 
 // ---------- chỉ dùng ở chế độ mock; backend thật lọc bằng SQL ----------
 function filterMock(data, { q = '', sort = 'newest', category = '',
-                          min_price = '', max_price = '', page = 1, page_size = 0 }) {
+                          min_price = '', max_price = '',
+                          room_type = [], amenity = [], rating = '',
+                          page = 1, page_size = 0 }) {
   let items = data.items;
-  if (q)         items = items.filter(i => i.title.toLowerCase().includes(q.toLowerCase()));
+  if (q) {
+    const needle = q.toLowerCase();
+    // Khớp theo tên HOẶC địa điểm — "Sa Pa" phải ra được các homestay ở Sa Pa.
+    items = items.filter(i => i.title.toLowerCase().includes(needle)
+      || (i.location ?? '').toLowerCase().includes(needle));
+  }
   if (category)  items = items.filter(i => i.category === category);
   if (min_price) items = items.filter(i => i.price >= Number(min_price));
   if (max_price) items = items.filter(i => i.price <= Number(max_price));
+  if (room_type.length) items = items.filter(i => room_type.includes(i.room_type));
+  // Tiện ích: phải có ĐỦ tất cả tiện ích đã chọn, không phải chỉ cần 1 trong số đó.
+  if (amenity.length)   items = items.filter(i => amenity.every(a => (i.amenities ?? []).includes(a)));
+  if (rating)    items = items.filter(i => (i.rating ?? 0) >= Number(rating));
 
   if (sort === 'price_asc')  items = [...items].sort((a, b) => a.price - b.price);
   if (sort === 'price_desc') items = [...items].sort((a, b) => b.price - a.price);
