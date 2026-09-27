@@ -17,22 +17,71 @@
 <!-- Thanh Search Bar sát dưới Header -->
 <div class="hero">
   <div class="container">
-    <form class="search-box">
+    <form class="search-box" id="searchForm">
       <div class="search-field">
         <label for="dest">Địa điểm</label>
         <input type="text" id="dest" value="Đà Lạt, Lâm Đồng">
       </div>
       <div class="search-field">
-        <label for="checkin">Ngày nhận - trả phòng</label>
-        <input type="text" value="01/10/2026 — 03/10/2026" readonly>
+        <label for="checkin">Ngày nhận phòng</label>
+        <input type="date" id="checkin" value="2026-10-01" required>
       </div>
       <div class="search-field">
-        <label for="guests">Khách &amp; Phòng</label>
-        <select id="guests">
-          <option selected>2 người lớn · 0 trẻ em · 1 phòng</option>
-        </select>
+        <label for="checkout">Ngày trả phòng</label>
+        <input type="date" id="checkout" value="2026-10-03" required>
       </div>
-      <button type="submit" class="search-box__btn">Tìm</button>
+
+      <!-- Ô Chọn Khách & Phòng có Popover cộng/trừ đa dạng -->
+      <div class="search-field" style="position: relative;">
+        <label>Khách &amp; Phòng</label>
+        <button type="button" id="guestPickerBtn" class="input" style="text-align: left; background: #fff; cursor: pointer;">
+          2 người lớn · 0 trẻ em · 1 phòng
+        </button>
+
+        <!-- Menu Popover chỉnh số lượng -->
+        <div id="guestPickerMenu" class="form-card stack gap-2" style="position: absolute; top: 100%; left: 0; width: 300px; z-index: 100; display: none; margin-top: 8px; box-shadow: var(--shadow-m);">
+          
+          <div class="flex-between align-center">
+            <div>
+              <div class="font-bold">Người lớn</div>
+              <small class="text-muted">Từ 13 tuổi trở lên</small>
+            </div>
+            <div class="flex gap-2 align-center">
+              <button type="button" class="btn btn--sm" id="degAdult">-</button>
+              <span id="adultVal" class="font-bold">2</span>
+              <button type="button" class="btn btn--sm" id="incAdult">+</button>
+            </div>
+          </div>
+
+          <div class="flex-between align-center">
+            <div>
+              <div class="font-bold">Trẻ em</div>
+              <small class="text-muted">0 - 12 tuổi</small>
+            </div>
+            <div class="flex gap-2 align-center">
+              <button type="button" class="btn btn--sm" id="degChild">-</button>
+              <span id="childVal" class="font-bold">0</span>
+              <button type="button" class="btn btn--sm" id="incChild">+</button>
+            </div>
+          </div>
+
+          <div class="flex-between align-center">
+            <div>
+              <div class="font-bold">Số phòng</div>
+              <small class="text-muted">Tối đa 5 phòng</small>
+            </div>
+            <div class="flex gap-2 align-center">
+              <button type="button" class="btn btn--sm" id="degRoom">-</button>
+              <span id="roomVal" class="font-bold">1</span>
+              <button type="button" class="btn btn--sm" id="incRoom">+</button>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn--primary btn--block mt-2" id="closeGuestPicker">Xác nhận</button>
+        </div>
+      </div>
+
+      <button type="submit" class="search-box__btn">Cập nhật</button>
     </form>
   </div>
 </div>
@@ -93,7 +142,7 @@
     </div>
   </div>
 
-  <!-- Gallery Ảnh (Dùng class .detail-gallery trong components.css) -->
+  <!-- Gallery Ảnh -->
   <section class="detail-gallery">
     <img src="img/da lat.png" alt="Ảnh chính Đà Lạt Pine Cottage">
     <div class="detail-gallery__thumbs">
@@ -118,7 +167,7 @@
             <tr>
               <th>Loại phòng</th>
               <th>Sức chứa</th>
-              <th>Giá 2 đêm</th>
+              <th id="priceHeader">Giá tính theo đêm</th>
               <th>Chọn số lượng</th>
             </tr>
           </thead>
@@ -136,14 +185,18 @@
               </td>
               <td>👥 2 khách</td>
               <td>
-                <div class="text-primary font-bold text-large">2.400.000 VND</div>
+                <div class="text-primary font-bold text-large room-total-price" data-price-per-night="1200000">
+                  2.400.000 VND
+                </div>
                 <small class="text-muted">Đã bao gồm thuế &amp; phí</small>
               </td>
               <td>
-                <select class="select room-select" data-price="2400000">
+                <select class="select room-select">
                   <option value="0">0</option>
-                  <option value="1" selected>1 (2.400.000 VND)</option>
-                  <option value="2">2 (4.800.000 VND)</option>
+                  <option value="1" selected>1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
                 </select>
               </td>
             </tr>
@@ -158,14 +211,18 @@
               </td>
               <td>👥 3 khách</td>
               <td>
-                <div class="text-primary font-bold text-large">3.200.000 VND</div>
+                <div class="text-primary font-bold text-large room-total-price" data-price-per-night="1600000">
+                  3.200.000 VND
+                </div>
                 <small class="text-muted">Đã bao gồm thuế &amp; phí</small>
               </td>
               <td>
-                <select class="select room-select" data-price="3200000">
+                <select class="select room-select">
                   <option value="0" selected>0</option>
-                  <option value="1">1 (3.200.000 VND)</option>
-                  <option value="2">2 (6.400.000 VND)</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
                 </select>
               </td>
             </tr>
@@ -184,8 +241,8 @@
               <strong id="selectedCount" class="text-primary">1 phòng</strong>
             </div>
             <div class="flex-between">
-              <span class="text-muted">Thời gian:</span>
-              <strong>2 đêm</strong>
+              <span class="text-muted">Thời gian ở:</span>
+              <strong id="nightsDisplay">2 đêm</strong>
             </div>
             <hr class="divider-dashed">
             <div class="flex-between text-large font-bold">
@@ -212,27 +269,128 @@
   import './js/components/site-header.js';
   import './js/components/site-footer.js';
 
+  // 1. Xử lý Logic ngày tháng & Giá phòng
+  const checkinInput = document.getElementById('checkin');
+  const checkoutInput = document.getElementById('checkout');
+  const nightsDisplay = document.getElementById('nightsDisplay');
+  const priceHeader = document.getElementById('priceHeader');
   const roomSelects = document.querySelectorAll('.room-select');
   const selectedCountEl = document.getElementById('selectedCount');
   const totalValEl = document.getElementById('totalVal');
+  const btnGoToCheckout = document.getElementById('btnGoToCheckout');
 
-  function updateSummary() {
-    let count = 0;
-    let total = 0;
-
-    roomSelects.forEach(select => {
-      const qty = parseInt(select.value, 10) || 0;
-      const price = parseInt(select.dataset.price, 10) || 0;
-      count += qty;
-      total += qty * price;
-    });
-
-    selectedCountEl.textContent = `${count} phòng`;
-    totalValEl.textContent = total.toLocaleString('vi-VN') + ' VND';
+  function getNights() {
+    const start = new Date(checkinInput.value);
+    const end = new Date(checkoutInput.value);
+    
+    if (isNaN(start) || isNaN(end) || end <= start) {
+      return 0;
+    }
+    const diffTime = Math.abs(end - start);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
-  roomSelects.forEach(s => s.addEventListener('change', updateSummary));
-  updateSummary();
+  function updateBookingLogic() {
+    const nights = getNights();
+
+    if (nights <= 0) {
+      nightsDisplay.textContent = 'Ngày không hợp lệ';
+      totalValEl.textContent = '0 VND';
+      btnGoToCheckout.classList.add('btn--disabled');
+      btnGoToCheckout.style.pointerEvents = 'none';
+      return;
+    }
+
+    nightsDisplay.textContent = `${nights} đêm`;
+    priceHeader.textContent = `Giá (${nights} đêm)`;
+
+    let totalRooms = 0;
+    let grandTotal = 0;
+
+    const priceElements = document.querySelectorAll('.room-total-price');
+    priceElements.forEach((priceEl, index) => {
+      const pricePerNight = parseInt(priceEl.dataset.pricePerNight, 10) || 0;
+      const roomPriceForNights = pricePerNight * nights;
+      
+      priceEl.textContent = roomPriceForNights.toLocaleString('vi-VN') + ' VND';
+
+      const qty = parseInt(roomSelects[index].value, 10) || 0;
+      totalRooms += qty;
+      grandTotal += qty * roomPriceForNights;
+    });
+
+    selectedCountEl.textContent = `${totalRooms} phòng`;
+    totalValEl.textContent = grandTotal.toLocaleString('vi-VN') + ' VND';
+
+    if (totalRooms === 0) {
+      btnGoToCheckout.classList.add('btn--disabled');
+      btnGoToCheckout.style.pointerEvents = 'none';
+    } else {
+      btnGoToCheckout.classList.remove('btn--disabled');
+      btnGoToCheckout.style.pointerEvents = 'auto';
+    }
+  }
+
+  checkinInput.addEventListener('change', () => {
+    if (checkinInput.value >= checkoutInput.value) {
+      const nextDay = new Date(checkinInput.value);
+      nextDay.setDate(nextDay.getDate() + 1);
+      checkoutInput.value = nextDay.toISOString().split('T')[0];
+    }
+    updateBookingLogic();
+  });
+
+  checkoutInput.addEventListener('change', updateBookingLogic);
+  roomSelects.forEach(s => s.addEventListener('change', updateBookingLogic));
+
+  // 2. Xử lý Popover Chọn Khách & Phòng linh hoạt
+  const guestPickerBtn = document.getElementById('guestPickerBtn');
+  const guestPickerMenu = document.getElementById('guestPickerMenu');
+  const closeGuestPicker = document.getElementById('closeGuestPicker');
+
+  // Mức giới hạn
+  const MAX_ADULTS = 10;
+  const MAX_CHILDREN = 6;
+  const MAX_ROOMS = 5;
+
+  let adults = 2, children = 0, rooms = 1;
+
+  function updateGuestText() {
+    guestPickerBtn.textContent = `${adults} người lớn · ${children} trẻ em · ${rooms} phòng`;
+    document.getElementById('adultVal').textContent = adults;
+    document.getElementById('childVal').textContent = children;
+    document.getElementById('roomVal').textContent = rooms;
+  }
+
+  guestPickerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    guestPickerMenu.style.display = guestPickerMenu.style.display === 'none' ? 'block' : 'none';
+  });
+
+  closeGuestPicker.addEventListener('click', () => {
+    guestPickerMenu.style.display = 'none';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!guestPickerMenu.contains(e.target) && e.target !== guestPickerBtn) {
+      guestPickerMenu.style.display = 'none';
+    }
+  });
+
+  // Tăng / Giảm Người lớn (Tối thiểu 1, Tối đa 10)
+  document.getElementById('incAdult').onclick = () => { if(adults < MAX_ADULTS) adults++; updateGuestText(); };
+  document.getElementById('degAdult').onclick = () => { if(adults > 1) adults--; updateGuestText(); };
+
+  // Tăng / Giảm Trẻ em (Tối thiểu 0, Tối đa 6)
+  document.getElementById('incChild').onclick = () => { if(children < MAX_CHILDREN) children++; updateGuestText(); };
+  document.getElementById('degChild').onclick = () => { if(children > 0) children--; updateGuestText(); };
+
+  // Tăng / Giảm Số phòng (Tối thiểu 1, Tối đa 5)
+  document.getElementById('incRoom').onclick = () => { if(rooms < MAX_ROOMS) rooms++; updateGuestText(); };
+  document.getElementById('degRoom').onclick = () => { if(rooms > 1) rooms--; updateGuestText(); };
+
+  // Khởi chạy ban đầu
+  updateBookingLogic();
 </script>
 </body>
 </html>

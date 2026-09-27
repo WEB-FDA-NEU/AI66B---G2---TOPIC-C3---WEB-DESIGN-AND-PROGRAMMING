@@ -58,7 +58,7 @@ function fillItem(item) {
   // Nút đặt phòng: bắt buộc đăng nhập trước (login branch — Mốc 1).
   document.getElementById('book-btn').addEventListener('click', () => {
     if (!isLoggedIn()) return requireLogin();
-    location.href = `booking-page.html?id=${item.id}`;
+    location.href = `booking-select.html?id=${item.id}`;
   });
 }
 
