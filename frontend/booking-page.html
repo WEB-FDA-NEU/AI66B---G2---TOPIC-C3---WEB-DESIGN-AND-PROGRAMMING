@@ -244,10 +244,34 @@
  
     // TODO: khi có dữ liệu thật, gọi API tạo booking thay vì setTimeout giả lập
     setTimeout(() => {
+      const nights = 2; // TODO: tính từ ngày nhận/trả thật khi nối dữ liệu động
+      const roomSubtotal = ROOM_PRICE_PER_NIGHT * nights;
+      const serviceFee = Math.round(roomSubtotal * SERVICE_FEE_RATE);
+      const totalPrice = roomSubtotal + serviceFee;
+
+      const booking = {
+        code: 'LX' + Date.now().toString().slice(-8),
+        homestayName: 'Đà Lạt Pine Cottage',
+        homestayImage: 'img/da lat.png',
+        homestayAddress: 'Phường 3, Đà Lạt, Lâm Đồng',
+        roomName: 'Phòng Superior Giường Đôi',
+        checkIn: '2026-10-01',
+        checkOut: '2026-10-03',
+        nights,
+        guests: 2,
+        guestName: `${document.getElementById('firstname').value} ${document.getElementById('lastname').value}`,
+        roomSubtotal,
+        serviceFee,
+        totalPrice,
+        hostPhone: '0909123456',
+        hostAddress: '12 Đường Hoa Hồng, Phường 3, Đà Lạt, Lâm Đồng',
+      };
+      sessionStorage.setItem('lastBooking', JSON.stringify(booking));
+
       toast('Thanh toán thành công!');
       window.location.href = 'booking-confirmed.html';
     }, 1500);
-  });
+  }); // ← đóng form.addEventListener('submit', ...)
 </script>
 </body>
 </html>
