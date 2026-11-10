@@ -1,17 +1,17 @@
 {
-  "_ghi_chu": "Homestay của host đang đăng nhập (hostId=host001). PHẢI cùng hình dạng với JSON backend trả ở Mốc 3. Ảnh lấy từ mock/items.json (Người 1) theo địa điểm gần nhất — mượn tạm cho các homestay chưa có ảnh thật (Hà Giang/Mũi Né/Cần Thơ/Huế).",
+  "_ghi_chu": "Homestay của host đang đăng nhập (hostId=host001). hs001–hs009 khớp 1-1 với mock/items.json qua trường itemId (cùng tên, địa chỉ, ảnh). hs010 là homestay chỉ có phía host (chưa duyệt lên danh mục công khai, chưa có phòng) để test empty state.",
   "homestays": [
     {
       "id": "hs001",
       "hostId": "host001",
+      "itemId": 1,
       "name": "Sapa Misty Hills Homestay",
       "address": "Bản Cát Cát, Sa Pa, Lào Cai",
-      "description": "Homestay ấm cúng giữa núi rừng Sa Pa, view thung lũng, gần bản Cát Cát.",
+      "description": "Một không gian lưu trú giữa núi rừng Sa Pa, có view thung lũng và không gian yên tĩnh, phù hợp cho gia đình hoặc nhóm bạn.",
       "amenities": [
-        "Wifi",
+        "Wi-fi",
         "Bãi đỗ xe",
-        "Bữa sáng",
-        "Máy sưởi"
+        "Bếp"
       ],
       "images": [
         "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
@@ -25,33 +25,14 @@
     {
       "id": "hs002",
       "hostId": "host001",
-      "name": "Đà Lạt Pine Cottage",
-      "address": "Phường 3, Đà Lạt, Lâm Đồng",
-      "description": "Cabin gỗ thông ấm áp, gần hồ Xuân Hương.",
-      "amenities": [
-        "Wifi",
-        "Bếp chung",
-        "Lò sưởi"
-      ],
-      "images": [
-        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
-      ],
-      "status": "active",
-      "createdAt": "2026-08-03T03:00:00Z"
-    },
-    {
-      "id": "hs003",
-      "hostId": "host001",
+      "itemId": 2,
       "name": "Hoi An River Garden",
       "address": "Cẩm Châu, Hội An, Quảng Nam",
-      "description": "Homestay vườn ven sông, cách phố cổ Hội An 10 phút đi xe đạp.",
+      "description": "Homestay gần khu phố cổ Hội An, không gian xanh và thoáng, phù hợp cho kỳ nghỉ cuối tuần.",
       "amenities": [
-        "Wifi",
-        "Xe đạp miễn phí",
-        "Bữa sáng"
+        "Wi-fi",
+        "Bếp",
+        "Hồ bơi"
       ],
       "images": [
         "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
@@ -60,17 +41,40 @@
         "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
+      "createdAt": "2026-08-03T03:00:00Z"
+    },
+    {
+      "id": "hs003",
+      "hostId": "host001",
+      "itemId": 3,
+      "name": "Đà Lạt Pine Cottage",
+      "address": "Phường 3, Đà Lạt, Lâm Đồng",
+      "description": "Căn homestay phong cách gỗ giữa không gian xanh của Đà Lạt, phù hợp cho nhóm bạn hoặc gia đình nhỏ.",
+      "amenities": [
+        "Wi-fi",
+        "Bãi đỗ xe",
+        "Bếp"
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+      ],
+      "status": "active",
       "createdAt": "2026-08-04T03:00:00Z"
     },
     {
       "id": "hs004",
       "hostId": "host001",
+      "itemId": 4,
       "name": "Sea Breeze Homestay",
       "address": "Mỹ Khê, Đà Nẵng",
-      "description": "Homestay sát biển Mỹ Khê, ban công view biển.",
+      "description": "Không gian nghỉ dưỡng gần biển Mỹ Khê, thích hợp cho những chuyến đi ngắn ngày tại Đà Nẵng.",
       "amenities": [
-        "Wifi",
-        "Điều hòa"
+        "Wi-fi",
+        "Hồ bơi",
+        "Bãi đỗ xe"
       ],
       "images": [
         "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
@@ -84,20 +88,20 @@
     {
       "id": "hs005",
       "hostId": "host001",
-      "name": "Phú Quốc Beach Bungalow",
-      "address": "Bãi Trường, Phú Quốc, Kiên Giang",
-      "description": "Bungalow tranh sát bãi biển, hoàng hôn tuyệt đẹp mỗi chiều.",
+      "itemId": 5,
+      "name": "Sài Gòn Urban Loft",
+      "address": "Quận 1, TP. Hồ Chí Minh",
+      "description": "Không gian hiện đại ngay trung tâm Quận 1, phù hợp cho khách du lịch, công tác và khám phá thành phố.",
       "amenities": [
-        "Wifi",
+        "Wi-fi",
         "Bãi đỗ xe",
-        "Cho thuê xe máy",
-        "Hồ bơi"
+        "Bếp"
       ],
       "images": [
-        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-06T03:00:00Z"
@@ -105,13 +109,13 @@
     {
       "id": "hs006",
       "hostId": "host001",
-      "name": "Tam Cốc Rice Field Homestay",
-      "address": "Ninh Hải, Hoa Lư, Ninh Bình",
-      "description": "View ruộng lúa và núi đá vôi, gần bến thuyền Tam Cốc.",
+      "itemId": 6,
+      "name": "Ninh Bình Rice Field View",
+      "address": "Tam Cốc, Ninh Bình",
+      "description": "Homestay gần Tam Cốc với không gian gần gũi thiên nhiên, phù hợp cho những chuyến khám phá Ninh Bình.",
       "amenities": [
-        "Wifi",
-        "Bữa sáng",
-        "Cho thuê xe đạp"
+        "Wi-fi",
+        "Bãi đỗ xe"
       ],
       "images": [
         "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
@@ -125,19 +129,20 @@
     {
       "id": "hs007",
       "hostId": "host001",
-      "name": "Hà Giang Cao Nguyên Homestay",
-      "address": "Đồng Văn, Hà Giang",
-      "description": "Nhà sàn người H'Mông trên cao nguyên đá, view ruộng bậc thang.",
+      "itemId": 7,
+      "name": "Phú Quốc Beachfront Bungalow",
+      "address": "Bãi Trường, Phú Quốc, Kiên Giang",
+      "description": "Bungalow nghỉ dưỡng gần biển Bãi Trường, phù hợp cho các cặp đôi và gia đình nhỏ.",
       "amenities": [
-        "Wifi",
-        "Bữa sáng",
-        "Đốt lửa trại"
+        "Wi-fi",
+        "Hồ bơi",
+        "Bãi đỗ xe"
       ],
       "images": [
-        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-08T03:00:00Z"
@@ -145,19 +150,19 @@
     {
       "id": "hs008",
       "hostId": "host001",
-      "name": "Mũi Né Sand Dune Homestay",
-      "address": "Phường Mũi Né, Phan Thiết, Bình Thuận",
-      "description": "Gần đồi cát bay, có sân vườn rộng và khu BBQ.",
+      "itemId": 8,
+      "name": "Hà Nội Old Quarter Room",
+      "address": "Hoàn Kiếm, Hà Nội",
+      "description": "Phòng nghỉ nhỏ gọn tại khu phố cổ Hà Nội, thích hợp cho khách muốn khám phá trung tâm thành phố.",
       "amenities": [
-        "Wifi",
-        "Bãi đỗ xe",
-        "Khu BBQ"
+        "Wi-fi",
+        "Bếp"
       ],
       "images": [
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
         "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-09T03:00:00Z"
@@ -165,19 +170,20 @@
     {
       "id": "hs009",
       "hostId": "host001",
-      "name": "Cần Thơ Mekong Homestay",
-      "address": "Phong Điền, Cần Thơ",
-      "description": "Nhà vườn ven sông, gần chợ nổi Cái Răng, có tour chèo xuồng.",
+      "itemId": 9,
+      "name": "Mộc Châu Tea Hill Homestay",
+      "address": "Mộc Châu, Sơn La",
+      "description": "Homestay giữa đồi chè Mộc Châu, không gian mộc mạc và yên tĩnh, phù hợp cho những chuyến nghỉ dưỡng.",
       "amenities": [
-        "Wifi",
-        "Bữa sáng",
-        "Tour chèo xuồng"
+        "Wi-fi",
+        "Bếp",
+        "Bãi đỗ xe"
       ],
       "images": [
+        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
         "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
         "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
       "createdAt": "2026-08-10T03:00:00Z"
@@ -201,7 +207,8 @@
         "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
       ],
       "status": "active",
-      "createdAt": "2026-08-11T03:00:00Z"
+      "createdAt": "2026-08-11T03:00:00Z",
+      "itemId": null
     }
   ]
 }

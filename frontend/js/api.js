@@ -8,6 +8,17 @@
 import { USE_MOCK, API_BASE, MOCK_BASE } from './config.js';
 import { getToken, getUser } from './auth.js';
 
+// ---- Phiên bản dữ liệu mock ----
+// Dữ liệu mock được copy vào localStorage lần đầu đọc, nên khi ai đó sửa mock/*.json mà máy các bạn
+// vẫn giữ bản cũ thì sẽ thấy dữ liệu "không đổi". TĂNG số này mỗi khi sửa mock/*.json:
+// lần mở trang kế tiếp, mọi máy tự xóa cache mock cũ (không đụng tới phiên đăng nhập).
+const MOCK_DATA_VERSION = '2026-11-10-a';
+if (USE_MOCK && localStorage.getItem('mock_version') !== MOCK_DATA_VERSION) {
+  ['customerBookings', 'homestays', 'rooms', 'bookings'].forEach(k => localStorage.removeItem(k));
+  Object.keys(localStorage).filter(k => k.startsWith('reviews_')).forEach(k => localStorage.removeItem(k));
+  localStorage.setItem('mock_version', MOCK_DATA_VERSION);
+}
+
 export class ApiError extends Error {
   constructor(status, detail) {
     super(detail || 'Đã có lỗi xảy ra.');

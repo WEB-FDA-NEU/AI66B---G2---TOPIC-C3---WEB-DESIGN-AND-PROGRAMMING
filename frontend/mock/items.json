@@ -1,5 +1,5 @@
 {
-  "_ghi_chu": "Dữ liệu mock homestay cho HomeBooking",
+  "_ghi_chu": "Dữ liệu mock homestay cho LuxStay. Mỗi homestay có mảng rooms[] (giá/đêm, ảnh riêng từng phòng). price của homestay = giá phòng rẻ nhất. File này là NGUỒN CHÍNH; host-homestays.json / host-rooms.json được dựng khớp theo (có trường itemId / itemRoomId).",
   "items": [
     {
       "id": 1,
@@ -40,9 +40,66 @@
           "comment": "Không gian yên tĩnh, rất hợp để nghỉ dưỡng.",
           "created_at": "2026-09-12T14:30:00Z"
         }
-      ]
+      ],
+      "rooms": [
+        {
+          "id": "r1-1",
+          "name": "Phòng Giường Đôi View Thung Lũng",
+          "description": "Cửa sổ lớn nhìn ra thung lũng Mường Hoa, có lò sưởi nhỏ.",
+          "bed": "1 giường đôi lớn",
+          "area_m2": 25,
+          "capacity": 2,
+          "price": 450000,
+          "breakfast_included": true,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r1-2",
+          "name": "Phòng Gia Đình View Núi",
+          "description": "Hai giường, ban công riêng hướng núi, phù hợp gia đình nhỏ.",
+          "bed": "2 giường đôi",
+          "area_m2": 38,
+          "capacity": 4,
+          "price": 720000,
+          "breakfast_included": true,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r1-3",
+          "name": "Nguyên Căn Nhà Sàn (6 khách)",
+          "description": "Cả căn nhà sàn gồm 3 phòng ngủ và bếp chung riêng tư.",
+          "bed": "3 giường đôi",
+          "area_m2": 70,
+          "capacity": 6,
+          "price": 1250000,
+          "breakfast_included": false,
+          "free_cancellation": false,
+          "images": [
+            "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+          ]
+        }
+      ],
+      "host_name": "Anh Tùng",
+      "check_in_time": "14:00",
+      "check_out_time": "12:00",
+      "house_rules": [
+        "Nhận phòng từ 14:00, trả phòng trước 12:00.",
+        "Không hút thuốc trong phòng.",
+        "Giữ yên tĩnh sau 22:00.",
+        "Không tổ chức tiệc khi chưa báo chủ nhà.",
+        "Cho phép thú cưng khi báo trước."
+      ],
+      "cancellation_policy": "Miễn phí hủy trước 3 ngày so với ngày nhận phòng. Hủy muộn hơn sẽ tính phí đêm đầu tiên."
     },
-
     {
       "id": 2,
       "title": "Hoi An River Garden",
@@ -82,9 +139,66 @@
           "comment": "Vị trí thuận tiện, chủ nhà hỗ trợ nhanh.",
           "created_at": "2026-09-10T16:00:00Z"
         }
-      ]
+      ],
+      "rooms": [
+        {
+          "id": "r2-1",
+          "name": "Phòng Đơn Hướng Vườn",
+          "description": "Phòng gọn gàng nhìn ra vườn hoa giấy, yên tĩnh.",
+          "bed": "1 giường đơn",
+          "area_m2": 18,
+          "capacity": 1,
+          "price": 380000,
+          "breakfast_included": true,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r2-2",
+          "name": "Phòng Đôi View Sông",
+          "description": "Ban công nhìn ra sông Thu Bồn, có bàn trà.",
+          "bed": "1 giường đôi lớn",
+          "area_m2": 24,
+          "capacity": 2,
+          "price": 480000,
+          "breakfast_included": true,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r2-3",
+          "name": "Phòng Gia Đình Có Hồ Bơi",
+          "description": "Mở cửa ra hồ bơi chung, đủ chỗ cho 4 người.",
+          "bed": "2 giường đôi",
+          "area_m2": 36,
+          "capacity": 4,
+          "price": 760000,
+          "breakfast_included": true,
+          "free_cancellation": false,
+          "images": [
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85"
+          ]
+        }
+      ],
+      "host_name": "Chị Lan",
+      "check_in_time": "14:00",
+      "check_out_time": "12:00",
+      "house_rules": [
+        "Nhận phòng từ 14:00, trả phòng trước 12:00.",
+        "Không hút thuốc trong phòng.",
+        "Giữ yên tĩnh sau 22:00.",
+        "Không tổ chức tiệc khi chưa báo chủ nhà.",
+        "Cho phép thú cưng khi báo trước."
+      ],
+      "cancellation_policy": "Miễn phí hủy trước 3 ngày so với ngày nhận phòng. Hủy muộn hơn sẽ tính phí đêm đầu tiên."
     },
-
     {
       "id": 3,
       "title": "Đà Lạt Pine Cottage",
@@ -123,9 +237,66 @@
           "comment": "Phòng rộng và đầy đủ tiện nghi.",
           "created_at": "2026-09-11T18:30:00Z"
         }
-      ]
+      ],
+      "rooms": [
+        {
+          "id": "r3-1",
+          "name": "Phòng Superior Giường Đôi",
+          "description": "Phòng gỗ thông ấm cúng, cửa sổ nhìn ra rừng thông.",
+          "bed": "1 giường đôi lớn",
+          "area_m2": 25,
+          "capacity": 2,
+          "price": 420000,
+          "breakfast_included": false,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r3-2",
+          "name": "Deluxe Studio Hướng Núi",
+          "description": "Có góc sofa và bếp nhỏ, tầm nhìn thung lũng Đà Lạt.",
+          "bed": "1 giường cực lớn + 1 sofa",
+          "area_m2": 35,
+          "capacity": 3,
+          "price": 640000,
+          "breakfast_included": true,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r3-3",
+          "name": "Phòng Gia Đình Có Lò Sưởi",
+          "description": "Hai phòng ngủ thông nhau, lò sưởi và bàn ăn riêng.",
+          "bed": "2 giường đôi",
+          "area_m2": 45,
+          "capacity": 4,
+          "price": 880000,
+          "breakfast_included": true,
+          "free_cancellation": false,
+          "images": [
+            "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
+          ]
+        }
+      ],
+      "host_name": "Anh Minh",
+      "check_in_time": "14:00",
+      "check_out_time": "12:00",
+      "house_rules": [
+        "Nhận phòng từ 14:00, trả phòng trước 12:00.",
+        "Không hút thuốc trong phòng.",
+        "Giữ yên tĩnh sau 22:00.",
+        "Không tổ chức tiệc khi chưa báo chủ nhà.",
+        "Cho phép thú cưng khi báo trước."
+      ],
+      "cancellation_policy": "Miễn phí hủy trước 3 ngày so với ngày nhận phòng. Hủy muộn hơn sẽ tính phí đêm đầu tiên."
     },
-
     {
       "id": 4,
       "title": "Sea Breeze Homestay",
@@ -164,9 +335,66 @@
           "comment": "Không gian thoải mái, nhân viên hỗ trợ tốt.",
           "created_at": "2026-09-12T10:30:00Z"
         }
-      ]
+      ],
+      "rooms": [
+        {
+          "id": "r4-1",
+          "name": "Phòng Đơn View Phố",
+          "description": "Phòng nhỏ gọn, cách biển Mỹ Khê 3 phút đi bộ.",
+          "bed": "1 giường đơn",
+          "area_m2": 16,
+          "capacity": 1,
+          "price": 380000,
+          "breakfast_included": false,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r4-2",
+          "name": "Phòng Đôi View Biển",
+          "description": "Ban công nhìn thẳng ra biển Mỹ Khê.",
+          "bed": "1 giường đôi lớn",
+          "area_m2": 26,
+          "capacity": 2,
+          "price": 560000,
+          "breakfast_included": true,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r4-3",
+          "name": "Phòng Gia Đình Hướng Biển",
+          "description": "Rộng rãi, 2 giường, cửa kính lớn nhìn ra biển.",
+          "bed": "2 giường đôi",
+          "area_m2": 40,
+          "capacity": 4,
+          "price": 820000,
+          "breakfast_included": true,
+          "free_cancellation": false,
+          "images": [
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+          ]
+        }
+      ],
+      "host_name": "Chị Hạnh",
+      "check_in_time": "14:00",
+      "check_out_time": "12:00",
+      "house_rules": [
+        "Nhận phòng từ 14:00, trả phòng trước 12:00.",
+        "Không hút thuốc trong phòng.",
+        "Giữ yên tĩnh sau 22:00.",
+        "Không tổ chức tiệc khi chưa báo chủ nhà.",
+        "Cho phép thú cưng khi báo trước."
+      ],
+      "cancellation_policy": "Miễn phí hủy trước 3 ngày so với ngày nhận phòng. Hủy muộn hơn sẽ tính phí đêm đầu tiên."
     },
-
     {
       "id": 5,
       "title": "Sài Gòn Urban Loft",
@@ -205,9 +433,51 @@
           "comment": "Phòng đẹp, hiện đại và sạch sẽ.",
           "created_at": "2026-09-09T17:20:00Z"
         }
-      ]
+      ],
+      "rooms": [
+        {
+          "id": "r5-1",
+          "name": "Studio Loft Trung Tâm",
+          "description": "Gác lửng phong cách công nghiệp, ngay trung tâm Quận 1.",
+          "bed": "1 giường đôi lớn",
+          "area_m2": 30,
+          "capacity": 2,
+          "price": 550000,
+          "breakfast_included": false,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r5-2",
+          "name": "Loft Hai Giường View Thành Phố",
+          "description": "Hai tầng, cửa sổ toàn cảnh, bếp đầy đủ.",
+          "bed": "2 giường đôi",
+          "area_m2": 48,
+          "capacity": 4,
+          "price": 850000,
+          "breakfast_included": false,
+          "free_cancellation": false,
+          "images": [
+            "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+          ]
+        }
+      ],
+      "host_name": "Anh Khoa",
+      "check_in_time": "14:00",
+      "check_out_time": "12:00",
+      "house_rules": [
+        "Nhận phòng từ 14:00, trả phòng trước 12:00.",
+        "Không hút thuốc trong phòng.",
+        "Giữ yên tĩnh sau 22:00.",
+        "Không tổ chức tiệc khi chưa báo chủ nhà.",
+        "Cho phép thú cưng khi báo trước."
+      ],
+      "cancellation_policy": "Miễn phí hủy trước 3 ngày so với ngày nhận phòng. Hủy muộn hơn sẽ tính phí đêm đầu tiên."
     },
-
     {
       "id": 6,
       "title": "Ninh Bình Rice Field View",
@@ -245,9 +515,66 @@
           "comment": "Giá hợp lý, trải nghiệm rất đáng nhớ.",
           "created_at": "2026-09-10T11:45:00Z"
         }
-      ]
+      ],
+      "rooms": [
+        {
+          "id": "r6-1",
+          "name": "Phòng Tập Thể 4 Giường Tầng",
+          "description": "Phòng chung cho khách du lịch bụi, có khóa tủ cá nhân.",
+          "bed": "2 giường tầng",
+          "area_m2": 20,
+          "capacity": 4,
+          "price": 300000,
+          "breakfast_included": false,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r6-2",
+          "name": "Phòng Đôi View Ruộng Lúa",
+          "description": "Cửa sổ nhìn ra cánh đồng lúa Tam Cốc.",
+          "bed": "1 giường đôi lớn",
+          "area_m2": 22,
+          "capacity": 2,
+          "price": 480000,
+          "breakfast_included": true,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r6-3",
+          "name": "Phòng Gia Đình View Núi Đá",
+          "description": "Ban công riêng nhìn núi đá vôi, phù hợp 4 người.",
+          "bed": "2 giường đôi",
+          "area_m2": 34,
+          "capacity": 4,
+          "price": 720000,
+          "breakfast_included": true,
+          "free_cancellation": false,
+          "images": [
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85"
+          ]
+        }
+      ],
+      "host_name": "Chị Thảo",
+      "check_in_time": "14:00",
+      "check_out_time": "12:00",
+      "house_rules": [
+        "Nhận phòng từ 14:00, trả phòng trước 12:00.",
+        "Không hút thuốc trong phòng.",
+        "Giữ yên tĩnh sau 22:00.",
+        "Không tổ chức tiệc khi chưa báo chủ nhà.",
+        "Cho phép thú cưng khi báo trước."
+      ],
+      "cancellation_policy": "Miễn phí hủy trước 3 ngày so với ngày nhận phòng. Hủy muộn hơn sẽ tính phí đêm đầu tiên."
     },
-
     {
       "id": 7,
       "title": "Phú Quốc Beachfront Bungalow",
@@ -287,9 +614,51 @@
           "comment": "Không gian đẹp và dịch vụ rất tốt.",
           "created_at": "2026-09-09T13:40:00Z"
         }
-      ]
+      ],
+      "rooms": [
+        {
+          "id": "r7-1",
+          "name": "Bungalow Đôi Gần Biển",
+          "description": "Bungalow gỗ riêng biệt, cách bãi Trường 50 m.",
+          "bed": "1 giường đôi lớn",
+          "area_m2": 28,
+          "capacity": 2,
+          "price": 650000,
+          "breakfast_included": true,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r7-2",
+          "name": "Bungalow Gia Đình View Biển",
+          "description": "Hiên rộng nhìn biển, 2 phòng ngủ.",
+          "bed": "2 giường đôi",
+          "area_m2": 42,
+          "capacity": 4,
+          "price": 980000,
+          "breakfast_included": true,
+          "free_cancellation": false,
+          "images": [
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+          ]
+        }
+      ],
+      "host_name": "Anh Quân",
+      "check_in_time": "14:00",
+      "check_out_time": "12:00",
+      "house_rules": [
+        "Nhận phòng từ 14:00, trả phòng trước 12:00.",
+        "Không hút thuốc trong phòng.",
+        "Giữ yên tĩnh sau 22:00.",
+        "Không tổ chức tiệc khi chưa báo chủ nhà.",
+        "Cho phép thú cưng khi báo trước."
+      ],
+      "cancellation_policy": "Miễn phí hủy trước 3 ngày so với ngày nhận phòng. Hủy muộn hơn sẽ tính phí đêm đầu tiên."
     },
-
     {
       "id": 8,
       "title": "Hà Nội Old Quarter Room",
@@ -327,9 +696,51 @@
           "comment": "Phòng gọn gàng, phù hợp với chuyến đi ngắn.",
           "created_at": "2026-09-09T08:30:00Z"
         }
-      ]
+      ],
+      "rooms": [
+        {
+          "id": "r8-1",
+          "name": "Phòng Đơn Phố Cổ",
+          "description": "Phòng nhỏ ấm cúng trong ngõ phố cổ, có điều hòa.",
+          "bed": "1 giường đơn",
+          "area_m2": 14,
+          "capacity": 1,
+          "price": 250000,
+          "breakfast_included": false,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r8-2",
+          "name": "Phòng Đôi Có Ban Công",
+          "description": "Ban công nhìn xuống phố, gần Hồ Gươm.",
+          "bed": "1 giường đôi",
+          "area_m2": 20,
+          "capacity": 2,
+          "price": 390000,
+          "breakfast_included": true,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
+          ]
+        }
+      ],
+      "host_name": "Chị Mai",
+      "check_in_time": "14:00",
+      "check_out_time": "12:00",
+      "house_rules": [
+        "Nhận phòng từ 14:00, trả phòng trước 12:00.",
+        "Không hút thuốc trong phòng.",
+        "Giữ yên tĩnh sau 22:00.",
+        "Không tổ chức tiệc khi chưa báo chủ nhà.",
+        "Cho phép thú cưng khi báo trước."
+      ],
+      "cancellation_policy": "Miễn phí hủy trước 3 ngày so với ngày nhận phòng. Hủy muộn hơn sẽ tính phí đêm đầu tiên."
     },
-
     {
       "id": 9,
       "title": "Mộc Châu Tea Hill Homestay",
@@ -368,9 +779,66 @@
           "comment": "Không gian bình yên, chủ nhà dễ thương.",
           "created_at": "2026-09-10T12:20:00Z"
         }
-      ]
+      ],
+      "rooms": [
+        {
+          "id": "r9-1",
+          "name": "Phòng Tập Thể 6 Giường",
+          "description": "Giường tầng sạch sẽ, phòng tắm chung, giá tiết kiệm.",
+          "bed": "3 giường tầng",
+          "area_m2": 24,
+          "capacity": 6,
+          "price": 350000,
+          "breakfast_included": false,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r9-2",
+          "name": "Phòng Đôi View Đồi Chè",
+          "description": "Nhìn ra đồi chè Mộc Châu buổi sớm.",
+          "bed": "1 giường đôi lớn",
+          "area_m2": 22,
+          "capacity": 2,
+          "price": 520000,
+          "breakfast_included": true,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r9-3",
+          "name": "Phòng Gia Đình Có Bếp",
+          "description": "Có bếp nhỏ để tự nấu, phù hợp nhóm bạn 4 người.",
+          "bed": "2 giường đôi",
+          "area_m2": 36,
+          "capacity": 4,
+          "price": 780000,
+          "breakfast_included": true,
+          "free_cancellation": false,
+          "images": [
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85"
+          ]
+        }
+      ],
+      "host_name": "Anh Dũng",
+      "check_in_time": "14:00",
+      "check_out_time": "12:00",
+      "house_rules": [
+        "Nhận phòng từ 14:00, trả phòng trước 12:00.",
+        "Không hút thuốc trong phòng.",
+        "Giữ yên tĩnh sau 22:00.",
+        "Không tổ chức tiệc khi chưa báo chủ nhà.",
+        "Cho phép thú cưng khi báo trước."
+      ],
+      "cancellation_policy": "Miễn phí hủy trước 3 ngày so với ngày nhận phòng. Hủy muộn hơn sẽ tính phí đêm đầu tiên."
     },
-
     {
       "id": 10,
       "title": "Vũng Tàu Sea View Apartment",
@@ -410,7 +878,50 @@
           "comment": "Phòng rộng, phù hợp đi theo nhóm.",
           "created_at": "2026-09-08T16:30:00Z"
         }
-      ]
+      ],
+      "rooms": [
+        {
+          "id": "r10-1",
+          "name": "Studio View Biển Bãi Sau",
+          "description": "Căn hộ studio tầng cao, nhìn thẳng ra biển.",
+          "bed": "1 giường đôi lớn",
+          "area_m2": 28,
+          "capacity": 2,
+          "price": 480000,
+          "breakfast_included": false,
+          "free_cancellation": true,
+          "images": [
+            "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85"
+          ]
+        },
+        {
+          "id": "r10-2",
+          "name": "Căn Hộ 2 Phòng Ngủ",
+          "description": "Hai phòng ngủ, bếp và phòng khách riêng.",
+          "bed": "2 giường đôi",
+          "area_m2": 55,
+          "capacity": 4,
+          "price": 820000,
+          "breakfast_included": true,
+          "free_cancellation": false,
+          "images": [
+            "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85",
+            "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+          ]
+        }
+      ],
+      "host_name": "Chị Vy",
+      "check_in_time": "14:00",
+      "check_out_time": "12:00",
+      "house_rules": [
+        "Nhận phòng từ 14:00, trả phòng trước 12:00.",
+        "Không hút thuốc trong phòng.",
+        "Giữ yên tĩnh sau 22:00.",
+        "Không tổ chức tiệc khi chưa báo chủ nhà.",
+        "Cho phép thú cưng khi báo trước."
+      ],
+      "cancellation_policy": "Miễn phí hủy trước 3 ngày so với ngày nhận phòng. Hủy muộn hơn sẽ tính phí đêm đầu tiên."
     }
   ],
   "total": 10,
