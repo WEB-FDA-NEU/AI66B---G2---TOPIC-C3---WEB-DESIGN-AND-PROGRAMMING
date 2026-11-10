@@ -3,7 +3,7 @@
     {
       "id": 1,
       "userId": 1,
-      "homestayId": 1,
+      "homestayId": 3,
       "homestayName": "Đà Lạt Pine Cottage",
       "homestayImage": "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
       "roomName": "Phòng Đôi View Rừng Thông",
@@ -21,7 +21,7 @@
     {
       "id": 2,
       "userId": 1,
-      "homestayId": 2,
+      "homestayId": 1,
       "homestayName": "Sapa Misty Hills Homestay",
       "homestayImage": "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85",
       "roomName": "Phòng Đôi View Núi",
@@ -39,7 +39,7 @@
     {
       "id": 3,
       "userId": 1,
-      "homestayId": 3,
+      "homestayId": 4,
       "homestayName": "Sea Breeze Homestay",
       "homestayImage": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85",
       "roomName": "Phòng Đơn View Biển",
@@ -57,7 +57,7 @@
     {
       "id": 4,
       "userId": 1,
-      "homestayId": 1,
+      "homestayId": 3,
       "homestayName": "Đà Lạt Pine Cottage",
       "homestayImage": "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85",
       "roomName": "Phòng Đôi View Rừng Thông",

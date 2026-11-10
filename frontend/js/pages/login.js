@@ -6,6 +6,13 @@ import '../components/site-footer.js';
 
 const form = document.getElementById('login-form');
 
+// Tài khoản demo: bấm một dòng → tự điền email + mật khẩu chung (xem mock/users.json)
+document.querySelectorAll('[data-demo-email]').forEach(b => b.addEventListener('click', () => {
+  form.email.value = b.dataset.demoEmail;
+  form.password.value = '12345678';
+  clearFieldErrors(form);
+}));
+
 form.addEventListener('submit', async e => {
   e.preventDefault();
   clearFieldErrors(form);

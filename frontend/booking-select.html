@@ -3,393 +3,233 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Đà Lạt Pine Cottage — Homestay Booking</title>
- 
+  <title>Chọn phòng — Homestay Booking</title>
+
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
- 
-<site-header></site-header>
 
-<!-- Thanh Search Bar sát dưới Header -->
-<div class="hero">
-  <div class="container">
-    <form class="search-box" id="searchForm">
-      <div class="search-field">
-        <label for="dest">Địa điểm</label>
-        <input type="text" id="dest" value="Đà Lạt, Lâm Đồng">
+<site-header active="search"></site-header>
+
+<main class="container page stack">
+
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="index.html">Trang chủ</a></li>
+      <li><a href="search.html">Homestay</a></li>
+      <li><a href="detail.html" id="crumbDetail"><span id="crumbTitle">Homestay</span></a></li>
+      <li aria-current="page">Chọn phòng</li>
+    </ol>
+  </nav>
+
+  <!-- ============ TỔNG QUAN ============ -->
+  <section id="overview" class="stack">
+    <div class="flex-between align-start">
+      <div class="stack gap-1">
+        <h1 id="itemTitle">Đang tải…</h1>
+        <p class="text-muted">📍 <span id="itemLocation"></span></p>
       </div>
-      <div class="search-field">
-        <label for="checkin">Ngày nhận phòng</label>
-        <input type="date" id="checkin" value="2026-10-01" required>
-      </div>
-      <div class="search-field">
-        <label for="checkout">Ngày trả phòng</label>
-        <input type="date" id="checkout" value="2026-10-03" required>
-      </div>
 
-      <!-- Ô Chọn Khách & Phòng có Popover cộng/trừ đa dạng -->
-      <div class="search-field" style="position: relative;">
-        <label>Khách &amp; Phòng</label>
-        <button type="button" id="guestPickerBtn" class="input" style="text-align: left; background: #fff; cursor: pointer;">
-          2 người lớn · 0 trẻ em · 1 phòng
-        </button>
-
-        <!-- Menu Popover chỉnh số lượng -->
-        <div id="guestPickerMenu" class="form-card stack gap-2" style="position: absolute; top: 100%; left: 0; width: 300px; z-index: 100; display: none; margin-top: 8px; box-shadow: var(--shadow-m);">
-          
-          <div class="flex-between align-center">
-            <div>
-              <div class="font-bold">Người lớn</div>
-              <small class="text-muted">Từ 13 tuổi trở lên</small>
-            </div>
-            <div class="flex gap-2 align-center">
-              <button type="button" class="btn btn--sm" id="degAdult">-</button>
-              <span id="adultVal" class="font-bold">2</span>
-              <button type="button" class="btn btn--sm" id="incAdult">+</button>
-            </div>
-          </div>
-
-          <div class="flex-between align-center">
-            <div>
-              <div class="font-bold">Trẻ em</div>
-              <small class="text-muted">0 - 12 tuổi</small>
-            </div>
-            <div class="flex gap-2 align-center">
-              <button type="button" class="btn btn--sm" id="degChild">-</button>
-              <span id="childVal" class="font-bold">0</span>
-              <button type="button" class="btn btn--sm" id="incChild">+</button>
-            </div>
-          </div>
-
-          <div class="flex-between align-center">
-            <div>
-              <div class="font-bold">Số phòng</div>
-              <small class="text-muted">Tối đa 5 phòng</small>
-            </div>
-            <div class="flex gap-2 align-center">
-              <button type="button" class="btn btn--sm" id="degRoom">-</button>
-              <span id="roomVal" class="font-bold">1</span>
-              <button type="button" class="btn btn--sm" id="incRoom">+</button>
-            </div>
-          </div>
-
-          <button type="button" class="btn btn--primary btn--block mt-2" id="closeGuestPicker">Xác nhận</button>
+      <a class="flex gap-2 align-center" href="#reviews" style="text-decoration:none;color:inherit">
+        <div class="text-right">
+          <div class="font-bold" id="ratingLabel"></div>
+          <small class="text-muted" id="ratingCount"></small>
         </div>
-      </div>
+        <span class="rating" id="itemRating">—</span>
+      </a>
+    </div>
 
-      <button type="submit" class="search-box__btn">Cập nhật</button>
-    </form>
-  </div>
-</div>
+    <div class="detail-gallery" id="gallery"></div>
+  </section>
+</main>
 
-<!-- Breadcrumb -->
-<nav class="breadcrumb container mt-3">
-  <ol>
-    <li><a href="#">Trang chủ</a></li>
-    <li><a href="#">Khách sạn</a></li>
-    <li><a href="#">Việt Nam</a></li>
-    <li><a href="#">Lâm Đồng</a></li>
-    <li aria-current="page">Đà Lạt Pine Cottage</li>
-  </ol>
-</nav>
-
-<!-- Sub-navigation (Menu phụ chuyển tab) -->
-<nav class="sub-nav mt-3">
+<!-- Menu phụ: mỗi mục trỏ tới ĐÚNG một khối có id bên dưới -->
+<nav class="sub-nav" aria-label="Các mục trong trang">
   <div class="container">
     <ul class="sub-nav__links">
-      <li><a href="#overview" class="sub-nav__link is-active">Tổng quan</a></li>
-      <li><a href="#availability" class="sub-nav__link">Thông tin &amp; giá</a></li>
+      <li><a href="#overview-text" class="sub-nav__link is-active">Tổng quan</a></li>
+      <li><a href="#availability" class="sub-nav__link">Chọn phòng &amp; giá</a></li>
       <li><a href="#amenities" class="sub-nav__link">Tiện nghi</a></li>
       <li><a href="#rules" class="sub-nav__link">Quy tắc chung</a></li>
-      <li><a href="#reviews" class="sub-nav__link">Đánh giá của khách (5)</a></li>
+      <li><a href="#reviews" class="sub-nav__link">Đánh giá của khách</a></li>
     </ul>
   </div>
 </nav>
- 
-<main class="container page stack">
 
-  <!-- Header Thông tin Chỗ nghỉ -->
-  <div class="flex-between align-start" id="overview">
-    <div class="stack gap-1">
-      <div class="flex gap-2">
-        <span class="badge badge--info font-bold">Genius</span>
-        <span class="text-warning">★★</span>
-        <span class="badge badge--success">Có xe đưa đón</span>
-      </div>
-      
-      <h2>Đà Lạt Pine Cottage</h2>
-      
-      <p class="text-muted">
-        📍 Phường 3, Đà Lạt, Lâm Đồng — 
-        <a href="#" class="text-primary font-bold underline">Vị trí tuyệt vời — Hiển thị bản đồ</a>
-      </p>
-    </div>
+<main class="container page stack pt-4">
 
-    <!-- Nút Đặt ngay + Đánh giá -->
-    <div class="stack text-right gap-2">
-      <div class="flex gap-2 justify-end">
-        <div>
-          <div class="font-bold">Rất tốt</div>
-          <small class="text-muted">5 đánh giá</small>
-        </div>
-        <span class="rating">8,4</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Gallery Ảnh -->
-  <section class="detail-gallery">
-    <img src="img/da lat.png" alt="Ảnh chính Đà Lạt Pine Cottage">
-    <div class="detail-gallery__thumbs">
-      <img src="img/da lat.png" alt="Ảnh góc 1">
-      <img src="img/da lat.png" alt="Ảnh góc 2">
-      <img src="img/da lat.png" alt="Ảnh góc 3">
-      <img src="img/da lat.png" alt="Ảnh góc 4">
-    </div>
+  <!-- ============ 1. TỔNG QUAN ============ -->
+  <section id="overview-text" class="info-block">
+    <h2>Tổng quan</h2>
+    <p id="itemDesc"></p>
   </section>
 
-  <!-- Khối Bảng chọn phòng (Thông tin & Giá) -->
-  <section id="availability" class="stack gap-3 mt-4">
-    <div class="section-head">
-      <h2>Những phòng còn trống</h2>
+  <!-- ============ 2. CHỌN PHÒNG & GIÁ ============ -->
+  <section id="availability" class="stack gap-3">
+    <div class="section-head mb-0">
+      <div>
+        <h2>Chọn phòng &amp; giá</h2>
+        <p>Giá mỗi đêm. Phí dịch vụ 5% được cộng ở bước thanh toán.</p>
+      </div>
     </div>
 
-    <div class="detail-layout">
-      <!-- Cột trái: Bảng danh sách phòng -->
-      <div>
+    <!-- Thanh tóm tắt chuyến đi: ngày & khách đã chọn ở trang chi tiết.
+         Chỉ mở form khi người dùng bấm "Đổi" (hoặc khi vào thẳng trang này mà chưa có ngày). -->
+    <div class="stay-bar" id="stayBar">
+      <div class="stay-bar__summary" id="staySummary">
+        <div><small>Nhận phòng</small><strong id="sbIn">—</strong></div>
+        <div><small>Trả phòng</small><strong id="sbOut">—</strong></div>
+        <div><small>Số đêm</small><strong id="sbNights">—</strong></div>
+        <div><small>Khách</small><strong id="sbGuests">—</strong></div>
+        <button type="button" class="btn btn--outline" id="stayEditBtn" aria-expanded="false" aria-controls="stayForm">Đổi ngày / khách</button>
+      </div>
+
+      <form class="stay-bar__form" id="stayForm" novalidate hidden>
+        <div class="field">
+          <label class="field__label" for="checkin">Nhận phòng</label>
+          <input class="input" type="date" id="checkin" required>
+        </div>
+        <div class="field">
+          <label class="field__label" for="checkout">Trả phòng</label>
+          <input class="input" type="date" id="checkout" required>
+        </div>
+        <div class="field">
+          <label class="field__label" for="adults">Người lớn</label>
+          <select class="select" id="adults"></select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="children">Trẻ em (0–12)</label>
+          <select class="select" id="children"></select>
+        </div>
+        <div class="stay-bar__actions">
+          <button type="submit" class="btn btn--primary">Cập nhật</button>
+          <button type="button" class="btn btn--outline" id="stayCancelBtn">Đóng</button>
+        </div>
+        <p class="field__error" id="stayError"></p>
+      </form>
+    </div>
+
+    <!-- BẢNG CHỌN PHÒNG + TÓM TẮT -->
+    <div class="detail-layout mt-0">
+      <div class="table-wrap">
         <table class="room-table">
           <thead>
             <tr>
               <th>Loại phòng</th>
               <th>Sức chứa</th>
-              <th id="priceHeader">Giá tính theo đêm</th>
-              <th>Chọn số lượng</th>
+              <th id="priceHeader">Giá</th>
+              <th>Số lượng</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>
-                <strong class="text-primary text-large">Phòng Superior Giường Đôi</strong>
-                <div class="text-muted font-semibold mt-1">
-                  🛏 1 giường đôi lớn · 📐 25 m²
-                </div>
-                <div class="text-success font-semibold mt-2">
-                  ✓ Miễn phí hủy phòng<br>
-                  ✓ Không cần thanh toán trước
-                </div>
-              </td>
-              <td>👥 2 khách</td>
-              <td>
-                <div class="text-primary font-bold text-large room-total-price" data-price-per-night="1200000">
-                  2.400.000 VND
-                </div>
-                <small class="text-muted">Đã bao gồm thuế &amp; phí</small>
-              </td>
-              <td>
-                <select class="select room-select">
-                  <option value="0">0</option>
-                  <option value="1" selected>1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-              </td>
-            </tr>
-
-            <tr>
-              <td>
-                <strong class="text-primary text-large">Deluxe Studio Hướng Núi</strong>
-                <div class="text-muted font-semibold mt-1">
-                  🛏 1 giường cực lớn + 1 Sofa · 📐 35 m²
-                </div>
-                <span class="badge badge--warning mt-2">Bao gồm ăn sáng</span>
-              </td>
-              <td>👥 3 khách</td>
-              <td>
-                <div class="text-primary font-bold text-large room-total-price" data-price-per-night="1600000">
-                  3.200.000 VND
-                </div>
-                <small class="text-muted">Đã bao gồm thuế &amp; phí</small>
-              </td>
-              <td>
-                <select class="select room-select">
-                  <option value="0" selected>0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-              </td>
-            </tr>
-          </tbody>
+          <tbody id="roomRows"></tbody>
         </table>
       </div>
 
-      <!-- Cột phải: Tóm tắt đặt phòng -->
       <aside class="detail-layout__aside">
-        <div class="form-card stack gap-3">
+        <div class="booking-summary stack gap-3">
           <h3>Tóm tắt lựa chọn</h3>
+
+          <div class="stack gap-2" id="summaryLines"></div>
 
           <div class="stack gap-2">
             <div class="flex-between">
               <span class="text-muted">Số phòng đã chọn:</span>
-              <strong id="selectedCount" class="text-primary">1 phòng</strong>
+              <strong id="selectedCount" class="text-primary">0 phòng</strong>
             </div>
             <div class="flex-between">
               <span class="text-muted">Thời gian ở:</span>
-              <strong id="nightsDisplay">2 đêm</strong>
+              <strong id="nightsDisplay">—</strong>
             </div>
             <hr class="divider-dashed">
             <div class="flex-between text-large font-bold">
-              <span>Tổng giá:</span>
-              <span class="text-primary" id="totalVal">2.400.000 VND</span>
+              <span>Tạm tính:</span>
+              <span class="text-primary" id="totalVal">0 ₫</span>
             </div>
+            <small class="text-muted">Chưa gồm phí dịch vụ 5% — sẽ hiện ở bước tiếp theo.</small>
           </div>
 
-          <a href="booking-page.html" id="btnGoToCheckout" class="btn btn--primary btn--block">
-            Tôi sẽ đặt &gt;&gt;
-          </a>
-
-          <p class="field__hint text-center">● Xác nhận đặt phòng tức thì</p>
+          <p class="msg msg--error" id="selectMsg" hidden></p>
+          <a href="booking-page.html" id="btnGoToCheckout" class="btn btn--primary btn--block btn--disabled" aria-disabled="true">Tôi sẽ đặt</a>
+          <p class="field__hint text-center">Chưa bị trừ tiền ở bước này</p>
         </div>
       </aside>
     </div>
   </section>
 
+  <!-- ============ 3. TIỆN NGHI ============ -->
+  <section id="amenities" class="info-block">
+    <h2>Tiện nghi</h2>
+    <ul class="tag-row" id="amenityList"></ul>
+  </section>
+
+  <!-- ============ 4. QUY TẮC CHUNG ============ -->
+  <section id="rules" class="info-block">
+    <h2>Quy tắc chung</h2>
+    <ul class="rule-list">
+      <li><b>Nhận phòng</b><span>Từ 14:00</span></li>
+      <li><b>Trả phòng</b><span>Trước 12:00</span></li>
+      <li><b>Hủy phòng</b><span>Miễn phí hủy trước 3 ngày nhận phòng. Hủy sát ngày sẽ không được hoàn tiền — xem <a class="underline" href="terms.html#huy-phong">chính sách hủy</a>.</span></li>
+      <li><b>Hút thuốc</b><span>Không hút thuốc trong phòng.</span></li>
+      <li><b>Thú cưng</b><span>Vui lòng liên hệ chủ nhà trước khi mang theo.</span></li>
+    </ul>
+  </section>
+
+  <!-- ============ 5. ĐÁNH GIÁ ============ -->
+  <section id="reviews" class="info-block stack">
+    <div class="flex-between">
+      <div>
+        <h2 class="mb-1">Đánh giá của khách</h2>
+        <p class="text-muted" id="reviewSummary">Đang tải…</p>
+      </div>
+      <div class="flex gap-2">
+        <a class="btn btn--outline" id="writeReviewLink" href="detail.html">Viết đánh giá</a>
+        <a class="btn btn--outline" id="allReviewsLink" href="detail.html">Xem tất cả</a>
+      </div>
+    </div>
+    <div id="reviewPreview" class="stack"></div>
+  </section>
+
 </main>
- 
+
+<template id="tpl-review">
+  <article class="review-card">
+    <div class="review-card__head">
+      <span><strong class="review-card__name"></strong> <span class="badge badge--success review-card__verified" hidden>Đã lưu trú</span></span>
+      <span class="review-card__rating"></span>
+    </div>
+    <p class="review-card__date"></p>
+    <p class="review-card__comment"></p>
+  </article>
+</template>
+
+<template id="tpl-room-row">
+  <tr>
+    <td>
+      <strong class="text-primary text-large room-name"></strong>
+      <div class="text-muted font-semibold mt-1 room-detail"></div>
+      <div class="text-success font-semibold mt-2 room-note"></div>
+      <span class="badge badge--warning mt-2 room-badge"></span>
+    </td>
+    <td class="room-capacity"></td>
+    <td>
+      <div class="text-primary font-bold text-large room-price"></div>
+      <small class="text-muted room-unit"></small>
+    </td>
+    <td>
+      <select class="select room-select">
+        <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+        <option value="3">3</option><option value="4">4</option>
+      </select>
+    </td>
+  </tr>
+</template>
+
 <site-footer></site-footer>
+<div id="toast" role="status"></div>
 
-<script type="module">
-  import './js/components/site-header.js';
-  import './js/components/site-footer.js';
-
-  // 1. Xử lý Logic ngày tháng & Giá phòng
-  const checkinInput = document.getElementById('checkin');
-  const checkoutInput = document.getElementById('checkout');
-  const nightsDisplay = document.getElementById('nightsDisplay');
-  const priceHeader = document.getElementById('priceHeader');
-  const roomSelects = document.querySelectorAll('.room-select');
-  const selectedCountEl = document.getElementById('selectedCount');
-  const totalValEl = document.getElementById('totalVal');
-  const btnGoToCheckout = document.getElementById('btnGoToCheckout');
-
-  function getNights() {
-    const start = new Date(checkinInput.value);
-    const end = new Date(checkoutInput.value);
-    
-    if (isNaN(start) || isNaN(end) || end <= start) {
-      return 0;
-    }
-    const diffTime = Math.abs(end - start);
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  }
-
-  function updateBookingLogic() {
-    const nights = getNights();
-
-    if (nights <= 0) {
-      nightsDisplay.textContent = 'Ngày không hợp lệ';
-      totalValEl.textContent = '0 VND';
-      btnGoToCheckout.classList.add('btn--disabled');
-      btnGoToCheckout.style.pointerEvents = 'none';
-      return;
-    }
-
-    nightsDisplay.textContent = `${nights} đêm`;
-    priceHeader.textContent = `Giá (${nights} đêm)`;
-
-    let totalRooms = 0;
-    let grandTotal = 0;
-
-    const priceElements = document.querySelectorAll('.room-total-price');
-    priceElements.forEach((priceEl, index) => {
-      const pricePerNight = parseInt(priceEl.dataset.pricePerNight, 10) || 0;
-      const roomPriceForNights = pricePerNight * nights;
-      
-      priceEl.textContent = roomPriceForNights.toLocaleString('vi-VN') + ' VND';
-
-      const qty = parseInt(roomSelects[index].value, 10) || 0;
-      totalRooms += qty;
-      grandTotal += qty * roomPriceForNights;
-    });
-
-    selectedCountEl.textContent = `${totalRooms} phòng`;
-    totalValEl.textContent = grandTotal.toLocaleString('vi-VN') + ' VND';
-
-    if (totalRooms === 0) {
-      btnGoToCheckout.classList.add('btn--disabled');
-      btnGoToCheckout.style.pointerEvents = 'none';
-    } else {
-      btnGoToCheckout.classList.remove('btn--disabled');
-      btnGoToCheckout.style.pointerEvents = 'auto';
-    }
-  }
-
-  checkinInput.addEventListener('change', () => {
-    if (checkinInput.value >= checkoutInput.value) {
-      const nextDay = new Date(checkinInput.value);
-      nextDay.setDate(nextDay.getDate() + 1);
-      checkoutInput.value = nextDay.toISOString().split('T')[0];
-    }
-    updateBookingLogic();
-  });
-
-  checkoutInput.addEventListener('change', updateBookingLogic);
-  roomSelects.forEach(s => s.addEventListener('change', updateBookingLogic));
-
-  // 2. Xử lý Popover Chọn Khách & Phòng linh hoạt
-  const guestPickerBtn = document.getElementById('guestPickerBtn');
-  const guestPickerMenu = document.getElementById('guestPickerMenu');
-  const closeGuestPicker = document.getElementById('closeGuestPicker');
-
-  // Mức giới hạn
-  const MAX_ADULTS = 10;
-  const MAX_CHILDREN = 6;
-  const MAX_ROOMS = 5;
-
-  let adults = 2, children = 0, rooms = 1;
-
-  function updateGuestText() {
-    guestPickerBtn.textContent = `${adults} người lớn · ${children} trẻ em · ${rooms} phòng`;
-    document.getElementById('adultVal').textContent = adults;
-    document.getElementById('childVal').textContent = children;
-    document.getElementById('roomVal').textContent = rooms;
-  }
-
-  guestPickerBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    guestPickerMenu.style.display = guestPickerMenu.style.display === 'none' ? 'block' : 'none';
-  });
-
-  closeGuestPicker.addEventListener('click', () => {
-    guestPickerMenu.style.display = 'none';
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!guestPickerMenu.contains(e.target) && e.target !== guestPickerBtn) {
-      guestPickerMenu.style.display = 'none';
-    }
-  });
-
-  // Tăng / Giảm Người lớn (Tối thiểu 1, Tối đa 10)
-  document.getElementById('incAdult').onclick = () => { if(adults < MAX_ADULTS) adults++; updateGuestText(); };
-  document.getElementById('degAdult').onclick = () => { if(adults > 1) adults--; updateGuestText(); };
-
-  // Tăng / Giảm Trẻ em (Tối thiểu 0, Tối đa 6)
-  document.getElementById('incChild').onclick = () => { if(children < MAX_CHILDREN) children++; updateGuestText(); };
-  document.getElementById('degChild').onclick = () => { if(children > 0) children--; updateGuestText(); };
-
-  // Tăng / Giảm Số phòng (Tối thiểu 1, Tối đa 5)
-  document.getElementById('incRoom').onclick = () => { if(rooms < MAX_ROOMS) rooms++; updateGuestText(); };
-  document.getElementById('degRoom').onclick = () => { if(rooms > 1) rooms--; updateGuestText(); };
-
-  // Khởi chạy ban đầu
-  updateBookingLogic();
-</script>
+<script type="module" src="js/pages/booking-select.js"></script>
 </body>
 </html>

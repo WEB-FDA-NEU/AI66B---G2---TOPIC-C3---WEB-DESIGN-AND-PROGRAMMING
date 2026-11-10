@@ -36,7 +36,7 @@
         <h1 id="detail-title"></h1>
         <div class="flex gap-2">
           <span id="detail-rating" class="rating"></span>
-          <span class="text-muted">Đánh giá tốt</span>
+          <a class="text-muted underline" href="#reviews-section" id="detail-review-count">Đánh giá</a>
         </div>
         <p id="detail-room-type"></p>
 
@@ -53,11 +53,33 @@
 
       <!-- CỘT PHẢI: ĐẶT PHÒNG -->
       <aside class="detail-layout__aside">
-        <div class="booking-summary stack">
-          <p class="booking-summary__price"><span id="detail-price"></span> <small class="text-muted">/ đêm</small></p>
-          <button type="button" class="btn btn--primary btn--block" id="book-btn">Đặt phòng</button>
+        <form class="booking-summary stack" id="stay-form" novalidate>
+          <p class="booking-summary__price">Từ <span id="detail-price"></span> <small class="text-muted">/ đêm</small></p>
+
+          <div class="stay-grid">
+            <div class="field">
+              <label class="field__label" for="stay-checkin">Nhận phòng</label>
+              <input class="input" type="date" id="stay-checkin" required>
+            </div>
+            <div class="field">
+              <label class="field__label" for="stay-checkout">Trả phòng</label>
+              <input class="input" type="date" id="stay-checkout" required>
+            </div>
+            <div class="field">
+              <label class="field__label" for="stay-adults">Người lớn</label>
+              <select class="select" id="stay-adults"></select>
+            </div>
+            <div class="field">
+              <label class="field__label" for="stay-children">Trẻ em</label>
+              <select class="select" id="stay-children"></select>
+            </div>
+          </div>
+          <p class="field__error" id="stay-error"></p>
+
+          <p class="text-muted" id="stay-estimate"></p>
+          <button type="submit" class="btn btn--primary btn--block" id="book-btn">Chọn phòng &amp; đặt</button>
           <a class="btn btn--outline btn--block" href="search.html">Quay lại tìm kiếm</a>
-        </div>
+        </form>
       </aside>
 
     </div>
@@ -72,7 +94,7 @@
         <button type="button" class="btn" id="write-review-btn">Viết đánh giá</button>
       </div>
 
-      <div id="review-form-wrapper" class="form-card" hidden>
+      <div id="review-form-wrapper" class="form-card form-card--flat" hidden>
         <form id="review-form" class="stack" novalidate>
           <div class="field">
             <label class="field__label" for="review-name">Tên của bạn</label>
@@ -119,7 +141,7 @@
 <template id="tpl-review">
   <article class="review-card">
     <div class="review-card__head">
-      <strong class="review-card__name"></strong>
+      <span><strong class="review-card__name"></strong> <span class="badge badge--success review-card__verified" hidden>Đã lưu trú</span></span>
       <span class="review-card__rating"></span>
     </div>
     <p class="review-card__date"></p>

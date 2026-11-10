@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+
 /* tokens.css — NGUỒN DUY NHẤT cho màu / font / khoảng cách / breakpoint.
    Muốn đổi giao diện toàn site → sửa ở ĐÂY, không hard-code màu trong file khác.
 
@@ -25,7 +27,8 @@
   --c-warning:   #b26a00;
 
   /* ---- Font ---- */
-  --font: Arial, Helvetica, sans-serif;
+  --font: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;   /* DUY NHẤT 1 font cho cả app */
+  --header-h: 120px;        /* chiều cao header — site-header.js tự đo lại chiều cao thật và ghi đè giá trị này */
 
   /* ---- Khoảng cách ---- */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 16px; --sp-4: 24px;
@@ -37,6 +40,7 @@
   --radius-l: 10px;
   --shadow-s: 0 1px 3px rgba(0,0,0,.12);
   --shadow:   0 2px 8px rgba(0,0,0,.12);
+  --shadow-m: 0 3px 10px rgba(0,0,0,.14);
   --shadow-l: 0 4px 16px rgba(0,0,0,.16);
   --container: 1120px;
 }

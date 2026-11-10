@@ -52,7 +52,7 @@ function normalizeDetail(detail) {
 //       (getListings / getConcerts / getHomestays / getRecipes …)
 
 export function getItems(params = {}) {
-  if (USE_MOCK) return request(`${MOCK_BASE}/items.json`).then(d => filterMock(d, params));
+  if (USE_MOCK) return request(`${MOCK_BASE}/items.json`).then(async d => filterMock({ ...d, items: applyRatings([...(await readHostItems()), ...d.items]) }, params));
   // Một số bộ lọc (room_type, amenity) có thể là MẢNG — mỗi giá trị cần 1 cặp
   // key=value riêng trên querystring, nên không thể đưa thẳng cho URLSearchParams(object).
   const qs = new URLSearchParams();
@@ -68,7 +68,7 @@ export async function getItem(id) {
   if (USE_MOCK) {
     const data = await request(`${MOCK_BASE}/items.json`);
 
-    const item = data.items.find(
+    const item = applyRatings([...(await readHostItems()), ...data.items]).find(
       homestay => String(homestay.id) === String(id)
     );
 
@@ -83,6 +83,14 @@ export async function getItem(id) {
   }
 
   return request(`${API_BASE}/items/${id}`);
+}
+
+// Điểm trung bình mới (sau khi khách gửi đánh giá) — chỉ mock; backend thật tự tính bằng SQL.
+const RATINGS_KEY = 'itemRatings';
+function readRatings() { try { return JSON.parse(localStorage.getItem(RATINGS_KEY) || '{}'); } catch { return {}; } }
+function applyRatings(items) {
+  const map = readRatings();
+  return items.map(i => map[i.id] != null ? { ...i, rating: map[i.id] } : i);
 }
 
 // ---------- Đánh giá (reviews) của trang chi tiết ----------
@@ -105,8 +113,18 @@ export async function addReview(itemId, review) {
   if (USE_MOCK) {
     const list = await getReviews(itemId);
     const entry = { id: `rv${Date.now()}`, created_at: new Date().toISOString(), ...review };
+    const me = getUser();
+    if (me) entry.userId = me.id;
+    // Gắn nhãn "Đã lưu trú" nếu người này có booking hoàn thành ở homestay này
+    try {
+      const bookings = await readTable('customerBookings', 'bookings.json');
+      entry.verified = !!me && bookings.some(b => b.userId === me.id && String(b.homestayId) === String(itemId) && b.status === 'completed');
+    } catch { entry.verified = false; }
     list.unshift(entry);
     localStorage.setItem(reviewsKey(itemId), JSON.stringify(list));
+    const avg = list.reduce((sum, r) => sum + Number(r.rating), 0) / list.length;
+    const map = readRatings(); map[itemId] = Math.round(avg * 10) / 10;
+    localStorage.setItem(RATINGS_KEY, JSON.stringify(map));
     return entry;
   }
   return request(`${API_BASE}/items/${itemId}/reviews`, { method: 'POST', body: review });
@@ -120,7 +138,96 @@ async function loadMockUsers() {
     const data = await request(`${MOCK_BASE}/users.json`);
     MOCK_USERS = data.users ?? [];
   }
+  // Áp các thay đổi hồ sơ/mật khẩu đã lưu ở localStorage (mock) lên dữ liệu gốc,
+  // để đăng nhập lại vẫn thấy thông tin mới.
+  const patches = readUserPatches();
+  MOCK_USERS.forEach(u => Object.assign(u, patches[u.id] ?? {}));
   return MOCK_USERS;
+}
+
+const USER_PATCH_KEY = 'mockUserPatches';
+function readUserPatches() {
+  try { return JSON.parse(localStorage.getItem(USER_PATCH_KEY) || '{}'); } catch { return {}; }
+}
+function savePatch(id, fields) {
+  const patches = readUserPatches();
+  patches[id] = { ...(patches[id] ?? {}), ...fields };
+  localStorage.setItem(USER_PATCH_KEY, JSON.stringify(patches));
+}
+const withoutPassword = ({ password: _pw, ...user }) => user;
+
+/** Cập nhật hồ sơ: { display_name, email, phone, avatar } — chỉ gửi trường cần đổi. */
+export async function updateProfile(fields) {
+  if (USE_MOCK) {
+    const me = getUser();
+    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập.');
+    const users = await loadMockUsers();
+    const current = users.find(u => String(u.id) === String(me.id)) ?? me;
+    const next = { ...fields };
+    if (next.email) {
+      next.email = next.email.trim().toLowerCase();
+      if (users.some(u => u.email === next.email && String(u.id) !== String(me.id)))
+        throw new ApiError(409, 'Email đã được sử dụng bởi tài khoản khác.');
+    }
+    savePatch(me.id, next);
+    return withoutPassword({ ...current, ...next });
+  }
+  return request(`${API_BASE}/me`, { method: 'PUT', body: fields });
+}
+
+/** Đổi mật khẩu: kiểm tra mật khẩu hiện tại rồi mới đổi. */
+export async function changePassword(currentPassword, newPassword) {
+  if (USE_MOCK) {
+    const me = getUser();
+    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập.');
+    const users = await loadMockUsers();
+    const current = users.find(u => String(u.id) === String(me.id));
+    if (!current || current.password !== currentPassword)
+      throw new ApiError(400, 'Mật khẩu hiện tại không đúng.');
+    savePatch(me.id, { password: newPassword });
+    return null;
+  }
+  return request(`${API_BASE}/me/password`, { method: 'POST', body: { current_password: currentPassword, new_password: newPassword } });
+}
+
+// ---------- Tin nhắn liên hệ ----------
+// Mock: lưu ở localStorage (cùng trình duyệt thì admin mới thấy tin vừa gửi).
+// Backend thật: POST /contact (công khai) và GET/PATCH/DELETE /admin/contact-messages (chỉ admin).
+const MESSAGES_KEY = 'contactMessages';
+const readMessages = () => { try { return JSON.parse(localStorage.getItem(MESSAGES_KEY) || '[]'); } catch { return []; } };
+
+export async function sendContactMessage({ name, email, subject, message }) {
+  if (USE_MOCK) {
+    const list = readMessages();
+    list.push({ id: newId('msg'), name, email, subject, message, createdAt: new Date().toISOString(), read: false });
+    writeTable(MESSAGES_KEY, list);
+    return null;
+  }
+  return request(`${API_BASE}/contact`, { method: 'POST', body: { name, email, subject, message } });
+}
+
+export async function getContactMessages() {
+  if (USE_MOCK) return readMessages().sort((x, y) => y.createdAt.localeCompare(x.createdAt));
+  return request(`${API_BASE}/admin/contact-messages`);
+}
+
+export async function setContactMessageRead(id, read = true) {
+  if (USE_MOCK) {
+    const list = readMessages();
+    const m = list.find(x => x.id === id);
+    if (m) m.read = read;
+    writeTable(MESSAGES_KEY, list);
+    return null;
+  }
+  return request(`${API_BASE}/admin/contact-messages/${id}`, { method: 'PATCH', body: { read } });
+}
+
+export async function deleteContactMessage(id) {
+  if (USE_MOCK) {
+    writeTable(MESSAGES_KEY, readMessages().filter(x => x.id !== id));
+    return null;
+  }
+  return request(`${API_BASE}/admin/contact-messages/${id}`, { method: 'DELETE' });
 }
 
 export async function login(email, password) {
@@ -162,9 +269,40 @@ export async function getBookings() {
   if (USE_MOCK) {
     const list = await readTable('customerBookings', 'bookings.json');
     const me = getUser();
-    return me ? list.filter(b => b.userId === me.id) : list;
+    const mine = me ? list.filter(b => String(b.userId) === String(me.id)) : list;
+    // Mới nhất lên đầu
+    return [...mine].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '') || Number(b.id) - Number(a.id));
   }
   return request(`${API_BASE}/me/bookings`);
+}
+
+export async function getBooking(id) {
+  if (USE_MOCK) {
+    const list = await readTable('customerBookings', 'bookings.json');
+    const me = getUser();
+    const found = list.find(b => String(b.id) === String(id) && (!me || String(b.userId) === String(me.id)));
+    if (!found) throw new ApiError(404, 'Không tìm thấy đặt phòng.');
+    return found;
+  }
+  return request(`${API_BASE}/me/bookings/${id}`);
+}
+
+/** Tạo booking sau khi thanh toán giả lập thành công. */
+export async function createBooking(payload) {
+  if (USE_MOCK) {
+    const me = getUser();
+    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để đặt phòng.');
+    const list = await readTable('customerBookings', 'bookings.json');
+    const id = list.reduce((m, b) => Math.max(m, Number(b.id) || 0), 0) + 1;
+    const booking = {
+      id, userId: me.id, status: 'confirmed', createdAt: new Date().toISOString(),
+      code: 'LX' + String(Date.now()).slice(-8), ...payload,
+    };
+    list.push(booking);
+    writeTable('customerBookings', list);
+    return booking;
+  }
+  return request(`${API_BASE}/me/bookings`, { method: 'POST', body: payload });
 }
 
 export async function cancelBooking(id) {
@@ -196,6 +334,48 @@ async function readTable(key, file) {
 }
 function writeTable(key, list) { localStorage.setItem(key, JSON.stringify(list)); }
 const newId = prefix => `${prefix}${Date.now()}${Math.floor(Math.random() * 100)}`;
+
+// ---------- Đồng bộ homestay của host → trang tìm kiếm / chi tiết (chỉ mock) ----------
+// Host thêm/sửa homestay (kèm ảnh) ở màn Quản lý → homestay đó hiện luôn ở Tìm kiếm và Chi tiết.
+// Backend thật: khi nối API, bảng homestay chỉ có MỘT nguồn nên không cần đoạn này.
+const HOST_ITEMS_KEY = 'hostPublicItems';
+function readHostItemsRaw() {
+  try { return JSON.parse(localStorage.getItem(HOST_ITEMS_KEY) || '[]'); } catch { return []; }
+}
+/** Ảnh chỉ lưu MỘT lần (ở bảng homestays) để không ăn đôi bộ nhớ localStorage;
+ *  ở đây ghép ảnh lại vào bản công khai khi đọc. */
+async function readHostItems() {
+  const raw = readHostItemsRaw();
+  if (!raw.length) return raw;
+  const table = await readTable('homestays', 'host-homestays.json');
+  return raw.map(i => {
+    const h = table.find(x => x.id === i.hostRef);
+    const imgs = h?.images?.length ? h.images : ['img/placeholder.svg'];
+    return { ...i, images: imgs, cover_url: imgs[0] };
+  });
+}
+async function syncPublicItem(h) {
+  try {
+    const rooms = await readTable('rooms', 'host-rooms.json');
+    const prices = rooms.filter(r => r.homestayId === h.id).map(r => r.pricePerNight).filter(Boolean);
+    const price = Number(h.price) || (prices.length ? Math.min(...prices) : 0);
+    const items = readHostItemsRaw().filter(i => i.hostRef !== h.id);
+    if (h.status !== 'deleted') {
+      const imgs = h.images?.length ? h.images : ['img/placeholder.svg'];
+      items.push({
+        id: `host-${h.id}`, hostRef: h.id,
+        title: h.name, location: h.address, meta: h.address,
+        room_type: 'Toàn bộ homestay', amenities: h.amenities ?? [],
+        rating: null, price,   // ảnh ghép lại lúc đọc (readHostItems)
+        status: 'active', created_at: h.createdAt ?? new Date().toISOString(),
+        description: h.description,
+      });
+    }
+    localStorage.setItem(HOST_ITEMS_KEY, JSON.stringify(items));
+  } catch (e) {
+    console.warn('Không đồng bộ được homestay sang trang công khai (có thể đầy bộ nhớ trình duyệt).', e);
+  }
+}
 
 // ---------- Homestay ----------
 export async function getHostHomestays() {
@@ -231,7 +411,12 @@ export async function saveHostHomestay(data) {
       data.createdAt = new Date().toISOString();
       list.push(data);
     }
-    writeTable('homestays', list);
+    try { writeTable('homestays', list); }
+    catch {
+      // localStorage (~5MB) đầy vì ảnh quá nặng → báo lỗi dễ hiểu thay vì "Không lưu được"
+      throw new ApiError(507, 'Bộ nhớ trình duyệt đã đầy do ảnh quá nặng. Hãy giảm số lượng ảnh hoặc xóa bớt homestay thử nghiệm.');
+    }
+    await syncPublicItem(data.id ? list.find(h => h.id === data.id) : data);
     return data;
   }
   return data.id
@@ -247,6 +432,7 @@ export async function deleteHostHomestay(id) {
     if (i === -1) throw new ApiError(404, 'Không tìm thấy homestay.');
     list[i].status = 'deleted';
     writeTable('homestays', list);
+    await syncPublicItem(list[i]);
     return null;
   }
   return request(`${API_BASE}/host/homestays/${id}`, { method: 'DELETE' });

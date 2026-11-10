@@ -20,17 +20,17 @@ async function load() {
 
     $('list').innerHTML = homestays.map(h => {
       const roomCount = rooms.filter(r => r.homestayId === h.id).length;
-      return `<div class="row" style="grid-template-columns:96px 1fr auto">
+      return `<div class="row">
         <img class="row__img" src="${h.images?.[0] || 'img/placeholder.svg'}" alt="${h.name}">
         <div>
           <a class="row__title" href="host-homestay-form.html?id=${h.id}">${h.name}</a>
           <p class="row__meta">📍 ${h.address}</p>
           <p class="row__meta">${roomCount} phòng · <span class="badge ${h.status === 'active' ? 'badge--success' : ''}">${h.status === 'active' ? 'Đang hoạt động' : h.status}</span></p>
         </div>
-        <div class="row__actions" style="flex-direction:column;align-items:flex-end">
-          <a class="btn btn--outline" href="host-rooms.html?homestayId=${h.id}">Xem phòng</a>
-          <a class="btn" href="host-homestay-form.html?id=${h.id}">Sửa</a>
-          <button class="btn btn--danger" data-del="${h.id}" data-name="${h.name}" type="button">Xóa</button>
+        <div class="row__actions row__actions--stack">
+          <a class="btn btn--outline btn--sm" href="host-rooms.html?homestayId=${h.id}">Xem phòng</a>
+          <a class="btn btn--outline btn--sm" href="host-homestay-form.html?id=${h.id}">Sửa</a>
+          <button class="btn btn--danger btn--sm" data-del="${h.id}" data-name="${h.name}" type="button">Xóa</button>
         </div>
       </div>`;
     }).join('');

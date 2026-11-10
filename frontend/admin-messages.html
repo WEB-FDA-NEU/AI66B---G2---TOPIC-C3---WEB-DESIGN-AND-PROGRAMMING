@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tin nhắn liên hệ — Homestay Booking</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<site-header active="admin"></site-header>
+
+<main class="container page">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><ol>
+    <li><a href="admin.html">Admin</a></li>
+    <li aria-current="page">Tin nhắn liên hệ</li>
+  </ol></nav>
+
+  <div class="section-head mt-4">
+    <div><h1>Tin nhắn liên hệ</h1><p id="summary">Đang tải...</p></div>
+  </div>
+
+  <div class="tabs actions-bar mb-4" id="tabs">
+    <button class="btn btn--sm is-active" type="button" data-filter="all">Tất cả</button>
+    <button class="btn btn--sm" type="button" data-filter="unread">Chưa đọc</button>
+  </div>
+
+  <div class="stack" id="list"></div>
+</main>
+
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
+<dialog id="confirm-dialog">
+  <h3 class="dialog__title"></h3>
+  <p class="dialog__message"></p>
+  <div class="dialog__actions">
+    <button class="btn" data-cancel type="button">Hủy</button>
+    <button class="btn btn--danger" data-confirm type="button">Xóa</button>
+  </div>
+</dialog>
+<script type="module" src="js/pages/admin-messages.js"></script>
+</body>
+</html>

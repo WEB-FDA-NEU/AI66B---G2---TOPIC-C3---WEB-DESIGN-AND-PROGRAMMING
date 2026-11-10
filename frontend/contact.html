@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liên hệ — Homestay Booking</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<site-header></site-header>
+<main class="container page stack">
+
+  <nav class="breadcrumb" aria-label="Breadcrumb"><ol>
+    <li><a href="index.html">Trang chủ</a></li>
+    <li aria-current="page">Liên hệ</li>
+  </ol></nav>
+
+  <div class="section-head"><div><h1>Liên hệ</h1><p>Gửi câu hỏi hoặc góp ý, chúng tôi sẽ phản hồi sớm nhất có thể.</p></div></div>
+
+  <div class="contact-layout">
+
+    <form class="form-card form-card--flat" id="contact-form" novalidate>
+      <h3>Gửi tin nhắn</h3>
+      <div class="form-grid mt-3">
+        <label class="field"><span class="field__label">Họ và tên</span>
+          <input class="input" name="name" autocomplete="name"><span class="field__error"></span></label>
+        <label class="field"><span class="field__label">Email</span>
+          <input class="input" type="email" name="email" autocomplete="email"><span class="field__error"></span></label>
+        <label class="field field--full"><span class="field__label">Chủ đề</span>
+          <select class="select" name="subject">
+            <option>Hỏi về đặt phòng</option>
+            <option>Đăng ký làm host</option>
+            <option>Báo lỗi website</option>
+            <option>Góp ý khác</option>
+          </select></label>
+        <label class="field field--full"><span class="field__label">Nội dung</span>
+          <textarea class="textarea" name="message" rows="5"></textarea><span class="field__error"></span></label>
+      </div>
+      <div class="profile-actions"><button class="btn btn--primary" type="submit">Gửi tin nhắn</button></div>
+    </form>
+
+    <aside class="info-block">
+      <h3>Thông tin liên hệ</h3>
+      <ul class="rule-list mt-3">
+        <li><b>Email</b><span>contact@homestaybooking.example</span></li>
+        <li><b>Hotline</b><span>0900 000 000</span></li>
+        <li><b>Giờ làm việc</b><span>8:00 – 21:00, hằng ngày</span></li>
+        <li><b>Địa chỉ</b><span>National Economics University, Hà Nội</span></li>
+      </ul>
+      
+  </div>
+</main>
+
+<site-footer></site-footer>
+<div id="toast" role="status"></div>
+<script type="module" src="js/pages/contact.js"></script>
+</body>
+</html>

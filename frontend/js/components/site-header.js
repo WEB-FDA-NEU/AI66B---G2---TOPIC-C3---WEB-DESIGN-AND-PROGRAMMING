@@ -284,6 +284,21 @@ class SiteHeader extends HTMLElement {
 
 
     // --------------------------------------------------------
+    // HEADER CỐ ĐỊNH: đo chiều cao thật của header (đổi khi
+    // mở menu mobile / đổi cỡ màn hình) và ghi vào --header-h
+    // để phần nội dung bên dưới luôn chừa đúng khoảng trống.
+    // --------------------------------------------------------
+
+    const inner = this.querySelector('.site-header');
+    const syncHeight = () => {
+      document.documentElement.style.setProperty('--header-h', inner.offsetHeight + 'px');
+    };
+    syncHeight();
+    if ('ResizeObserver' in window) new ResizeObserver(syncHeight).observe(inner);
+    else window.addEventListener('resize', syncHeight);
+
+
+    // --------------------------------------------------------
     // ACTIVE MENU
     //
     // Ví dụ:

@@ -10,119 +10,117 @@
 <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
- 
+
 <site-header active="profile"></site-header>
- 
-<main class="page container">
- 
+
+<main class="page container profile-page">
+
   <div class="section-head">
     <div>
       <h1>Hồ sơ cá nhân</h1>
       <p>Quản lý thông tin tài khoản của bạn.</p>
     </div>
   </div>
- 
-  <div class="stack" style="max-width:560px">
- 
-    <!-- ==================== THÔNG TIN CÁ NHÂN ==================== -->
-    <section class="form-card" style="margin:0">
+
+  <div class="profile-layout">
+
+    <!-- ============ THÔNG TIN CÁ NHÂN: ảnh đại diện (trái) + các ô thông tin xếp ngang (phải) ============ -->
+    <section class="form-card form-card--flat profile-card--main">
       <h3>Thông tin cá nhân</h3>
- 
-      <!-- Avatar -->
-      <div class="flex gap-3 mt-4" style="align-items:center">
-        <img src="img/avatar_default.jpg" alt="Ảnh đại diện" width="72" height="72"
-             style="border-radius:50%;object-fit:cover">
-        <div class="uploader" style="padding:var(--sp-2) var(--sp-3);flex:1">
-          <label class="field__label" for="avatar">Đổi ảnh đại diện</label>
-          <input class="input" type="file" id="avatar" name="avatar" accept="image/png,image/jpeg,image/webp">
-          <p class="field__hint">JPEG, PNG hoặc WebP, tối đa 5MB.</p>
+
+      <div class="profile-main">
+
+        <!-- Avatar -->
+        <div class="profile-avatar">
+          <img class="profile-avatar__img" src="img/avatar_default.jpg" alt="Ảnh đại diện" width="112" height="112">
+          <div class="profile-avatar__upload">
+            <label class="btn btn--outline btn--sm" for="avatar">Đổi ảnh</label>
+            <input type="file" id="avatar" name="avatar" accept="image/png,image/jpeg,image/webp" hidden>
+            <p class="field__hint">JPEG, PNG hoặc WebP, tối đa 5MB.</p>
+          </div>
         </div>
+
+        <!-- Form: 2 cột trên desktop, 1 cột trên mobile -->
+        <form id="profile-form">
+          <div class="form-grid">
+            <label class="field">
+              <span class="field__label">Họ và tên</span>
+              <input class="input" type="text" name="display_name">
+              <span class="field__error"></span>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Số điện thoại</span>
+              <input class="input" type="tel" name="phone">
+              <span class="field__error"></span>
+            </label>
+
+            <label class="field field--full">
+              <span class="field__label">Email</span>
+              <input class="input" type="email" name="email">
+              <span class="field__hint">Dùng email này để đăng nhập.</span>
+              <span class="field__error"></span>
+            </label>
+          </div>
+
+          <div class="profile-actions">
+            <button class="btn btn--primary" type="submit">Lưu thay đổi</button>
+          </div>
+        </form>
+
       </div>
- 
-      <form class="stack mt-4">
-        <label class="field">
-          <span class="field__label">Họ và tên</span>
-          <input class="input" type="text" name="display_name">
-          <span class="field__error"></span>
-        </label>
- 
-        <label class="field">
-          <span class="field__label">Email</span>
-          <input class="input" type="email" name="email">
-          <span class="field__hint">Dùng email này để đăng nhập.</span>
-          <span class="field__error"></span>
-        </label>
- 
-        <label class="field">
-          <span class="field__label">Số điện thoại</span>
-          <input class="input" type="tel" name="phone">
-          <span class="field__error"></span>
-        </label>
- 
-        <button class="btn btn--primary mt-4" type="submit">Lưu thay đổi</button>
-      </form>
     </section>
- 
-    <!-- ==================== ĐỔI MẬT KHẨU ==================== -->
-    <section class="form-card" style="margin:0">
+
+    <!-- ============ ĐỔI MẬT KHẨU ============ -->
+    <section class="form-card form-card--flat">
       <h3>Đổi mật khẩu</h3>
-      <form class="stack mt-4">
-        <label class="field">
-          <span class="field__label">Mật khẩu hiện tại</span>
-          <input class="input" type="password" name="current_password">
-          <span class="field__error"></span>
-        </label>
- 
-        <label class="field">
-          <span class="field__label">Mật khẩu mới</span>
-          <input class="input" type="password" name="new_password">
-          <span class="field__hint">Tối thiểu 8 ký tự.</span>
-          <span class="field__error"></span>
-        </label>
- 
-        <label class="field">
-          <span class="field__label">Nhập lại mật khẩu mới</span>
-          <input class="input" type="password" name="confirm_password">
-          <span class="field__error"></span>
-        </label>
- 
-        <button class="btn btn--primary mt-4" type="submit">Đổi mật khẩu</button>
+      <form class="mt-3" id="password-form">
+        <div class="form-grid">
+          <label class="field field--full">
+            <span class="field__label">Mật khẩu hiện tại</span>
+            <input class="input" type="password" name="current_password">
+            <span class="field__error"></span>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Mật khẩu mới</span>
+            <input class="input" type="password" name="new_password">
+            <span class="field__hint">Tối thiểu 8 ký tự.</span>
+            <span class="field__error"></span>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Nhập lại mật khẩu mới</span>
+            <input class="input" type="password" name="confirm_password">
+            <span class="field__error"></span>
+          </label>
+        </div>
+
+        <div class="profile-actions">
+          <button class="btn btn--primary" type="submit">Đổi mật khẩu</button>
+        </div>
       </form>
     </section>
- 
-    <!-- ==================== TRỞ THÀNH HOST ====================
+
+    <!-- ============ TRỞ THÀNH HOST ============
          Chỉ dành cho khách hàng (role 'user') hoặc khách chưa đăng nhập.
          Host đã là host rồi, admin không cần thấy lời mời này — ẩn bằng
          script cuối trang (xem role === 'host' || role === 'admin'). -->
-    <section class="form-card" style="margin:0" id="become-host-section">
+    <section class="form-card form-card--flat" id="become-host-section">
       <h3>Bạn có homestay muốn cho thuê?</h3>
       <p class="mt-3 text-muted">Đăng ký làm host để bắt đầu quản lý homestay của riêng bạn.</p>
-      <a class="btn btn--outline mt-3" href="host-register.html">Trở thành Host</a>
+      <div class="profile-actions">
+        <a class="btn btn--primary" href="host-register.html">Trở thành Host</a>
+      </div>
     </section>
- 
+
   </div>
- 
+
 </main>
- 
+
 <site-footer></site-footer>
 <div id="toast" role="status"></div>
- 
-<script type="module">
-  import './js/components/site-header.js';
-  import './js/components/site-footer.js';
-  import { getUser } from './js/auth.js';
 
-  // Ẩn khối "Trở thành Host" nếu người dùng đã là host hoặc admin.
-  const role = getUser()?.role;
-  if (role === 'host' || role === 'admin') {
-    document.getElementById('become-host-section')?.remove();
-  }
-
-  // TODO: khi có dữ liệu thật, thêm profile.js để:
-  // 1) getUser() (từ js/auth.js) đổ giá trị thật vào 3 ô name/email/phone
-  // 2) validate + gọi API cập nhật hồ sơ khi submit form đầu
-  // 3) validate mật khẩu mới trùng khớp + gọi API đổi mật khẩu khi submit form 2
-  // 4) toast() (từ js/ui.js) báo thành công/thất bại sau khi lưu
-</script>
+<script type="module" src="js/pages/profile.js"></script>
 </body>
 </html>

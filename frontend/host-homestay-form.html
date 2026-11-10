@@ -13,29 +13,36 @@
 <site-header active="host"></site-header>
 
 <main class="container page">
-  <div class="breadcrumb"><ol>
+  <div class="breadcrumb mb-4"><ol>
     <li><a href="host-homestays.html">Homestay của tôi</a></li>
     <li aria-current="page" id="crumb">Thêm homestay</li>
   </ol></div>
 
-  <form class="form-card" id="form" novalidate>
+  <form class="form-card form-card--wide" id="form" novalidate>
     <h1 id="formTitle">Thêm homestay mới</h1>
 
-    <label class="field"><span class="field__label">Tên homestay</span>
-      <input class="input" id="name" name="name" required>
-      <span class="field__error"></span></label>
+    <div class="form-grid mt-4">
+      <label class="field"><span class="field__label">Tên homestay</span>
+        <input class="input" id="name" name="name" required>
+        <span class="field__error"></span></label>
 
-    <label class="field"><span class="field__label">Địa chỉ</span>
-      <input class="input" id="address" name="address" placeholder="Số nhà, đường, phường/xã, tỉnh/thành" required>
-      <span class="field__error"></span></label>
+      <label class="field"><span class="field__label">Giá mỗi đêm (VND)</span>
+        <input class="input" id="price" name="price" type="number" min="0" step="10000" placeholder="VD: 450000">
+        <span class="field__hint">Hiển thị ở trang tìm kiếm. Bỏ trống thì lấy giá phòng rẻ nhất.</span>
+        <span class="field__error"></span></label>
 
-    <label class="field"><span class="field__label">Mô tả</span>
-      <textarea class="textarea" id="description" name="description" rows="4" required></textarea>
-      <span class="field__error"></span></label>
+      <label class="field field--full"><span class="field__label">Địa chỉ</span>
+        <input class="input" id="address" name="address" placeholder="Số nhà, đường, phường/xã, tỉnh/thành" required>
+        <span class="field__error"></span></label>
 
-    <div class="field">
+      <label class="field field--full"><span class="field__label">Mô tả</span>
+        <textarea class="textarea" id="description" name="description" rows="4" required></textarea>
+        <span class="field__error"></span></label>
+    </div>
+
+    <div class="field mt-4">
       <span class="field__label">Tiện ích</span>
-      <div class="filter-list" id="amenities">
+      <div class="checkbox-grid" id="amenities">
         <label class="filter-option"><input type="checkbox" value="Wifi"> Wifi</label>
         <label class="filter-option"><input type="checkbox" value="Bãi đỗ xe"> Bãi đỗ xe</label>
         <label class="filter-option"><input type="checkbox" value="Bữa sáng"> Bữa sáng</label>
@@ -47,26 +54,27 @@
       </div>
     </div>
 
-    <div class="field">
+    <div class="field mt-4">
       <span class="field__label">Hình ảnh homestay (tối đa 12)</span>
       <div class="uploader">
         <input type="file" id="images" accept="image/*" multiple>
-        <p class="field__hint">Chọn 1–12 ảnh: toàn cảnh, phòng khách, xung quanh... càng nhiều góc càng giúp khách hình dung địa điểm. Ảnh chỉ xem trước, chưa upload lên máy chủ ở Mốc 2.</p>
+        <p class="field__hint">Chọn 1–12 ảnh: toàn cảnh, phòng khách, xung quanh... Ảnh đầu tiên là ảnh bìa — hiển thị ở danh sách, trang tìm kiếm và trang chi tiết.</p>
       </div>
       <div class="preview" id="preview"></div>
       <p class="field__error" id="imagesErr"></p>
     </div>
 
-    <div class="flex gap-2 mt-4">
+    <div class="actions-bar mt-4">
       <button class="btn btn--primary" type="submit">Lưu homestay</button>
       <a class="btn" href="host-homestays.html">Hủy</a>
-      <button class="btn btn--danger" id="deleteBtn" type="button" style="display:none;margin-left:auto">Xóa homestay</button>
+      <button class="btn btn--danger push-right" id="deleteBtn" type="button" hidden>Xóa homestay</button>
     </div>
-    <p class="msg mt-3" id="formMsg" style="display:none"></p>
+    <p class="msg mt-3" id="formMsg" hidden></p>
   </form>
 </main>
 
 <site-footer></site-footer>
+<div id="toast" role="status"></div>
 <dialog id="confirm-dialog">
   <h3 class="dialog__title"></h3>
   <p class="dialog__message"></p>

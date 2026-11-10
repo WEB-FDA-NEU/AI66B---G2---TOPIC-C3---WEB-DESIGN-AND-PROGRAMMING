@@ -16,10 +16,10 @@
   <div class="section-head"><div><h1>Bảng điều khiển chủ nhà</h1><p>Tổng quan homestay, phòng và đặt phòng của bạn.</p></div></div>
 
   <div class="stat-grid" id="stats">
-    <div class="stat-card"><div class="skeleton-card" style="aspect-ratio:auto;height:56px"></div></div>
-    <div class="stat-card"><div class="skeleton-card" style="aspect-ratio:auto;height:56px"></div></div>
-    <div class="stat-card"><div class="skeleton-card" style="aspect-ratio:auto;height:56px"></div></div>
-    <div class="stat-card"><div class="skeleton-card" style="aspect-ratio:auto;height:56px"></div></div>
+    <div class="stat-card"><div class="skeleton-card skeleton-card--stat"></div></div>
+    <div class="stat-card"><div class="skeleton-card skeleton-card--stat"></div></div>
+    <div class="stat-card"><div class="skeleton-card skeleton-card--stat"></div></div>
+    <div class="stat-card"><div class="skeleton-card skeleton-card--stat"></div></div>
   </div>
 
   <div class="quick-links">
@@ -29,7 +29,29 @@
     <a class="btn btn--outline" href="host-bookings.html">Quản lý đặt phòng</a>
   </div>
 
-  <div class="section-head"><div><h2>Đặt phòng gần đây</h2><p>5 đặt phòng mới nhất trên các homestay của bạn</p></div></div>
+  <!-- ===== BIỂU ĐỒ ===== -->
+  <div class="dash-grid">
+    <section class="chart-card">
+      <h2 class="chart-card__title">Doanh thu theo tháng</h2>
+      <p class="chart-card__sub">Tính các đơn đã xác nhận, đã nhận phòng và hoàn tất (triệu VND)</p>
+      <div id="chartRevenue"><div class="chart-empty">Đang tải...</div></div>
+    </section>
+
+    <section class="chart-card">
+      <h2 class="chart-card__title">Trạng thái đặt phòng</h2>
+      <p class="chart-card__sub">Tỷ lệ các đơn theo trạng thái</p>
+      <div id="chartStatus"><div class="chart-empty">Đang tải...</div></div>
+    </section>
+  </div>
+
+  <section class="chart-card mb-5">
+    <h2 class="chart-card__title">Doanh thu theo homestay</h2>
+    <p class="chart-card__sub">So sánh doanh thu giữa các homestay của bạn</p>
+    <div id="chartHomestay"><div class="chart-empty">Đang tải...</div></div>
+  </section>
+
+  <div class="section-head"><div><h2>Đặt phòng gần đây</h2><p>5 đặt phòng mới nhất trên các homestay của bạn</p></div>
+    <a class="btn btn--outline btn--sm" href="host-bookings.html">Xem tất cả</a></div>
   <div id="recent"><p class="text-muted">Đang tải...</p></div>
 </main>
 

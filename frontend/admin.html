@@ -45,10 +45,43 @@
     </div>
   </div>
 
+  <!-- ==================== BIỂU ĐỒ (dùng chung class .chart-card/.bar-chart/.donut với Host Dashboard) ==================== -->
+  <div class="dash-grid">
+    <section class="chart-card">
+      <h2 class="chart-card__title">Booking theo tháng</h2>
+      <p class="chart-card__sub">Số lượt đặt phòng trên toàn hệ thống</p>
+      <div class="bar-chart" role="img" aria-label="Biểu đồ cột số booking theo tháng">
+        <div class="bar-chart__col"><span class="bar-chart__val">96</span><div class="bar-chart__bar" style="height:72px"></div></div>
+        <div class="bar-chart__col"><span class="bar-chart__val">128</span><div class="bar-chart__bar" style="height:96px"></div></div>
+        <div class="bar-chart__col"><span class="bar-chart__val">142</span><div class="bar-chart__bar" style="height:106px"></div></div>
+        <div class="bar-chart__col"><span class="bar-chart__val">171</span><div class="bar-chart__bar" style="height:128px"></div></div>
+        <div class="bar-chart__col"><span class="bar-chart__val">205</span><div class="bar-chart__bar" style="height:153px"></div></div>
+        <div class="bar-chart__col"><span class="bar-chart__val">222</span><div class="bar-chart__bar" style="height:166px"></div></div>
+      </div>
+      <div class="bar-chart__labels"><span>T5/26</span><span>T6/26</span><span>T7/26</span><span>T8/26</span><span>T9/26</span><span>T10/26</span></div>
+    </section>
+
+    <section class="chart-card">
+      <h2 class="chart-card__title">Đơn đăng ký làm host</h2>
+      <p class="chart-card__sub">Theo trạng thái xử lý</p>
+      <div class="donut-wrap">
+        <div class="donut donut--host" role="img" aria-label="Biểu đồ tròn đơn đăng ký host">
+          <div class="donut__center"><strong>20</strong><span>đơn</span></div>
+        </div>
+        <ul class="legend">
+          <li><span class="legend__dot legend__dot--warning"></span>Chờ duyệt<span class="legend__num">5</span></li>
+          <li><span class="legend__dot legend__dot--success"></span>Đã duyệt<span class="legend__num">11</span></li>
+          <li><span class="legend__dot legend__dot--danger"></span>Từ chối<span class="legend__num">4</span></li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
   <!-- Hàng nút thao tác nhanh — cùng class .quick-links với Host Dashboard để 2 trang đồng bộ.
        Admin hiện chỉ có 1 khu vực (hàng đợi đơn host) nên chỉ có 1 nút, trỏ neo xuống thẳng đó. -->
   <div class="quick-links">
     <a class="btn btn--primary" href="#application-list">Xem đơn chờ duyệt</a>
+    <a class="btn btn--outline" href="admin-messages.html">Tin nhắn liên hệ <span class="badge badge--danger" id="msgBadge" hidden></span></a>
   </div>
 
   <!-- ==================== HÀNG ĐỢI ĐƠN XIN LÀM HOST ==================== -->
@@ -144,6 +177,16 @@
   import './js/components/site-header.js';
   import './js/components/site-footer.js';
   import { confirmAction, toast } from './js/ui.js';
+  // Số tin nhắn liên hệ chưa đọc hiện cạnh nút.
+  // Nạp api.js bằng import() để nếu api.js thiếu/lỗi thì trang admin vẫn chạy bình thường.
+  import('./js/api.js')
+    .then(api => api.getContactMessages())
+    .then(list => {
+      const n = list.filter(m => !m.read).length;
+      const badge = document.getElementById('msgBadge');
+      if (n) { badge.textContent = n; badge.hidden = false; }
+    })
+    .catch(() => {});
 
   // Giai đoạn mock: xử lý đơn ngay trên DOM.
   // TODO khi có API thật: fetch danh sách đơn, gọi API duyệt/từ chối (kèm lý do),

@@ -1,5 +1,6 @@
 /* layout.css — bố cục: container, header, nav, hero, section, lưới, footer.
    Mobile < 768px · Tablet < 1024px (xem tokens.css) */
+html { scroll-padding-top: calc(var(--header-h) + 12px); }   /* link #id không bị header che */
 body { font-family: var(--font); background: var(--c-page); color: var(--c-text); }
 h1, h2, h3 { line-height: 1.25; }
 h1 { font-size: 32px; } h2 { font-size: 24px; } h3 { font-size: 18px; }
@@ -14,7 +15,10 @@ h1 { font-size: 32px; } h2 { font-size: 24px; } h3 { font-size: 18px; }
 /* ---------- Header ----------
    <site-header> là custom element → mặc định inline. Phải display:block và có min-height
    để trang không bị giật khi component gắn vào. */
-site-header { display: block; min-height: 118px; }
+/* Header CỐ ĐỊNH: luôn dính trên cùng khi cuộn ở mọi trang.
+   body chừa sẵn khoảng trống bằng --header-h (site-header.js đo chiều cao thật rồi ghi đè biến này). */
+body { padding-top: var(--header-h); }
+site-header { display: block; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
 .site-header { background: var(--c-primary); color: #fff; position: relative; z-index: 100; }
 .site-header__top { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
 .logo { display: inline-flex; align-items: center; gap: 9px; font-size: 24px; font-weight: 700; color: #fff; text-decoration: none; white-space: nowrap; }
@@ -61,12 +65,12 @@ site-header { display: block; min-height: 118px; }
 /* Trang có sidebar (search.html) — minmax(0,1fr) chặn nội dung đẩy tràn ngang trên điện thoại */
 .search-layout, .shop-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--sp-4); align-items: start; padding-block: var(--sp-4); }
 .search-layout > *, .shop-layout > * { min-width: 0; }
-.filter-sidebar, .shop-sidebar { position: sticky; top: 20px; padding: var(--sp-3); background: var(--c-bg);
+.filter-sidebar, .shop-sidebar { position: sticky; top: calc(var(--header-h) + 16px); padding: var(--sp-3); background: var(--c-bg);
   border: 1px solid var(--c-border); border-radius: var(--radius); }
 
 /* Trang chi tiết: nội dung + hộp đặt phòng */
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sp-4); align-items: start; margin-top: var(--sp-4); }
-.detail-layout__aside { position: sticky; top: 20px; }
+.detail-layout__aside { position: sticky; top: calc(var(--header-h) + 16px); }
 
 /* ---------- Footer ---------- */
 site-footer { display: block; margin-top: var(--sp-6); }
@@ -89,7 +93,7 @@ site-footer { display: block; margin-top: var(--sp-6); }
 }
 @media (max-width: 767px) {                       /* Mobile */
   h1 { font-size: 26px; } h2 { font-size: 21px; }
-  site-header { min-height: 64px; }
+  html { scroll-padding-top: 76px; }
   .site-header__top { flex-wrap: wrap; }
   .site-header__actions { margin-left: auto; }
   .hide-sm { display: none !important; }

@@ -59,11 +59,12 @@ function renderRow(b) {
     cancelBtn.dataset.bookingId = b.id;
   }
 
+  if (b.code) titleEl.title = `Mã đặt phòng ${b.code}`;
   const reviewLink = node.querySelector('[data-review]');
   if (b.status === 'completed') {
     reviewLink.hidden = false;
     reviewLink.textContent = 'Viết đánh giá';
-    reviewLink.href = `booking-detail.html?id=${b.id}#review`;
+    reviewLink.href = `detail.html?id=${encodeURIComponent(b.homestayId)}&review=1#reviews-section`;
   }
 
   return node;

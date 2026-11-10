@@ -16,7 +16,7 @@
  
 <nav class="breadcrumb container mt-4">
   <ol>
-    <li class="text-primary">✓ Bạn chọn</li>
+    <li class="text-primary">✓ <a id="backToSelect" href="booking-select.html">Bạn chọn</a></li>
     <li aria-current="page" class="text-primary">Chi tiết về bạn</li>
     <li>Hoàn tất đặt phòng</li>
   </ol>
@@ -42,8 +42,8 @@
       <div class="form-card flex gap-3">
         <div class="avatar-icon">👤</div>
         <div>
-          <strong>Bạn đã được đăng nhập</strong>
-          <p class="field__hint">Tài khoản của bạn</p>
+          <strong id="accName">Bạn đã được đăng nhập</strong>
+          <p class="field__hint" id="accEmail">Tài khoản của bạn</p>
         </div>
       </div>
  
@@ -112,7 +112,7 @@
           <div class="msg msg--error mt-3" id="formMsg" style="display:none"></div>
  
           <button type="submit" class="btn btn--primary btn--block mt-3" id="btnSubmit">
-            Xác nhận &amp; Thanh toán (<span id="btnPayAmount">2.520.000 VND</span>)
+            Xác nhận &amp; Thanh toán (<span id="btnPayAmount">—</span>)
           </button>
         </form>
       </section>
@@ -123,61 +123,55 @@
     <aside class="detail-layout__aside stack">
  
       <div class="form-card">
-        <img src="img/da lat.png" alt="Đà Lạt Pine Cottage" class="hotel-card__img mb-3">
- 
-        <div class="flex gap-1 mb-2">
-          <span class="text-warning">★★</span>
-          <span class="badge badge--warning">Mới trên LuxStay</span>
-        </div>
- 
-        <h3 class="mb-2">Đà Lạt Pine Cottage</h3>
-        <p class="text-muted mb-2">Phường 3, Đà Lạt, Lâm Đồng</p>
- 
-        <p class="text-success font-semibold mb-3">Vị trí tuyệt vời — 8,5</p>
- 
-        <div class="flex gap-2 mb-3">
-          <span class="badge badge--info font-bold">8,4</span>
-          <span><strong>Rất tốt</strong> · 5 đánh giá</span>
-        </div>
- 
-        <div class="border-top pt-2">
-          📶 WiFi miễn phí
+        <img id="sumImg" src="img/placeholder.svg" alt="" class="hotel-card__img mb-3">
+        <h3 class="mb-2" id="sumTitle">—</h3>
+        <p class="text-muted mb-2" id="sumLocation">—</p>
+        <div class="flex gap-2 mb-1" id="sumRatingWrap" hidden>
+          <span class="badge badge--info font-bold" id="sumRating"></span>
+          <span><strong id="sumRatingLabel"></strong> · <span id="sumRatingCount"></span></span>
         </div>
       </div>
- 
+
       <div class="form-card stack">
         <h3>Chi tiết đặt phòng của bạn</h3>
- 
+
         <div class="stack gap-2 mt-2">
           <div class="flex-between">
             <span class="text-muted">Nhận phòng:</span>
-            <strong id="checkinDisplay">01/10/2026</strong>
+            <strong id="checkinDisplay">—</strong>
           </div>
           <div class="flex-between">
             <span class="text-muted">Trả phòng:</span>
-            <strong id="checkoutDisplay">03/10/2026</strong>
+            <strong id="checkoutDisplay">—</strong>
           </div>
           <div class="flex-between">
             <span class="text-muted">Số đêm ở:</span>
-            <strong id="nightsVal">2 đêm</strong>
+            <strong id="nightsVal">—</strong>
           </div>
+          <div class="flex-between">
+            <span class="text-muted">Khách:</span>
+            <strong id="guestsVal">—</strong>
+          </div>
+          <hr class="divider-dashed">
+          <div class="stack gap-2" id="roomLines"></div>
           <hr class="divider-dashed">
           <div class="flex-between">
             <span class="text-muted">Tiền phòng:</span>
-            <span id="roomSubtotalVal">2.400.000 VND</span>
+            <span id="roomSubtotalVal">—</span>
           </div>
           <div class="flex-between">
             <span class="text-muted">Phí dịch vụ (5%):</span>
-            <span id="serviceFeeVal">120.000 VND</span>
+            <span id="serviceFeeVal">—</span>
           </div>
           <hr class="divider-dashed">
           <div class="flex-between text-large font-bold">
             <span>Tổng tiền:</span>
-            <span class="text-primary" id="grandTotalVal">2.520.000 VND</span>
+            <span class="text-primary" id="grandTotalVal">—</span>
           </div>
         </div>
+        <a class="underline text-muted" id="editSelection" href="booking-select.html">← Đổi phòng / ngày</a>
       </div>
- 
+
     </aside>
  
   </div>
@@ -186,92 +180,6 @@
 <site-footer></site-footer>
 <div id="toast" role="status"></div>
  
-<script type="module">
-  import './js/components/site-header.js';
-  import './js/components/site-footer.js';
-  import { setFieldError, clearFieldErrors, toast } from './js/ui.js';
- 
-  const ROOM_PRICE_PER_NIGHT = 1200000;
-  const SERVICE_FEE_RATE = 0.05;
- 
-  const form = document.getElementById('checkoutForm');
-  const errorAlert = document.getElementById('errorAlert');
-  const formMsg = document.getElementById('formMsg');
- 
-  // Tự động format số thẻ / hạn thẻ khi gõ
-  document.getElementById('cardNum').addEventListener('input', e => {
-    const val = e.target.value.replace(/\D/g, '');
-    e.target.value = val.replace(/(.{4})/g, '$1 ').trim();
-  });
-  document.getElementById('cardExp').addEventListener('input', e => {
-    const val = e.target.value.replace(/\D/g, '');
-    e.target.value = val.length >= 2 ? val.slice(0, 2) + '/' + val.slice(2, 4) : val;
-  });
- 
-  const REQUIRED_MSG = {
-    lastname: 'Vui lòng nhập họ của bạn.',
-    firstname: 'Vui lòng nhập tên của bạn.',
-    email: 'Vui lòng nhập email hợp lệ.',
-    cardNum: 'Vui lòng nhập số thẻ.',
-    cardExp: 'Vui lòng nhập hạn thẻ.',
-    cardCvv: 'Vui lòng nhập mã CVV.',
-  };
- 
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    clearFieldErrors(form);
-    errorAlert.hidden = true;
-    formMsg.style.display = 'none';
- 
-    let ok = true;
-    Object.keys(REQUIRED_MSG).forEach(id => {
-      const input = document.getElementById(id);
-      if (!input.value.trim() || (input.type === 'email' && !input.validity.valid)) {
-        setFieldError(input, REQUIRED_MSG[id]);
-        ok = false;
-      }
-    });
- 
-    if (!ok) {
-      errorAlert.hidden = false;
-      errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
- 
-    const btn = document.getElementById('btnSubmit');
-    btn.disabled = true;
-    btn.textContent = 'Đang xử lý giao dịch...';
- 
-    // TODO: khi có dữ liệu thật, gọi API tạo booking thay vì setTimeout giả lập
-    setTimeout(() => {
-      const nights = 2; // TODO: tính từ ngày nhận/trả thật khi nối dữ liệu động
-      const roomSubtotal = ROOM_PRICE_PER_NIGHT * nights;
-      const serviceFee = Math.round(roomSubtotal * SERVICE_FEE_RATE);
-      const totalPrice = roomSubtotal + serviceFee;
-
-      const booking = {
-        code: 'LX' + Date.now().toString().slice(-8),
-        homestayName: 'Đà Lạt Pine Cottage',
-        homestayImage: 'img/da lat.png',
-        homestayAddress: 'Phường 3, Đà Lạt, Lâm Đồng',
-        roomName: 'Phòng Superior Giường Đôi',
-        checkIn: '2026-10-01',
-        checkOut: '2026-10-03',
-        nights,
-        guests: 2,
-        guestName: `${document.getElementById('firstname').value} ${document.getElementById('lastname').value}`,
-        roomSubtotal,
-        serviceFee,
-        totalPrice,
-        hostPhone: '0909123456',
-        hostAddress: '12 Đường Hoa Hồng, Phường 3, Đà Lạt, Lâm Đồng',
-      };
-      sessionStorage.setItem('lastBooking', JSON.stringify(booking));
-
-      toast('Thanh toán thành công!');
-      window.location.href = 'booking-confirmed.html';
-    }, 1500);
-  }); // ← đóng form.addEventListener('submit', ...)
-</script>
+<script type="module" src="js/pages/booking-page.js"></script>
 </body>
 </html>
