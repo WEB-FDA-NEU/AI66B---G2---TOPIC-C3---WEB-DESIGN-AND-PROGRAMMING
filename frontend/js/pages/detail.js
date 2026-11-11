@@ -1,97 +1,311 @@
 // ============================================================
-//  Trang chi tiết homestay.
+//  Trang chi tiết homestay — ĐÃ GỘP với bước chọn phòng (trước đây là booking-select).
+//  Bố cục: ảnh → thanh thông tin → tab neo → [Tổng quan | Thông tin & giá | Tiện nghi | Đánh giá].
+//  Mọi lựa chọn (id, ngày, khách, phòng) nằm trên URL → F5 / đăng nhập xong quay lại vẫn giữ nguyên.
 // ============================================================
 import { getItem, getReviews, addReview, ApiError } from '../api.js';
 import { toast, setFieldError, clearFieldErrors } from '../ui.js';
 import { formatVND } from '../render.js';
+import { stayFromParams, stayToParams, nightsBetween, todayISO, toISO, addDays, parseISO,
+         roomTypesFor, parseRooms, stringifyRooms, quote, guestText, fmtDate,
+         MAX_ADULTS, MAX_CHILDREN, ratingLabel } from '../pricing.js';
 import { isLoggedIn, requireLogin, getUser } from '../auth.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
 
-const id = new URLSearchParams(location.search).get('id');
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const id = params.get('id');
 
-const loading   = document.getElementById('detail-loading');
-const content   = document.getElementById('detail-content');
-const notFound  = document.getElementById('detail-not-found');
+let currentRating = null;
 
 async function load() {
   if (!id) { location.href = '404.html'; return; }
   try {
     const item = await getItem(id);
     fillItem(item);
-    loading.hidden = true;
-    content.hidden = false;
-    loadReviews();
+    $('detail-status').hidden = true;     // bỏ khoảng đệm của khung "đang tải"
+    ['detail-top', 'detail-tabs', 'detail-main'].forEach(k => { $(k).hidden = false; });
+    setupDescription();
+    setupTabs();
+    await loadReviews();
+    // Link "Viết đánh giá" từ lịch sử/chi tiết đặt phòng: ?review=1 → mở sẵn form
+    if (params.get('review') === '1') openReviewForm();
+    else if (location.hash) requestAnimationFrame(() => $(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView());
   } catch (err) {
-    loading.hidden = true;
-    if (err instanceof ApiError && err.status === 404) notFound.hidden = false;
+    $('detail-loading').hidden = true;
+    if (err instanceof ApiError && err.status === 404) $('detail-not-found').hidden = false;
     else toast(err.detail ?? 'Không tải được dữ liệu.', 'error');
   }
 }
 
+// ---------------- ĐIỀN DỮ LIỆU ----------------
 function fillItem(item) {
   document.title = `${item.title} — Homestay Booking`;
+  currentRating = item.rating;
 
-  document.getElementById('detail-location').textContent = item.location ?? '';
-  document.getElementById('detail-title').textContent    = item.title;
-  document.getElementById('detail-rating').textContent   = item.rating ?? '—';
-  document.getElementById('detail-room-type').textContent = item.room_type ?? '';
-  document.getElementById('detail-description').textContent = item.description ?? '';
-  document.getElementById('detail-amenities').textContent = (item.amenities ?? []).join(' · ');
-  document.getElementById('detail-price').textContent = formatVND(item.price);
+  const types = roomTypesFor(item);
+  $('detail-title').textContent = item.title;
+  $('detail-location').textContent = item.location ?? '';
+  $('detail-rating').textContent = item.rating != null ? item.rating.toFixed(1) : '—';
+  $('detail-room-type').textContent = item.room_type ?? 'Homestay';
+  $('detail-capacity').textContent = `Tối đa ${Math.max(...types.map(t => t.capacity))} khách / phòng`;
+  $('detail-description').textContent = item.description ?? '';
+  $('detail-price').textContent = formatVND(Math.min(...types.map(t => t.price)));
 
-  // Gallery: ảnh đầu tiên làm ảnh chính, các ảnh còn lại làm thumbnail bấm để đổi ảnh chính.
-  const images = item.images?.length ? item.images : [item.cover_url];
-  const mainImg = document.getElementById('detail-image');
-  mainImg.src = images[0];
-  mainImg.alt = item.title;
+  renderPhotos(item);
+  renderAmenities(item);
+  setupBooking(item, types);
+}
 
-  const thumbs = document.getElementById('detail-gallery-thumbs');
-  thumbs.replaceChildren(...images.map((src, i) => {
+// ---------------- THƯ VIỆN ẢNH: 1 lớn + 4 nhỏ ----------------
+let photos = [], photoTitle = '';
+
+function renderPhotos(item) {
+  photos = (item.images?.length ? item.images : [item.cover_url]).filter(Boolean);
+  photoTitle = item.title;
+  const shown = photos.slice(0, 5);
+  const grid = $('photo-grid');
+  grid.dataset.n = shown.length;
+  grid.style.setProperty('--small', Math.max(shown.length - 1, 1));
+  grid.replaceChildren(...shown.map((src, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'photo-grid__cell';
+    b.setAttribute('aria-label', `Xem ảnh ${i + 1} / ${photos.length}`);
     const img = document.createElement('img');
-    img.src = src;
-    img.alt = `${item.title} - ảnh ${i + 1}`;
-    img.addEventListener('click', () => { mainImg.src = src; });
-    return img;
+    img.src = src; img.alt = `${item.title} - ảnh ${i + 1}`;
+    b.append(img);
+    if (i === 4 && photos.length > 5) {
+      const more = document.createElement('span');
+      more.className = 'photo-grid__more'; more.textContent = `+${photos.length - 5} ảnh`;
+      b.append(more);
+    }
+    b.addEventListener('click', () => openLightbox(i));
+    return b;
   }));
+}
 
-  // Nút đặt phòng: bắt buộc đăng nhập trước (login branch — Mốc 1).
-  document.getElementById('book-btn').addEventListener('click', () => {
-    if (!isLoggedIn()) return requireLogin();
-    location.href = `booking-select.html?id=${item.id}`;
+const lb = $('lightbox');
+let lbIndex = 0;
+function showLightbox(i) {
+  lbIndex = (i + photos.length) % photos.length;
+  $('lb-img').src = photos[lbIndex];
+  $('lb-img').alt = `${photoTitle} - ảnh ${lbIndex + 1}`;
+  $('lb-count').textContent = `${lbIndex + 1} / ${photos.length}`;
+  const single = photos.length < 2;
+  $('lb-prev').hidden = single; $('lb-next').hidden = single;
+}
+function openLightbox(i) { showLightbox(i); lb.showModal(); }
+$('lb-close').addEventListener('click', () => lb.close());
+$('lb-prev').addEventListener('click', () => showLightbox(lbIndex - 1));
+$('lb-next').addEventListener('click', () => showLightbox(lbIndex + 1));
+lb.addEventListener('click', e => { if (e.target === lb) lb.close(); });          // bấm nền tối để đóng
+lb.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') showLightbox(lbIndex - 1);
+  if (e.key === 'ArrowRight') showLightbox(lbIndex + 1);
+});
+
+// ---------------- MÔ TẢ "XEM THÊM" ----------------
+function setupDescription() {
+  const p = $('detail-description'), btn = $('desc-toggle');
+  const check = () => {
+    if (p.classList.contains('is-open')) return;        // đang mở rộng thì giữ nút "Thu gọn"
+    btn.hidden = p.scrollHeight <= p.clientHeight + 1;  // chỉ hiện nút khi văn bản thực sự bị cắt
+  };
+  btn.addEventListener('click', () => {
+    const open = p.classList.toggle('is-open');
+    btn.textContent = open ? 'Thu gọn' : 'Xem thêm';
+    btn.setAttribute('aria-expanded', String(open));
   });
+  check();
+  window.addEventListener('resize', check);
+}
+
+// ---------------- TIỆN NGHI: lưới icon chip ----------------
+const AMENITY_ICONS = [
+  [/wi-?fi|internet/, '📶'], [/do xe|parking|gara/, '🅿️'], [/bep/, '🍳'], [/ho boi|pool/, '🏊'],
+  [/dieu hoa|may lanh/, '❄️'], [/bua sang|an sang|breakfast/, '🥐'], [/suoi|may suoi|lo suoi/, '🔥'],
+  [/thu cung|pet/, '🐾'], [/tv|tivi|tele/, '📺'], [/may giat/, '🧺'], [/ban cong|san vuon|vuon/, '🌿'],
+  [/bbq|nuong/, '🍖'], [/nuoc nong|bon tam/, '🛁'],
+];
+const plain = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase();
+const amenityIcon = name => AMENITY_ICONS.find(([re]) => re.test(plain(name)))?.[1] ?? '✓';
+
+function renderAmenities(item) {
+  const list = item.amenities?.length ? item.amenities : ['Wi-fi'];
+  $('detail-amenities').replaceChildren(...list.map(name => {
+    const li = document.createElement('li');
+    const ic = document.createElement('span'); ic.className = 'amenity-grid__icon'; ic.setAttribute('aria-hidden', 'true'); ic.textContent = amenityIcon(name);
+    const tx = document.createElement('span'); tx.textContent = name;
+    li.append(ic, tx);
+    return li;
+  }));
+}
+
+// ---------------- THÔNG TIN & GIÁ: ngày/khách → bảng phòng → tóm tắt ----------------
+function setupBooking(item, types) {
+  const $in = $('stay-checkin'), $out = $('stay-checkout'), $ad = $('stay-adults'), $ch = $('stay-children');
+  const rooms = parseRooms(params.get('rooms'));
+  for (const k of Object.keys(rooms)) if (!types.some(t => t.key === k)) delete rooms[k];   // bỏ phòng không có trong homestay này
+
+  const fill = (sel, from, to, label) => sel.replaceChildren(...Array.from({ length: to - from + 1 }, (_, i) => {
+    const o = document.createElement('option'); o.value = from + i; o.textContent = `${from + i} ${label}`; return o;
+  }));
+  fill($ad, 1, MAX_ADULTS, 'người lớn');
+  fill($ch, 0, MAX_CHILDREN, 'trẻ em');
+
+  const stay0 = stayFromParams(params);
+  $in.value = stay0.checkin; $out.value = stay0.checkout; $ad.value = stay0.adults; $ch.value = stay0.children;
+  $in.min = todayISO();
+
+  const current = () => ({ checkin: $in.value, checkout: $out.value, adults: +$ad.value, children: +$ch.value });
+
+  // ----- danh sách phòng (dựng 1 lần, refresh chỉ cập nhật số) -----
+  const cards = types.map(t => {
+    const node = $('tpl-room').content.cloneNode(true);
+    const el = node.querySelector('.room-card');
+    el.dataset.key = t.key;
+    const img = el.querySelector('.room-card__img'); img.src = t.image; img.alt = `${t.name} — ${item.title}`;
+    el.querySelector('.room-card__name').textContent = t.name;
+    el.querySelector('.room-bed').textContent = `🛏 ${t.bed}`;
+    el.querySelector('.room-area').textContent = `📐 ${t.area}`;
+    el.querySelector('.room-cap').textContent = `👥 Tối đa ${t.capacity} khách`;
+    el.querySelector('.room-card__policy').textContent = `✓ ${t.policy}`;
+    const badge = el.querySelector('.room-badge'); if (t.badge) badge.textContent = t.badge; else badge.remove();
+    el.querySelector('.room-price').textContent = formatVND(t.price);
+    const set = n => { rooms[t.key] = Math.max(0, Math.min(4, n)); refresh(); };
+    el.querySelector('.room-pick').addEventListener('click', () => set(1));
+    el.querySelector('.room-minus').addEventListener('click', () => set((rooms[t.key] ?? 0) - 1));
+    el.querySelector('.room-plus').addEventListener('click', () => set((rooms[t.key] ?? 0) + 1));
+    return el;
+  });
+  $('room-list').replaceChildren(...cards);
+
+  // ----- kiểm tra ngày -----
+  function stayProblem(s) {
+    if (!s.checkin || !s.checkout) return 'Vui lòng chọn ngày nhận và trả phòng.';
+    if (s.checkin < todayISO()) return 'Ngày nhận phòng không được ở quá khứ.';
+    if (nightsBetween(s.checkin, s.checkout) === 0) return 'Ngày trả phòng phải sau ngày nhận phòng.';
+    return '';
+  }
+
+  function refresh() {
+    const s = current();
+    const sp = stayProblem(s);
+    const q = quote({ item, rooms, checkin: s.checkin, checkout: s.checkout });
+    $out.min = $in.value ? toISO(addDays(parseISO($in.value), 1)) : todayISO();
+
+    $('stay-error').textContent = sp;
+    $('stay-nights').textContent = q.nights ? `${q.nights} đêm · ${guestText(s)}` : '';
+
+    // thẻ phòng
+    cards.forEach((el, i) => {
+      const t = types[i], n = rooms[t.key] ?? 0;
+      el.classList.toggle('is-selected', n > 0);
+      el.querySelector('.room-pick').hidden = n > 0;
+      el.querySelector('.stepper').hidden = n === 0;
+      el.querySelector('.room-qty').textContent = n;
+      el.querySelector('.room-plus').disabled = n >= 4;
+      el.querySelector('.room-card__total').textContent = q.nights ? `${q.nights} đêm: ${formatVND(t.price * q.nights)}` : '';
+    });
+
+    // tóm tắt giá (cột phải)
+    $('summary-lines').replaceChildren(...q.lines.map(l => {
+      const d = document.createElement('div'); d.className = 'flex-between';
+      const a = document.createElement('span'); a.className = 'text-muted'; a.textContent = `${l.qty} × ${l.name}`;
+      const b = document.createElement('span'); b.textContent = formatVND(l.subtotal);
+      d.append(a, b); return d;
+    }));
+    $('summary-empty').hidden = q.roomCount > 0;
+    $('summary-nights').textContent = q.nights ? `${q.nights} đêm (${fmtDate(s.checkin)} → ${fmtDate(s.checkout)})` : '—';
+    $('summary-rooms').textContent = `${q.roomCount} phòng`;
+    $('summary-subtotal').textContent = formatVND(q.roomSubtotal);
+    $('summary-fee').textContent = formatVND(q.serviceFee);
+    $('summary-total').textContent = formatVND(q.total);
+
+    // điều kiện đi tiếp
+    const guests = s.adults + s.children;
+    const capProblem = q.roomCount > 0 && q.capacity < guests
+      ? `Các phòng đã chọn chứa tối đa ${q.capacity} khách, nhưng bạn có ${guests} khách. Hãy thêm phòng.` : '';
+    $('summary-msg').hidden = !capProblem;
+    $('summary-msg').textContent = capProblem;
+    $('book-btn').disabled = !!sp || q.roomCount === 0 || !!capProblem;
+
+    // Giữ lựa chọn trong URL (kèm ?review=1 nếu có; không để lại "rooms=" rỗng)
+    const keep = { id };
+    if (params.get('review') === '1') keep.review = '1';
+    const r = stringifyRooms(rooms); if (r) keep.rooms = r;
+    history.replaceState(null, '', `?${stayToParams(s, keep)}${location.hash}`);
+  }
+
+  $in.addEventListener('change', () => {
+    if ($in.value && $out.value && nightsBetween($in.value, $out.value) === 0)
+      $out.value = toISO(addDays(parseISO($in.value), 1));
+    refresh();
+  });
+  [$out, $ad, $ch].forEach(el => el.addEventListener('change', refresh));
+  $('stay-form').addEventListener('submit', e => e.preventDefault());
+
+  $('book-btn').addEventListener('click', () => {
+    if ($('book-btn').disabled) return;
+    if (!isLoggedIn()) return requireLogin();     // đăng nhập xong quay lại đúng URL này, phòng đã chọn vẫn còn
+    location.href = `booking-page.html?${stayToParams(current(), { id: item.id, rooms: stringifyRooms(rooms) })}`;
+  });
+
+  refresh();
+}
+
+// ---------------- TAB NEO: sáng đúng mục đang xem ----------------
+function setupTabs() {
+  const links = [...document.querySelectorAll('.sub-nav__link')];
+  const sections = links.map(a => document.querySelector(a.getAttribute('href')));
+  const sync = () => {
+    const offset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h'), 10) + 90;
+    let cur = 0;
+    sections.forEach((s, i) => { if (s && s.getBoundingClientRect().top <= offset) cur = i; });
+    // cuộn tới cuối trang thì mục cuối cùng phải sáng
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = links.length - 1;
+    links.forEach((a, i) => a.classList.toggle('is-active', i === cur));
+  };
+  window.addEventListener('scroll', sync, { passive: true });
+  sync();
 }
 
 // ---------------- ĐÁNH GIÁ ----------------
-const reviewSummary   = document.getElementById('review-summary');
-const reviewsList     = document.getElementById('reviews-list');
-const writeBtn        = document.getElementById('write-review-btn');
-const formWrapper     = document.getElementById('review-form-wrapper');
-const form            = document.getElementById('review-form');
-const cancelBtn       = document.getElementById('cancel-review-btn');
+const reviewSummary = $('review-summary');
+const reviewsList   = $('reviews-list');
+const writeBtn      = $('write-review-btn');
+const formWrapper   = $('review-form-wrapper');
+const form          = $('review-form');
+const cancelBtn     = $('cancel-review-btn');
 
 async function loadReviews() {
   const reviews = await getReviews(id);
   reviewSummary.textContent = reviews.length ? `${reviews.length} đánh giá` : 'Chưa có đánh giá nào';
+  $('detail-review-count').textContent =
+    reviews.length ? [ratingLabel(currentRating), `${reviews.length} đánh giá`].filter(Boolean).join(' · ') : 'Chưa có đánh giá';
   reviewsList.replaceChildren(...reviews.map(renderReview));
 }
 
 function renderReview(review) {
-  const node = document.getElementById('tpl-review').content.cloneNode(true);
+  const node = $('tpl-review').content.cloneNode(true);
   node.querySelector('.review-card__name').textContent = review.name;
   node.querySelector('.review-card__rating').textContent = `⭐ ${review.rating}`;
+  node.querySelector('.review-card__verified').hidden = !review.verified;
   node.querySelector('.review-card__date').textContent = new Date(review.created_at).toLocaleDateString('vi-VN');
   node.querySelector('.review-card__comment').textContent = review.comment;
   return node;
 }
 
-writeBtn.addEventListener('click', () => {
+function openReviewForm() {
   if (!isLoggedIn()) return requireLogin();
   const user = getUser();
   if (user?.display_name) form.name.value = user.display_name;
   formWrapper.hidden = false;
-});
-
+  formWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  form.rating.focus({ preventScroll: true });
+}
+writeBtn.addEventListener('click', openReviewForm);
 cancelBtn.addEventListener('click', () => { formWrapper.hidden = true; form.reset(); });
 
 form.addEventListener('submit', async e => {
@@ -115,6 +329,10 @@ form.addEventListener('submit', async e => {
     form.reset();
     formWrapper.hidden = true;
     toast('Đã gửi đánh giá. Cảm ơn bạn!');
+    // Điểm trung bình đã được cập nhật ở tầng api → tải lại để hiện số mới
+    const fresh = await getItem(id);
+    currentRating = fresh.rating;
+    $('detail-rating').textContent = fresh.rating != null ? fresh.rating.toFixed(1) : '—';
     loadReviews();
   } catch (err) {
     toast(err.detail ?? 'Gửi đánh giá thất bại.', 'error');

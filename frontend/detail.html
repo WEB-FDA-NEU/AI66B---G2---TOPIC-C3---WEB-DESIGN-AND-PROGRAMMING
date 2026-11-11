@@ -14,116 +14,225 @@
 
 <site-header active="search"></site-header>
 
-<main class="container page">
-
+<div class="container page" id="detail-status">
   <p id="detail-loading">Đang tải thông tin homestay...</p>
-
-  <section id="detail-content" hidden>
-
-    <!-- GALLERY -->
-    <div class="detail-gallery">
-      <div class="detail-gallery__main">
-        <img id="detail-image" src="" alt="">
-      </div>
-      <div id="detail-gallery-thumbs" class="detail-gallery__thumbs"></div>
-    </div>
-
-    <div class="detail-layout">
-
-      <!-- CỘT TRÁI: THÔNG TIN -->
-      <div class="stack">
-        <p id="detail-location" class="text-muted"></p>
-        <h1 id="detail-title"></h1>
-        <div class="flex gap-2">
-          <span id="detail-rating" class="rating"></span>
-          <span class="text-muted">Đánh giá tốt</span>
-        </div>
-        <p id="detail-room-type"></p>
-
-        <section class="stack">
-          <h2>Mô tả</h2>
-          <p id="detail-description"></p>
-        </section>
-
-        <section class="stack">
-          <h2>Tiện ích</h2>
-          <p id="detail-amenities"></p>
-        </section>
-      </div>
-
-      <!-- CỘT PHẢI: ĐẶT PHÒNG -->
-      <aside class="detail-layout__aside">
-        <div class="booking-summary stack">
-          <p class="booking-summary__price"><span id="detail-price"></span> <small class="text-muted">/ đêm</small></p>
-          <button type="button" class="btn btn--primary btn--block" id="book-btn">Đặt phòng</button>
-          <a class="btn btn--outline btn--block" href="search.html">Quay lại tìm kiếm</a>
-        </div>
-      </aside>
-
-    </div>
-
-    <!-- ĐÁNH GIÁ -->
-    <section class="stack mt-4" id="reviews-section" data-reveal>
-      <div class="section-head">
-        <div>
-          <h2>Đánh giá của khách</h2>
-          <p id="review-summary" class="text-muted"></p>
-        </div>
-        <button type="button" class="btn" id="write-review-btn">Viết đánh giá</button>
-      </div>
-
-      <div id="review-form-wrapper" class="form-card" hidden>
-        <form id="review-form" class="stack" novalidate>
-          <div class="field">
-            <label class="field__label" for="review-name">Tên của bạn</label>
-            <input class="input" id="review-name" name="name" type="text" placeholder="Nhập tên" required>
-            <p class="field__error"></p>
-          </div>
-          <div class="field">
-            <label class="field__label" for="review-rating">Đánh giá</label>
-            <select class="select" id="review-rating" name="rating" required>
-              <option value="">Chọn số sao</option>
-              <option value="5">⭐ 5 sao</option>
-              <option value="4">⭐ 4 sao</option>
-              <option value="3">⭐ 3 sao</option>
-              <option value="2">⭐ 2 sao</option>
-              <option value="1">⭐ 1 sao</option>
-            </select>
-            <p class="field__error"></p>
-          </div>
-          <div class="field">
-            <label class="field__label" for="review-comment">Nhận xét</label>
-            <textarea class="textarea" id="review-comment" name="comment" rows="4" placeholder="Chia sẻ trải nghiệm của bạn..." required></textarea>
-            <p class="field__error"></p>
-          </div>
-          <div class="flex gap-2">
-            <button type="submit" class="btn btn--primary">Gửi đánh giá</button>
-            <button type="button" class="btn btn--outline" id="cancel-review-btn">Hủy</button>
-          </div>
-        </form>
-      </div>
-
-      <div id="reviews-list" class="stack"></div>
-    </section>
-
-  </section>
 
   <section id="detail-not-found" class="empty" hidden>
     <p class="empty__title">Không tìm thấy homestay</p>
     <p class="empty__hint">Homestay bạn đang tìm không tồn tại hoặc đã được gỡ khỏi hệ thống.</p>
     <a class="btn btn--primary empty__action" href="search.html">Xem các homestay khác</a>
   </section>
+</div>
 
+<!-- ============ 1. THƯ VIỆN ẢNH + 2. THANH THÔNG TIN NGANG ============ -->
+<section class="container detail-top" id="detail-top" hidden>
+  <div class="photo-grid" id="photo-grid" aria-label="Thư viện ảnh"></div>
+
+  <div class="info-bar">
+    <h1 id="detail-title"></h1>
+    <ul class="info-bar__meta" aria-label="Thông tin nhanh">
+      <li>📍 <span id="detail-location"></span></li>
+      <li>
+        <a class="info-bar__rating" href="#reviews-section">
+          <span class="rating" id="detail-rating">—</span>
+          <span id="detail-review-count">Đánh giá</span>
+        </a>
+      </li>
+      <li>🏠 <span id="detail-room-type"></span></li>
+      <li>👥 <span id="detail-capacity"></span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 3. TAB NEO ============ -->
+<nav class="sub-nav" id="detail-tabs" aria-label="Các mục trong trang" hidden>
+  <div class="container">
+    <ul class="sub-nav__links">
+      <li><a href="#overview" class="sub-nav__link is-active">Tổng quan</a></li>
+      <li><a href="#pricing" class="sub-nav__link">Thông tin &amp; giá</a></li>
+      <li><a href="#amenities" class="sub-nav__link">Tiện nghi</a></li>
+      <li><a href="#reviews-section" class="sub-nav__link">Đánh giá</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container page pt-4" id="detail-main" hidden>
+  <div class="detail-layout mt-0">
+
+    <!-- CỘT TRÁI -->
+    <div class="detail-main stack gap-4">
+
+      <!-- TỔNG QUAN -->
+      <section id="overview" class="info-block">
+        <h2>Tổng quan</h2>
+        <p id="detail-description" class="clamp-text"></p>
+        <button type="button" class="link-btn" id="desc-toggle" aria-expanded="false" hidden>Xem thêm</button>
+      </section>
+
+      <!-- THÔNG TIN & GIÁ: ngày/khách nằm NGAY TRÊN danh sách phòng -->
+      <section id="pricing" class="info-block stack">
+        <div>
+          <h2>Thông tin &amp; giá</h2>
+          <p class="text-muted">Giá mỗi đêm. Phí dịch vụ 5% được cộng ở bước thanh toán.</p>
+        </div>
+
+        <form class="stay-inline" id="stay-form" novalidate>
+          <div class="field">
+            <label class="field__label" for="stay-checkin">Nhận phòng</label>
+            <input class="input" type="date" id="stay-checkin" required>
+          </div>
+          <div class="field">
+            <label class="field__label" for="stay-checkout">Trả phòng</label>
+            <input class="input" type="date" id="stay-checkout" required>
+          </div>
+          <div class="field">
+            <label class="field__label" for="stay-adults">Người lớn</label>
+            <select class="select" id="stay-adults"></select>
+          </div>
+          <div class="field">
+            <label class="field__label" for="stay-children">Trẻ em (0–12)</label>
+            <select class="select" id="stay-children"></select>
+          </div>
+          <p class="stay-inline__nights" id="stay-nights"></p>
+          <p class="field__error" id="stay-error"></p>
+        </form>
+
+        <div class="room-list" id="room-list"></div>
+
+        <h3 class="mt-3">Quy tắc chung</h3>
+        <ul class="rule-list">
+          <li><b>Nhận phòng</b><span>Từ 14:00</span></li>
+          <li><b>Trả phòng</b><span>Trước 12:00</span></li>
+          <li><b>Hủy phòng</b><span>Miễn phí hủy trước 3 ngày nhận phòng. Hủy sát ngày sẽ không được hoàn tiền — xem <a class="underline" href="terms.html#huy-phong">chính sách hủy</a>.</span></li>
+          <li><b>Hút thuốc</b><span>Không hút thuốc trong phòng.</span></li>
+          <li><b>Thú cưng</b><span>Vui lòng liên hệ chủ nhà trước khi mang theo.</span></li>
+        </ul>
+      </section>
+
+      <!-- TIỆN NGHI -->
+      <section id="amenities" class="info-block">
+        <h2>Tiện nghi</h2>
+        <ul class="amenity-grid" id="detail-amenities"></ul>
+      </section>
+
+      <!-- ĐÁNH GIÁ -->
+      <section class="info-block stack" id="reviews-section">
+        <div class="section-head mb-0">
+          <div>
+            <h2>Đánh giá của khách</h2>
+            <p id="review-summary" class="text-muted"></p>
+          </div>
+          <button type="button" class="btn" id="write-review-btn">Viết đánh giá</button>
+        </div>
+
+        <div id="review-form-wrapper" class="form-card form-card--flat" hidden>
+          <form id="review-form" class="stack" novalidate>
+            <div class="field">
+              <label class="field__label" for="review-name">Tên của bạn</label>
+              <input class="input" id="review-name" name="name" type="text" placeholder="Nhập tên" required>
+              <p class="field__error"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="review-rating">Đánh giá</label>
+              <select class="select" id="review-rating" name="rating" required>
+                <option value="">Chọn số sao</option>
+                <option value="5">⭐ 5 sao</option>
+                <option value="4">⭐ 4 sao</option>
+                <option value="3">⭐ 3 sao</option>
+                <option value="2">⭐ 2 sao</option>
+                <option value="1">⭐ 1 sao</option>
+              </select>
+              <p class="field__error"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="review-comment">Nhận xét</label>
+              <textarea class="textarea" id="review-comment" name="comment" rows="4" placeholder="Chia sẻ trải nghiệm của bạn..." required></textarea>
+              <p class="field__error"></p>
+            </div>
+            <div class="flex gap-2">
+              <button type="submit" class="btn btn--primary">Gửi đánh giá</button>
+              <button type="button" class="btn btn--outline" id="cancel-review-btn">Hủy</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="reviews-list" class="stack"></div>
+      </section>
+    </div>
+
+    <!-- CỘT PHẢI: CHỈ TÓM TẮT GIÁ -->
+    <aside class="detail-layout__aside">
+      <div class="booking-summary stack gap-3">
+        <p class="booking-summary__price">Từ <span id="detail-price"></span> <small class="text-muted">/ đêm</small></p>
+        <h3>Tóm tắt giá</h3>
+
+        <div class="stack gap-2" id="summary-lines"></div>
+        <p class="text-muted" id="summary-empty">Chưa chọn phòng nào. Hãy chọn phòng ở mục “Thông tin &amp; giá”.</p>
+
+        <div class="stack gap-2">
+          <div class="flex-between"><span class="text-muted">Thời gian ở:</span><strong id="summary-nights">—</strong></div>
+          <div class="flex-between"><span class="text-muted">Số phòng:</span><strong id="summary-rooms">0 phòng</strong></div>
+          <hr class="divider-dashed">
+          <div class="flex-between"><span class="text-muted">Tiền phòng:</span><span id="summary-subtotal">0 ₫</span></div>
+          <div class="flex-between"><span class="text-muted">Phí dịch vụ (5%):</span><span id="summary-fee">0 ₫</span></div>
+          <hr class="divider-dashed">
+          <div class="flex-between text-large font-bold">
+            <span>Tổng cộng:</span><span class="text-primary" id="summary-total">0 ₫</span>
+          </div>
+        </div>
+
+        <p class="msg msg--error" id="summary-msg" hidden></p>
+        <button type="button" class="btn btn--primary btn--block" id="book-btn" disabled>Tôi sẽ đặt</button>
+        <p class="field__hint text-center">Chưa bị trừ tiền ở bước này</p>
+      </div>
+    </aside>
+
+  </div>
 </main>
+
+<!-- Xem ảnh lớn -->
+<dialog class="lightbox" id="lightbox" aria-label="Xem ảnh">
+  <button type="button" class="lightbox__close" id="lb-close" aria-label="Đóng">✕</button>
+  <button type="button" class="lightbox__nav lightbox__nav--prev" id="lb-prev" aria-label="Ảnh trước">‹</button>
+  <img id="lb-img" alt="">
+  <button type="button" class="lightbox__nav lightbox__nav--next" id="lb-next" aria-label="Ảnh sau">›</button>
+  <p class="lightbox__count" id="lb-count"></p>
+</dialog>
 
 <template id="tpl-review">
   <article class="review-card">
     <div class="review-card__head">
-      <strong class="review-card__name"></strong>
+      <span><strong class="review-card__name"></strong> <span class="badge badge--success review-card__verified" hidden>Đã lưu trú</span></span>
       <span class="review-card__rating"></span>
     </div>
     <p class="review-card__date"></p>
     <p class="review-card__comment"></p>
+  </article>
+</template>
+
+<template id="tpl-room">
+  <article class="room-card">
+    <img class="room-card__img" alt="" loading="lazy">
+    <div class="room-card__body">
+      <h3 class="room-card__name"></h3>
+      <ul class="room-card__facts">
+        <li class="room-bed"></li>
+        <li class="room-area"></li>
+        <li class="room-cap"></li>
+      </ul>
+      <p class="room-card__policy"></p>
+      <span class="badge badge--warning room-badge"></span>
+    </div>
+    <div class="room-card__buy">
+      <p class="room-card__price"><span class="room-price"></span><small> / đêm</small></p>
+      <p class="room-card__total text-muted"></p>
+      <button type="button" class="btn btn--primary room-pick">Chọn</button>
+      <div class="stepper" hidden>
+        <button type="button" class="stepper__btn room-minus" aria-label="Bớt một phòng">−</button>
+        <output class="stepper__val room-qty">1</output>
+        <button type="button" class="stepper__btn room-plus" aria-label="Thêm một phòng">+</button>
+      </div>
+    </div>
   </article>
 </template>
 
