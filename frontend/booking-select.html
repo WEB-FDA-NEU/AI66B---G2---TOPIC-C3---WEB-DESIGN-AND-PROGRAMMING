@@ -1,15 +1,48 @@
+
 <!doctype html>
 <html lang="vi">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Đang chuyển trang…</title>
-<!-- Bước "chọn phòng" đã gộp vào detail.html (mục "Thông tin & giá").
-     File này chỉ giữ lại để link cũ / bookmark cũ vẫn chạy: chuyển sang detail, GIỮ NGUYÊN id, ngày, khách, phòng. -->
+
+<!--
+  Trang chọn phòng đã được gộp vào detail.html.
+  File này được giữ lại để hỗ trợ các đường link và bookmark cũ.
+
+  Có id:
+    Chuyển sang detail.html, giữ nguyên query parameters
+    và chuyển đến khu vực pricing.
+
+  Không có id:
+    Chuyển về search.html.
+-->
+
 <script>
-  const p = new URLSearchParams(location.search);
-  location.replace(p.get('id') ? `detail.html?${p}#pricing` : 'search.html');
+  const params = new URLSearchParams(location.search);
+  const homestayId = params.get('id');
+
+  if (homestayId) {
+    const target = new URL('detail.html', location.href);
+
+    target.search = params.toString();
+    target.hash = 'pricing';
+
+    location.replace(target.href);
+  } else {
+    location.replace('search.html');
+  }
 </script>
-<noscript><meta http-equiv="refresh" content="0; url=search.html"></noscript>
+
+<noscript>
+  <meta http-equiv="refresh" content="0; url=search.html">
+</noscript>
 </head>
-<body><p>Đang chuyển tới trang chi tiết homestay… <a href="search.html">Về trang tìm kiếm</a></p></body>
+
+<body>
+  <p>
+    Đang chuyển tới trang chi tiết homestay…
+    <a href="search.html">Về trang tìm kiếm</a>
+  </p>
+</body>
 </html>
