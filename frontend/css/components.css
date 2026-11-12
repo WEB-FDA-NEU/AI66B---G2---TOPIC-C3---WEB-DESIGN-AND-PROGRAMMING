@@ -63,6 +63,7 @@ dialog .btn--danger:hover { background: #b02020; border-color: #b02020; }
   border: 1px solid var(--c-border); border-radius: var(--radius); box-shadow: var(--shadow); }
 .field { display: block; }
 .field + .field { margin-top: var(--sp-3); }
+.grid > .field + .field { margin-top: 0; }   /* 2 ô cạnh nhau trong grid (Họ/Tên, Hạn thẻ/CVC) phải thẳng hàng */
 .field__label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
 .field__hint  { font-size: 13px; color: var(--c-muted); margin-top: var(--sp-1); }
 .field__error { font-size: 13px; color: var(--c-danger); margin-top: var(--sp-1); min-height: 1.1em; }

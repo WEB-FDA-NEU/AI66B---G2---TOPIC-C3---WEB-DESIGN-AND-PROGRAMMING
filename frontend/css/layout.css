@@ -2058,3 +2058,117 @@ site-footer { display: block; margin-top: var(--sp-6); }
     text-align: left;
   }
 }
+
+/* ==================== BOOKING CHECKOUT — LÀM ĐẸP (bổ sung) ==================== */
+
+/* --- Thanh các bước (thay breadcrumb) --- */
+.booking-steps { padding-top: var(--sp-4); }
+.booking-steps ol {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) 0;
+  list-style: none; padding: 0; margin: 0; font-size: var(--fs-sm); color: var(--c-muted);
+}
+.booking-steps li { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.booking-steps li + li::before {            /* đường nối giữa các bước */
+  content: ""; width: 32px; height: 2px; margin-inline: var(--sp-2);
+  background: var(--c-border); border-radius: 2px;
+}
+.booking-steps li.is-done + li::before { background: var(--c-primary-l); }
+.booking-steps a { color: var(--c-primary-l); text-decoration: none; font-weight: 600; }
+.booking-steps a:hover { text-decoration: underline; }
+.booking-steps li.is-current { color: var(--c-text); font-weight: 600; }
+.booking-steps__dot {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--c-surface); color: var(--c-muted); font-size: var(--fs-xs); font-weight: 700;
+}
+.booking-steps li.is-done .booking-steps__dot    { background: var(--c-primary-l); color: var(--c-on-primary); }
+.booking-steps li.is-current .booking-steps__dot { background: var(--c-primary);   color: var(--c-on-primary); }
+
+/* --- Khoảng cách: bớt khoảng trống giữa thanh bước và nội dung --- */
+.booking-page { padding-top: var(--sp-3); padding-bottom: var(--sp-6); }
+.booking-page .booking-checkout-layout { margin-top: 0; }
+
+/* Thẻ đầu tiên của cột trái từng bị đẩy xuống vì #errorAlert[hidden] vẫn là "anh em liền trước"
+   (luật .stack > * + .form-card). Cắt margin đó để 2 cột bắt đầu cùng một hàng. */
+.booking-checkout-main > [hidden] + .form-card { margin-top: 0; }
+
+/* --- Thẻ --- */
+.booking-page .form-card { padding: var(--sp-4) var(--sp-5); }
+.booking-page .form-card h3 { font-size: var(--fs-lg); }
+.booking-account-card { display: flex; gap: var(--sp-3); padding-block: var(--sp-3); }
+.booking-account-info p { margin: 0; }
+
+.booking-form-card h3 { margin-bottom: var(--sp-3); }
+.booking-form-notice {
+  display: flex; gap: var(--sp-2); align-items: flex-start;
+  margin-bottom: var(--sp-4); padding: var(--sp-3);
+  background: var(--c-primary-soft); border: 1px solid var(--c-border); border-radius: var(--radius-s);
+  color: var(--c-text);
+}
+.booking-form-notice .icon-info { background: var(--c-primary-l); margin-top: 1px; }
+.booking-form-notice p { margin: 0; }
+.booking-form-notice .field__hint { margin-top: 2px; }
+
+/* --- Form: khoảng cách đều, các ô cạnh nhau thẳng hàng --- */
+.booking-checkout-form { display: grid; gap: var(--sp-3); }
+.booking-checkout-form > * { margin: 0; }
+.booking-form-grid { gap: var(--sp-3); }
+.booking-form-grid .field + .field { margin-top: 0; }   /* tránh luật ".field + .field" đẩy ô thứ 2 xuống */
+.booking-form-section {
+  margin: var(--sp-2) 0 0; padding-top: var(--sp-4);
+  border-top: 1px solid var(--c-border);
+  font-size: var(--fs-md); font-weight: 700; color: var(--c-primary);
+}
+.booking-submit-button { min-height: 50px; font-size: var(--fs-md); font-weight: 700; justify-content: center; }
+.booking-secure-note { margin-top: var(--sp-2); text-align: center; }
+.booking-form-message { margin: 0; }
+
+/* --- Cột phải: tóm tắt --- */
+.booking-property-summary { padding: var(--sp-3); }
+.booking-property-summary h3 { margin-top: var(--sp-3); }
+.booking-summary-image { height: 190px; background: var(--c-surface); }
+.booking-summary-location { margin: var(--sp-1) 0 var(--sp-3); font-size: var(--fs-sm); }
+.booking-summary-location::before { content: "📍 "; }
+
+.booking-rating { display: flex; gap: var(--sp-2); align-items: center; }
+.booking-rating[hidden] { display: none; }              /* display:flex ở trên sẽ đè thuộc tính hidden nếu thiếu dòng này */
+.booking-rating__score {
+  display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+  padding: 3px 10px; border-radius: var(--radius-pill);
+  background: var(--c-primary-l); color: var(--c-on-primary);
+  font-size: var(--fs-sm); font-weight: 700; line-height: 1.4;
+}
+.booking-rating__score::before { content: "★"; color: #f5c46b; }
+.booking-rating__text { font-size: var(--fs-sm); color: var(--c-muted); line-height: 1.4; }
+.booking-rating__text strong { color: var(--c-text); }
+
+.booking-price-summary h3 { margin-bottom: var(--sp-3); }
+.booking-price-details { display: grid; gap: var(--sp-2); }
+.booking-price-details > hr { margin: var(--sp-1) 0; }
+.booking-summary-row { font-size: var(--fs-sm); }
+.booking-room-lines { display: grid; gap: var(--sp-2); font-size: var(--fs-sm); }
+.booking-room-lines .flex-between { align-items: flex-start; }
+.booking-room-lines .flex-between > :last-child { white-space: nowrap; font-weight: 600; }
+.booking-grand-total {
+  margin-top: var(--sp-2); padding-top: var(--sp-3); border-top: 2px solid var(--c-border);
+  font-weight: 700;
+}
+.booking-grand-total > :last-child { font-size: var(--fs-xl); color: var(--c-primary); }
+.booking-edit-selection {
+  display: inline-block; margin-top: var(--sp-3);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--c-primary-l); text-decoration: none;
+}
+.booking-edit-selection:hover { text-decoration: underline; }
+
+@media (max-width: 767px) {
+  .booking-page .form-card { padding: var(--sp-3); }
+  .booking-steps li + li::before { width: 16px; margin-inline: var(--sp-1); }
+}
+/* Mobile nhỏ: chỉ bước hiện tại hiện chữ để thanh bước luôn nằm trên 1 dòng */
+@media (max-width: 480px) {
+  .booking-steps li:not(.is-current) .booking-steps__label { display: none; }
+  /* Đè luật cũ (xếp dọc + canh trái): giữ nhãn bên trái, giá trị bên phải như desktop */
+  .booking-summary-row, .booking-grand-total { flex-direction: row; align-items: flex-start; gap: var(--sp-3); }
+  .booking-grand-total { align-items: center; }
+  .booking-summary-row > :last-child, .booking-grand-total > :last-child { text-align: right; }
+}

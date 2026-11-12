@@ -187,6 +187,24 @@ export async function getBooking(id) {
   return request(`${API_BASE}/me/bookings/${id}`);
 }
 
+export async function createBooking(payload) {
+  if (USE_MOCK) {
+    const me = getUser();
+    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để đặt phòng.');
+    const list = await readTable('customerBookings', 'bookings.json');
+    const id = list.reduce((m, b) => Math.max(m, Number(b.id) || 0), 0) + 1;
+    const booking = {
+      id, userId: me.id, status: 'pending', createdAt: new Date().toISOString(),
+      code: 'BK' + String(id).padStart(6, '0'),   // cùng định dạng mã với booking-detail
+      ...payload,
+    };
+    list.push(booking);
+    writeTable('customerBookings', list);
+    return booking;
+  }
+  return request(`${API_BASE}/me/bookings`, { method: 'POST', body: payload });
+}
+
 export async function cancelBooking(id) {
   if (USE_MOCK) {
     const list = await readTable('customerBookings', 'bookings.json');
