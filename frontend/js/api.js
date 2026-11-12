@@ -173,9 +173,18 @@ export async function getBookings() {
   if (USE_MOCK) {
     const list = await readTable('customerBookings', 'bookings.json');
     const me = getUser();
-    return me ? list.filter(b => b.userId === me.id) : list;
+    return me ? list.filter(b => String(b.userId) === String(me.id)) : list;
   }
   return request(`${API_BASE}/me/bookings`);
+}
+
+export async function getBooking(id) {
+  if (USE_MOCK) {
+    const b = (await getBookings()).find(x => String(x.id) === String(id));
+    if (!b) throw new ApiError(404, 'Không tìm thấy đặt phòng này.');
+    return b;
+  }
+  return request(`${API_BASE}/me/bookings/${id}`);
 }
 
 export async function cancelBooking(id) {
