@@ -1002,3 +1002,47 @@ dialog.lightbox::backdrop { background: rgba(0,0,0,.75); }
 .stay-inline .field__error:empty { display: none; }
 #detail-main .detail-layout__aside { top: calc(var(--header-h) + 72px); }   /* chừa chỗ cho thanh tab neo */
 @media (max-width: 767px) { #detail-main .detail-layout__aside { position: static; } }
+/* ============================================================
+   DASHBOARD (Host + Admin): bộ lọc kỳ, thẻ biểu đồ, khung biểu đồ
+   ============================================================ */
+.period-tabs { display: inline-flex; padding: 4px; gap: 2px; background: var(--c-surface); border-radius: var(--radius-pill); }
+.period-tabs__btn { min-height: var(--control-h-sm); padding: 0 var(--sp-3); border: 0; border-radius: var(--radius-pill);
+  background: transparent; color: var(--c-muted); font: inherit; font-size: var(--fs-sm); font-weight: 600; cursor: pointer;
+  transition: background .2s ease, color .2s ease, box-shadow .2s ease; }
+.period-tabs__btn:hover { color: var(--c-text); }
+.period-tabs__btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.period-tabs__btn.is-active { background: var(--c-bg); color: var(--c-primary); box-shadow: var(--shadow-s); }
+
+.dash-note { font-size: 13px; color: var(--c-muted); }
+.page > #period-note { margin-bottom: var(--sp-3); }
+.host-dashboard-page > #period-note { margin-bottom: 0; }
+.dash-group-title { font-size: var(--fs-sm); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--c-muted); margin-bottom: var(--sp-2); }
+.host-dashboard-stats--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.stat-card__num { font-variant-numeric: tabular-nums; }          /* số không "nhảy" độ rộng khi đang đếm */
+
+.chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: var(--sp-4); margin-bottom: var(--sp-5); min-width: 0; }
+.chart-card { min-width: 0; padding: var(--sp-4); background: var(--c-bg); border: 1px solid var(--c-border); border-radius: var(--radius); box-shadow: var(--shadow-s); }
+.chart-card--full { grid-column: 1 / -1; }
+.chart-card__head { margin-bottom: var(--sp-3); }
+.chart-card__head h2 { font-size: var(--fs-lg); }
+.chart-box { position: relative; height: 300px; }
+.chart-box--tall { height: 360px; }
+.chart-box canvas { max-width: 100%; }
+.chart-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: var(--sp-3); color: var(--c-muted); background: var(--c-page); border-radius: var(--radius-s); }
+.chart-msg[hidden] { display: none; }
+
+.host-dashboard-booking-info { min-width: 0; }
+.host-dashboard-booking-status { text-align: right; }
+
+@media (max-width: 900px) {
+  .chart-grid { grid-template-columns: 1fr; }
+  .host-dashboard-stats--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .host-dashboard-stats--3 { grid-template-columns: 1fr; }
+  .chart-box { height: 260px; }
+  .chart-box--tall { height: 340px; }
+  .period-tabs { align-self: flex-start; }
+  .section-head:has(.period-tabs) { flex-wrap: wrap; align-items: flex-start; }
+}
