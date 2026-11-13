@@ -1,72 +1,86 @@
+// Presentation only: never delay requests, DOM updates, focus or native dialog actions.
+const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+const running = new Set();
+const active = new WeakMap();
+export const prefersReducedMotion = () => preference.matches;
+export const motionDuration = (speed = 'normal') =>
+  parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--motion-${speed}`)) || 220;
 
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-// ---------- Tiêu đề hero: tách từng từ để chữ "cuộn" lên lần lượt ----------
-// Nếu không chạy được (lỗi JS) thì thẻ h1 giữ nguyên văn bản thường, không mất chữ.
-function initHeroWords(hero) {
-  const h1 = hero.querySelector('h1');
-  if (!h1 || h1.dataset.wordReady) return;
-  const text = h1.textContent.trim();
-  if (!text) return;
-  h1.dataset.wordReady = 'true';
-  h1.setAttribute('aria-label', text);
-  h1.textContent = '';
-  text.split(' ').forEach((word, i) => {
-    if (i) h1.appendChild(document.createTextNode(' '));
-    const mask = document.createElement('span');
-    mask.className = 'word-mask';
-    mask.setAttribute('aria-hidden', 'true');
-    const inner = document.createElement('span');
-    inner.className = 'word';
-    inner.textContent = word;
-    inner.style.setProperty('--wd', (i * 70) + 'ms');
-    mask.appendChild(inner);
-    h1.appendChild(mask);
+function play(element, frames, options = {}) {
+  if (!element?.isConnected || preference.matches || !element.animate) return;
+  active.get(element)?.cancel();
+  const animation = element.animate(frames, {
+    duration: motionDuration(), easing: getComputedStyle(element).getPropertyValue('--ease-out').trim() || 'ease-out', ...options,
   });
-  h1.classList.add('word-reveal');
+  running.add(animation);
+  active.set(element, animation);
+  const done = () => running.delete(animation);
+  animation.finished.then(done, done);
+  return animation;
 }
 
-// ---------- Hero: chữ + ô tìm kiếm xuất hiện tuần tự, chạy 1 lần lúc tải trang ----------
-function initHero() {
-  const hero = document.querySelector('.hero__inner');
-  if (!hero || reduceMotion) return;
-  initHeroWords(hero);
-  hero.classList.add('hero-init');
-  // 2 lần requestAnimationFrame để trình duyệt kịp "sơn" trạng thái ẩn
-  // trước khi bật is-ready, tránh bị giật/nhảy khung hình đầu tiên.
-  requestAnimationFrame(() => requestAnimationFrame(() => hero.classList.add('is-ready')));
+/** Cap initial staggering at six rows, even for hundreds of mock bookings. */
+export function animateList(container, { initial = false } = {}) {
+  if (!container || preference.matches) return;
+  if (initial) {
+    const stagger = parseFloat(getComputedStyle(container).getPropertyValue('--motion-stagger')) || 50;
+    [...container.children].slice(0, 6).forEach((element, index) => play(element,
+      [{ opacity: .65, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }],
+      { duration: motionDuration('slow'), delay: index * stagger, fill: 'backwards' }));
+  } else {
+    // A single compositor animation, no per-row work or data delay when refiltering.
+    play(container, [{ opacity: .75 }, { opacity: 1 }], { duration: 180 });
+  }
 }
 
-// ---------- Section cuộn tới đâu, hiện tới đó ----------
-function initReveal() {
-  const targets = document.querySelectorAll('[data-reveal]');
-  if (!targets.length || reduceMotion || !('IntersectionObserver' in window)) return;
+export function animateStatus(element) {
+  return play(element, [{ opacity: .4 }, { opacity: 1 }]);
+}
 
-  targets.forEach(el => el.classList.add('reveal-init'));
+preference.addEventListener('change', () => {
+  if (preference.matches) [...running].forEach(animation => animation.cancel());
+});
 
-  const io = new IntersectionObserver(entries => {
+// Once-only scroll reveals. No pre-hidden classes: failure never leaves content blank.
+const targets = document.querySelectorAll('[data-reveal]');
+if (!preference.matches && targets.length && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
-      entry.target.classList.add('is-visible');
-      io.unobserve(entry.target);
+      play(entry.target, [{ opacity: .65, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: motionDuration('slow') });
+      observer.unobserve(entry.target);
     });
-  }, { threshold: .15, rootMargin: '0px 0px -40px 0px' });
-
-  targets.forEach(el => io.observe(el));
+  }, { threshold: .12 });
+  targets.forEach(element => observer.observe(element));
 }
 
-// ---------- Header: đổ bóng khi trang cuộn xuống ----------
-function initHeaderShadow() {
-  let header = null;
-  const check = () => {
-    header ??= document.querySelector('.site-header');
-    if (!header) return;
-    header.classList.toggle('is-scrolled', window.scrollY > 8);
-  };
-  document.addEventListener('scroll', check, { passive: true });
-  check();
-}
+// Observe only small price/status regions, not the large host booking list.
+const changed = new MutationObserver(records => {
+  const elements = new Set();
+  records.forEach(record => {
+    const target = record.target.nodeType === Node.ELEMENT_NODE ? record.target : record.target.parentElement;
+    const value = target.closest('#summary-total, #grandTotalVal, #bd-total');
+    if (value) elements.add(value);
+    const application = target.closest('#application-list [data-status="done"]');
+    if (application) elements.add(application.querySelector('.badge'));
+  });
+  elements.forEach(animateStatus);
+});
+document.querySelectorAll('#summary-total, #grandTotalVal, #bd-total, #application-list')
+  .forEach(element => changed.observe(element, { childList: true, subtree: true, ...(element.id === 'application-list' ? { attributes: true, attributeFilter: ['data-status'] } : {}) }));
 
-initHero();
-initReveal();
-initHeaderShadow();
+document.addEventListener('load', event => {
+  if (event.target.id === 'lb-img') animateStatus(event.target);
+}, true);
+
+let scheduled = false;
+function headerShadow() {
+  if (scheduled) return;
+  scheduled = true;
+  requestAnimationFrame(() => {
+    document.querySelector('.site-header')?.classList.toggle('is-scrolled', window.scrollY > 8);
+    scheduled = false;
+  });
+}
+document.addEventListener('scroll', headerShadow, { passive: true });
+headerShadow();

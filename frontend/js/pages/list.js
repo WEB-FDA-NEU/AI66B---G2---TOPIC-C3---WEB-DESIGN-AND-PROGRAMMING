@@ -28,6 +28,10 @@ function readFilters() {
   const p = new URLSearchParams(location.search);
   return {
     q:         p.get('q') ?? '',
+    checkin:   p.get('checkin') ?? '',
+    checkout:  p.get('checkout') ?? '',
+    guests:    p.get('guests') ?? p.get('adults') ?? '',
+    children:  p.get('children') ?? '',
     min_price: p.get('min_price') ?? '',
     max_price: p.get('max_price') ?? '',
     room_type: p.getAll('room_type'),   // nhiều checkbox cùng tên → nhiều giá trị
@@ -41,6 +45,9 @@ function readFilters() {
 
 /** Đổ ngược bộ lọc lên giao diện để người dùng thấy mình đang lọc gì. */
 function syncControls(f) {
+  const context = document.getElementById('stay-context');
+  context.hidden = !(f.checkin || f.checkout || f.guests);
+  context.textContent = [f.checkin && `Nhận phòng: ${f.checkin}`, f.checkout && `Trả phòng: ${f.checkout}`, f.guests && `${f.guests} khách`, 'Kiểm tra phòng còn trống tại trang chi tiết.'].filter(Boolean).join(' · ');
   form.q.value         = f.q;
   form.min_price.value = f.min_price;
   form.max_price.value = f.max_price;

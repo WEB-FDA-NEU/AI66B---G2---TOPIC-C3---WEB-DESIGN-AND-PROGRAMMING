@@ -34,95 +34,103 @@
       </p>
     </div>
 
-    <!-- TÊN HOMESTAY -->
-    <label class="field">
-      <span class="field__label">Tên homestay</span>
-      <input class="input" id="name" name="name" required>
-      <span class="field__error"></span>
-    </label>
-
-    <!-- ĐỊA CHỈ -->
-    <label class="field">
-      <span class="field__label">Địa chỉ</span>
-      <input
-        class="input"
-        id="address"
-        name="address"
-        placeholder="Số nhà, đường, phường/xã, tỉnh/thành"
-        required
-      >
-      <span class="field__error"></span>
-    </label>
-
-    <!-- MÔ TẢ -->
-    <label class="field">
-      <span class="field__label">Mô tả</span>
-      <textarea
-        class="textarea"
-        id="description"
-        name="description"
-        rows="4"
-        required
-      ></textarea>
-      <span class="field__error"></span>
-    </label>
-
-    <!-- TIỆN ÍCH -->
-    <div class="field">
-      <span class="field__label">Tiện ích</span>
-
-      <div class="filter-list host-homestay-amenities" id="amenities">
-        <label class="filter-option">
-          <input type="checkbox" value="Wifi"> Wifi
+    <div class="host-homestay-form-grid">
+      <div class="stack host-homestay-details">
+        <!-- TÊN HOMESTAY -->
+        <label class="field">
+          <span class="field__label">Tên homestay</span>
+          <input class="input" id="name" name="name" required>
+          <span class="field__error"></span>
         </label>
 
-        <label class="filter-option">
-          <input type="checkbox" value="Bãi đỗ xe"> Bãi đỗ xe
+        <!-- ĐỊA CHỈ -->
+        <label class="field">
+          <span class="field__label">Địa chỉ</span>
+          <input
+            class="input"
+            id="address"
+            name="address"
+            placeholder="Số nhà, đường, phường/xã, tỉnh/thành"
+            required
+          >
+          <span class="field__error"></span>
         </label>
 
-        <label class="filter-option">
-          <input type="checkbox" value="Bữa sáng"> Bữa sáng
+        <!-- MÔ TẢ -->
+        <label class="field">
+          <span class="field__label">Mô tả</span>
+          <textarea
+            class="textarea"
+            id="description"
+            name="description"
+            rows="4"
+            required
+          ></textarea>
+          <span class="field__error"></span>
         </label>
 
-        <label class="filter-option">
-          <input type="checkbox" value="Máy sưởi"> Máy sưởi
-        </label>
+      </div>
+      <div class="stack host-homestay-media">
+        <!-- TIỆN ÍCH -->
+        <div class="field">
+          <span class="field__label">Tiện ích</span>
 
-        <label class="filter-option">
-          <input type="checkbox" value="Điều hòa"> Điều hòa
-        </label>
+          <div class="filter-list host-homestay-amenities" id="amenities">
+            <label class="filter-option">
+              <input type="checkbox" value="Wifi"> Wifi
+            </label>
 
-        <label class="filter-option">
-          <input type="checkbox" value="Bếp chung"> Bếp chung
-        </label>
+            <label class="filter-option">
+              <input type="checkbox" value="Bãi đỗ xe"> Bãi đỗ xe
+            </label>
 
-        <label class="filter-option">
-          <input type="checkbox" value="Hồ bơi"> Hồ bơi
-        </label>
+            <label class="filter-option">
+              <input type="checkbox" value="Bữa sáng"> Bữa sáng
+            </label>
 
-        <label class="filter-option">
-          <input type="checkbox" value="Thú cưng"> Cho phép thú cưng
-        </label>
+            <label class="filter-option">
+              <input type="checkbox" value="Máy sưởi"> Máy sưởi
+            </label>
+
+            <label class="filter-option">
+              <input type="checkbox" value="Điều hòa"> Điều hòa
+            </label>
+
+            <label class="filter-option">
+              <input type="checkbox" value="Bếp chung"> Bếp chung
+            </label>
+
+            <label class="filter-option">
+              <input type="checkbox" value="Hồ bơi"> Hồ bơi
+            </label>
+
+            <label class="filter-option">
+              <input type="checkbox" value="Thú cưng"> Cho phép thú cưng
+            </label>
+          </div>
+        </div>
+
+        <!-- HÌNH ẢNH -->
+        <div class="field">
+          <span class="field__label">Hình ảnh homestay (tối đa 12)</span>
+
+          <div class="uploader host-homestay-uploader">
+            <input type="file" id="images" accept="image/*" multiple>
+
+            <p class="field__hint">
+              Chọn 1–12 ảnh: toàn cảnh, phòng khách, xung quanh...
+              Càng nhiều góc càng giúp khách hình dung địa điểm.
+              Ảnh chỉ xem trước, chưa upload lên máy chủ ở Mốc 2.
+            </p>
+          </div>
+
+          <p class="field__error" id="imagesErr"></p>
+        </div>
+
       </div>
     </div>
 
-    <!-- HÌNH ẢNH -->
-    <div class="field">
-      <span class="field__label">Hình ảnh homestay (tối đa 12)</span>
-
-      <div class="uploader host-homestay-uploader">
-        <input type="file" id="images" accept="image/*" multiple>
-
-        <p class="field__hint">
-          Chọn 1–12 ảnh: toàn cảnh, phòng khách, xung quanh...
-          Càng nhiều góc càng giúp khách hình dung địa điểm.
-          Ảnh chỉ xem trước, chưa upload lên máy chủ ở Mốc 2.
-        </p>
-      </div>
-
-      <div class="preview host-homestay-preview" id="preview"></div>
-      <p class="field__error" id="imagesErr"></p>
-    </div>
+    <div class="preview host-homestay-preview" id="preview" aria-label="Ảnh homestay đã chọn"></div>
 
     <!-- THÔNG BÁO -->
     <p class="msg host-homestay-form-message" id="formMsg" hidden></p>

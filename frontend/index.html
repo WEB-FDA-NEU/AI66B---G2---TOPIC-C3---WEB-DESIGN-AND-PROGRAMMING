@@ -3,130 +3,84 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Homestay Booking — Trang chủ</title>
+<title>LuxStay — Tìm homestay cho chuyến đi của bạn</title>
 <link rel="stylesheet" href="css/reset.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/motion.css">
+<link rel="stylesheet" href="css/home.css">
 </head>
 <body>
-
 <site-header active="home"></site-header>
-
-<main>
-  <!-- HERO + TÌM KIẾM -->
-  <section class="hero">
-    <div class="container hero__inner">
-      <h1>Tìm homestay lý tưởng cho chuyến đi của bạn</h1>
-      <p class="hero-sub">Khám phá những nơi lưu trú tuyệt vời và đặt phòng dễ dàng.</p>
-      <div class="hero-trust">
-        <span><b>10+</b> homestay tuyển chọn</span>
-        <span><b>9</b> tỉnh thành</span>
-        <span><b>4.5</b>★ đánh giá trung bình</span>
+<main class="home-page">
+  <section class="container home-intro" aria-labelledby="home-title">
+    <div class="section-head"><div><p class="home-eyebrow">MỖI CHUYẾN ĐI, MỘT CHỐN THÂN QUEN</p><h1 id="home-title">Đi đâu cũng có nơi để thuộc về.</h1><p>Khám phá homestay và chọn không gian cho chuyến đi tiếp theo.</p></div></div>
+    <div id="hero-carousel" class="hero-carousel" role="region" aria-roledescription="băng chuyền" aria-label="Gợi ý homestay">
+      <div id="hero-slides" class="hero-slides"><div class="hero-placeholder"><p>Đang tìm những chốn nghỉ dành cho bạn…</p><a class="btn btn--primary" href="search.html">Khám phá homestay</a></div></div>
+      <div class="hero-controls" hidden>
+        <button class="carousel-arrow" id="hero-prev" type="button" aria-label="Homestay trước">←</button>
+        <div id="hero-dots" class="hero-dots" role="group" aria-label="Chọn homestay"></div>
+        <button class="carousel-arrow" id="hero-next" type="button" aria-label="Homestay tiếp theo">→</button>
       </div>
-
-      <form class="search-box" id="searchForm" action="search.html" method="get">
-        <div class="search-field">
-          <label for="destination">Địa điểm</label>
-          <input type="text" id="destination" name="q" placeholder="Bạn muốn đi đâu?">
-        </div>
-        <div class="search-field">
-          <label for="checkin">Nhận phòng</label>
-          <input type="date" id="checkin" name="checkin">
-        </div>
-        <div class="search-field">
-          <label for="checkout">Trả phòng</label>
-          <input type="date" id="checkout" name="checkout">
-        </div>
-        <div class="search-field">
-          <label for="guests">Số khách</label>
-          <select id="guests" name="guests">
-            <option value="1">1 khách</option><option value="2" selected>2 khách</option>
-            <option value="3">3 khách</option><option value="4">4 khách</option>
-            <option value="6">6+ khách</option>
-          </select>
-        </div>
-        <button class="search-box__btn" type="submit">Tìm kiếm</button>
-      </form>
-      <p class="msg msg--error" id="searchError" style="margin:12px 0 0" hidden></p>
+      <button class="hero-pause" id="hero-pause" type="button" aria-label="Tạm dừng tự chuyển" aria-pressed="false" hidden>Tạm dừng</button>
+      <span id="hero-status" class="sr-only" role="status" aria-live="polite"></span>
     </div>
   </section>
 
-  <!-- ĐIỂM ĐẾN -->
-  <section class="section container" data-reveal>
-    <div class="section-head"><div><h2>Điểm đến nổi bật</h2><p>Khám phá những địa điểm được yêu thích</p></div></div>
-    <div class="destination-grid">
-        <a class="destination-card" href="search.html?q=Sa%20Pa">
-          <img src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=800&q=80" alt="Sa Pa" loading="lazy">
-          <span class="destination-card__name">Sa Pa</span>
-        </a>
-        <a class="destination-card" href="search.html?q=%C4%90%C3%A0%20L%E1%BA%A1t">
-          <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=800&q=80" alt="Đà Lạt" loading="lazy">
-          <span class="destination-card__name">Đà Lạt</span>
-        </a>
-        <a class="destination-card" href="search.html?q=%C4%90%C3%A0%20N%E1%BA%B5ng">
-          <img src="https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=800&q=80" alt="Đà Nẵng" loading="lazy">
-          <span class="destination-card__name">Đà Nẵng</span>
-        </a>
-        <a class="destination-card" href="search.html?q=H%E1%BB%99i%20An">
-          <img src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=800&q=80" alt="Hội An" loading="lazy">
-          <span class="destination-card__name">Hội An</span>
-        </a>
-    </div>
+  <section class="container home-search" aria-label="Tìm homestay">
+    <form class="search-box" id="searchForm" action="search.html" method="get">
+      <div class="search-field"><label for="destination"><span aria-hidden="true">⌖</span> Điểm đến</label><input type="search" id="destination" name="q" placeholder="Bạn muốn đi đâu?" autocomplete="off" list="destinations-list"><datalist id="destinations-list"></datalist></div>
+      <div class="search-field"><label for="checkin"><span aria-hidden="true">▦</span> Nhận phòng</label><input type="date" id="checkin" name="checkin"></div>
+      <div class="search-field"><label for="checkout"><span aria-hidden="true">▦</span> Trả phòng</label><input type="date" id="checkout" name="checkout"></div>
+      <div class="search-field"><label for="guests"><span aria-hidden="true">♙</span> Số khách</label><input type="number" id="guests" name="guests" min="1" max="10" step="1" value="2" required></div>
+      <button class="search-box__btn" type="submit">Tìm homestay</button>
+    </form>
+    <p class="msg msg--error search-error" id="searchError" role="alert" hidden></p>
+    <p class="home-search-note">Chọn nơi bạn muốn đến. Kiểm tra phòng và ngày còn trống tại trang chi tiết.</p>
   </section>
 
-  <!-- HOMESTAY ĐỀ XUẤT (render động bằng js/pages/home.js, dữ liệu thật từ mock/items.json) -->
-  <section class="section container">
-    <div class="section-head" data-reveal>
-      <div><h2>Homestay được đề xuất</h2><p>Những nơi lưu trú được nhiều khách yêu thích</p></div>
-      <a class="btn btn--outline" href="search.html">Xem tất cả</a>
+  <section class="section container" data-reveal aria-labelledby="destinations-title">
+    <div class="section-head"><div><h2 id="destinations-title">Khám phá điểm đến</h2><p>Một nơi mới, một trải nghiệm mới.</p></div><a href="search.html" class="home-text-link">Tất cả chỗ nghỉ →</a></div>
+    <div id="destinations" class="destination-grid"></div>
+  </section>
+
+  <section class="section container" aria-labelledby="featured-title" data-home-section>
+    <div class="section-head" data-reveal><div><h2 id="featured-title">Homestay nổi bật</h2><p>Những chỗ nghỉ mới nhất trong danh sách.</p></div><div class="rail-controls"><button class="btn" data-rail-prev="results" type="button" aria-label="Homestay nổi bật trước">←</button><button class="btn" data-rail-next="results" type="button" aria-label="Homestay nổi bật tiếp theo">→</button></div></div>
+    <div id="results" class="stay-rail" role="region" aria-label="Homestay nổi bật" tabindex="0"></div>
+  </section>
+
+  <section class="section container" aria-labelledby="rated-title" data-home-section hidden>
+    <div class="section-head" data-reveal><div><h2 id="rated-title">Homestay được đánh giá cao</h2><p>Những chỗ nghỉ có điểm từ 4,5/5 trong dữ liệu hiện có.</p></div><div class="rail-controls"><button class="btn" data-rail-prev="top-rated" type="button" aria-label="Homestay đánh giá cao trước">←</button><button class="btn" data-rail-next="top-rated" type="button" aria-label="Homestay đánh giá cao tiếp theo">→</button></div></div>
+    <div id="top-rated" class="stay-rail" role="region" aria-label="Homestay được đánh giá cao" tabindex="0"></div>
+  </section>
+
+  <section class="section container" aria-labelledby="explore-title" data-home-section hidden>
+    <div class="section-head" data-reveal><div><h2 id="explore-title">Khám phá thêm homestay</h2><p>Thêm lựa chọn, thêm cảm hứng cho chuyến đi.</p></div><div class="rail-controls"><button class="btn" data-rail-prev="explore" type="button" aria-label="Chỗ nghỉ khác trước">←</button><button class="btn" data-rail-next="explore" type="button" aria-label="Chỗ nghỉ khác tiếp theo">→</button></div></div>
+    <div id="explore" class="stay-rail" role="region" aria-label="Khám phá thêm homestay" tabindex="0"></div>
+  </section>
+
+  <section class="section container" data-reveal aria-labelledby="why-title">
+    <div class="section-head"><div><h2 id="why-title">Vì sao chọn LuxStay?</h2><p>Đơn giản hơn, từ khám phá đến lên kế hoạch.</p></div></div>
+    <div class="home-benefits">
+      <article><span aria-hidden="true">⌖</span><h3>Dễ dàng khám phá</h3><p>Tìm chỗ nghỉ theo điểm đến, mức giá và tiện ích bạn cần.</p></article>
+      <article><span aria-hidden="true">▤</span><h3>Thông tin rõ ràng</h3><p>Xem hình ảnh, giá phòng và tiện nghi trước khi lựa chọn.</p></article>
+      <article><span aria-hidden="true">▦</span><h3>Đặt phòng thuận tiện</h3><p>Chọn ngày lưu trú và loại phòng trong cùng một hành trình.</p></article>
+      <article><span aria-hidden="true">◷</span><h3>Theo dõi chuyến đi</h3><p>Xem lịch sử và trạng thái đặt phòng trong tài khoản của bạn.</p></article>
     </div>
-    <div id="results" class="grid"></div>
   </section>
 </main>
-
-<template id="tpl-card">
-  <article class="card">
-    <a class="card__link">
-      <img class="card__img" src="" alt="" loading="lazy">
-      <div class="card__body">
-        <h3 class="card__title"></h3>
-        <p class="card__price"></p>
-        <p class="card__meta"></p>
-      </div>
-    </a>
-    <span class="card__badge"></span>
+<template id="tpl-hero-slide">
+  <article class="hero-slide" role="group" aria-roledescription="slide">
+    <a class="hero-image-link" tabindex="-1" aria-hidden="true"><img class="hero-image" alt="" decoding="async"></a>
+    <div class="hero-copy"><span class="hero-label">GỢI Ý CHO CHUYẾN ĐI</span><h2></h2><p class="hero-location"></p><p class="hero-price"></p><a class="btn btn--primary hero-cta">Khám phá ngay <span aria-hidden="true">↗</span></a></div>
   </article>
 </template>
-
-<template id="tpl-empty-state">
-  <div class="empty">
-    <p class="empty__title"></p>
-    <p class="empty__hint"></p>
-    <a class="btn btn--primary empty__action"></a>
-  </div>
-</template>
-
+<template id="tpl-destination"><a class="destination-card"><img alt="" loading="lazy" decoding="async"><span class="destination-card__name"><strong></strong><small></small></span></a></template>
+<template id="tpl-card"><article class="card"><a class="card__link"><img class="card__img" src="" alt="" loading="lazy"><div class="card__body"><h3 class="card__title"></h3><p class="card__meta"></p><p class="card__price"></p></div></a><span class="card__badge"></span></article></template>
+<template id="tpl-empty-state"><div class="empty"><p class="empty__title"></p><p class="empty__hint"></p><a class="btn btn--primary empty__action"></a></div></template>
 <site-footer></site-footer>
 <div id="toast" role="status"></div>
-
-<script type="module">
-  import './js/components/site-header.js';
-  import './js/components/site-footer.js';
-
-  // Kiểm tra ngày ở ô tìm kiếm
-  const $ = id => document.getElementById(id);
-  const today = new Date().toISOString().slice(0, 10);
-  $('checkin').min = $('checkout').min = today;
-  $('searchForm').addEventListener('submit', e => {
-    const ci = $('checkin').value, co = $('checkout').value, err = $('searchError');
-    const msg = (ci && co && co <= ci) ? 'Ngày trả phòng phải sau ngày nhận phòng.' : '';
-    err.hidden = !msg; err.textContent = msg;
-    if (msg) e.preventDefault();
-  });
-</script>
 <script type="module" src="js/pages/home.js"></script>
-<script type="module" src="js/motion.js"></script>
 </body>
 </html>

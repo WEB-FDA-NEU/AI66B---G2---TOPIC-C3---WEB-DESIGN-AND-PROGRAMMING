@@ -1,3 +1,4 @@
+import { animateList, animateStatus } from '../motion.js';
 
 import { getHostBookings, getHostRooms, getHostHomestays, updateBookingStatus } from '../api.js';
 import { formatVND } from '../render.js';
@@ -42,6 +43,7 @@ let bookings = [];
 let rooms = [];
 let homestays = [];
 let filter = '';
+let hasRendered = false;
 
 async function loadData() {
   [bookings, rooms, homestays] = await Promise.all([
@@ -51,7 +53,7 @@ async function loadData() {
   ]);
 }
 
-function render() {
+function render({ changedId = null } = {}) {
   const roomsById = Object.fromEntries(rooms.map(r => [r.id, r]));
   const hsById = Object.fromEntries(homestays.map(h => [h.id, h]));
 
@@ -74,6 +76,8 @@ function render() {
         </p>
       </div>
     `;
+    animateList($('list'), { initial: !hasRendered });
+    hasRendered = true;
     return;
   }
 
@@ -136,14 +140,18 @@ function render() {
 
   $('list').querySelectorAll('[data-act]').forEach(btn => {
     btn.addEventListener('click', async () => {
+      if (btn.disabled) return;
       const [id, status] = btn.dataset.act.split(':');
+      const actions = [...btn.closest('.host-booking-actions').querySelectorAll('button')];
+      actions.forEach(button => button.disabled = true);
 
       try {
         await updateBookingStatus(id, status);
         toast('Đã cập nhật trạng thái.');
         await loadData();
-        render();
+        render({ changedId: id });
       } catch (e) {
+        actions.forEach(button => button.disabled = false);
         toast(e.detail ?? 'Không cập nhật được.', 'error');
       }
     });
@@ -152,6 +160,13 @@ function render() {
   $('list').querySelectorAll('[data-reject]').forEach(btn => {
     btn.addEventListener('click', () => openReject(btn.dataset.reject));
   });
+
+  if (changedId) {
+    const index = sorted.findIndex(booking => booking.id === changedId);
+    if (index >= 0) animateStatus($('list').children[index].querySelector('.badge'));
+    else animateList($('list'));
+  } else animateList($('list'), { initial: !hasRendered });
+  hasRendered = true;
 }
 
 let rejectingId = null;
@@ -168,6 +183,7 @@ $('rejectCancel').addEventListener('click', () => {
 });
 
 $('rejectConfirm').addEventListener('click', async () => {
+  if ($('rejectConfirm').disabled) return;
   const reason = $('rejectReason').value.trim();
 
   if (!reason) {
@@ -175,16 +191,20 @@ $('rejectConfirm').addEventListener('click', async () => {
     return;
   }
 
+  const id = rejectingId;
+  $('rejectConfirm').disabled = true;
   try {
-    await updateBookingStatus(rejectingId, 'rejected', reason);
+    await updateBookingStatus(id, 'rejected', reason);
 
     $('reject-dialog').close();
     toast('Đã từ chối đặt phòng.');
 
     await loadData();
-    render();
+    render({ changedId: id });
   } catch (e) {
     $('rejectErr').textContent = e.detail ?? 'Không thực hiện được.';
+  } finally {
+    $('rejectConfirm').disabled = false;
   }
 });
 

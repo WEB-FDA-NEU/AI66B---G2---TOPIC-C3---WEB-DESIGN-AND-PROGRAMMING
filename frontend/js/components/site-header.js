@@ -17,6 +17,7 @@
 // ============================================================
 
 import { initHeader, getUser } from '../auth.js';
+import '../motion.js';
 
 // Tên thương hiệu: đổi ở ĐÂY là cả header đổi theo.
 // (Nhớ đổi cả <title> trong các file HTML nếu đổi tên.)

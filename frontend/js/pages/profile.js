@@ -18,6 +18,9 @@ function syncButton() { profileButton.disabled = !user || imageBusy || saving; }
 function fillProfile() {
   for (const key of ['display_name', 'email', 'phone']) input(profileForm, key).value = user[key] ?? '';
   preview.src = user.avatar || 'img/avatar_default.jpg';
+  document.getElementById('profile-summary-name').textContent = user.display_name ?? '';
+  document.getElementById('profile-summary-email').textContent = user.email ?? '';
+  document.getElementById('profile-summary-role').textContent = { user: 'Khách hàng', host: 'Chủ nhà', admin: 'Quản trị viên' }[user.role] ?? '';
   if (['host', 'admin'].includes(user.role)) document.getElementById('become-host-section')?.remove();
 }
 

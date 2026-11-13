@@ -3,8 +3,8 @@
 
    BREAKPOINT RESPONSIVE (CSS chưa cho dùng biến trong @media, nên cả nhóm nhớ 2 mốc này):
      Mobile  : < 768px      →  @media (max-width: 767px)
-     Tablet  : 768–1023px   →  @media (max-width: 1023px)
-     Desktop : ≥ 1024px     →  mặc định (không cần media query)
+     Tablet  : 768–1199px   →  @media (max-width: 1199px)
+     Desktop : ≥ 1200px     →  mặc định (không cần media query)
    Viết CSS theo hướng desktop trước, rồi thu gọn dần bằng 2 mốc trên.
 
    Ý TƯỞNG THIẾT KẾ: homestay ở vùng núi và phố cổ Việt Nam → xanh thông (pine) làm
@@ -49,6 +49,7 @@
   /* ---- Cỡ chữ: chỉ dùng các bậc này, không gõ 13px / 15px / 17px lẻ ---- */
   --fs-xs:  12px;   /* chú thích, huy hiệu */
   --fs-sm:  14px;   /* chữ phụ, nhãn ô nhập, nút nhỏ */
+  --fs-caption: 13px;
   --fs-md:  16px;   /* chữ thân bài, nút */
   --fs-lg:  18px;   /* tiêu đề thẻ */
   --fs-xl:  22px;   /* tiêu đề mục (h2) */
@@ -82,6 +83,30 @@
   --focus-ring: 0 0 0 3px rgba(17, 105, 95, .28);
 
   /* ---- Khung trang ---- */
-  --container: 1120px;
+  --container: 1248px;
+  --gutter: clamp(16px, 3vw, 32px);
+  --page-space: clamp(24px, 4vw, 48px);
+  --panel-padding: clamp(16px, 2.5vw, 32px);
+  --section-space: clamp(32px, 5vw, 64px);
+  --sidebar-w: 280px;
+  --summary-w: 340px;
+  --auth-w: 560px;
+  --form-w: 860px;
+  --thumb-w: 112px;
+  --avatar-size: 112px;
+  --media-height: 200px;
+  --media-height-lg: 240px;
+  --chart-height: 300px;
+  --chart-height-tall: 360px;
+  --c-overlay: rgba(0, 0, 0, .55);
+  --c-on-primary-muted: rgba(255, 255, 255, .85);
+  --c-on-primary-soft: rgba(255, 255, 255, .1);
+  --c-star: #f5c46b;
+  --ease-out: cubic-bezier(.16, .84, .44, 1);
+  --motion-fast: 140ms;
+  --motion-normal: 220ms;
+  --motion-slow: 360ms;
+  --motion-stagger: 50ms;
+  --motion-distance: 8px;
   --header-h:  68px;   /* chiều cao header khi cố định (sticky) */
 }
