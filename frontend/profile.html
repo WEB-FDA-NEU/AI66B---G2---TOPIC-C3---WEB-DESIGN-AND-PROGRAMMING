@@ -19,6 +19,7 @@
     <div>
       <h1>Hồ sơ cá nhân</h1>
       <p>Quản lý thông tin tài khoản của bạn.</p>
+      <p class="field__hint">Tài khoản mô phỏng chỉ lưu trên trình duyệt này. Không dùng mật khẩu thật.</p>
     </div>
   </div>
  
@@ -30,63 +31,64 @@
  
       <!-- Avatar -->
       <div class="flex gap-3 mt-4" style="align-items:center">
-        <img src="img/avatar_default.jpg" alt="Ảnh đại diện" width="72" height="72"
+        <img id="avatar-preview" src="img/avatar_default.jpg" alt="Ảnh đại diện" width="72" height="72"
              style="border-radius:50%;object-fit:cover">
         <div class="uploader" style="padding:var(--sp-2) var(--sp-3);flex:1">
           <label class="field__label" for="avatar">Đổi ảnh đại diện</label>
           <input class="input" type="file" id="avatar" name="avatar" accept="image/png,image/jpeg,image/webp">
           <p class="field__hint">JPEG, PNG hoặc WebP, tối đa 5MB.</p>
+          <p class="field__error" id="avatar-error" role="status"></p>
         </div>
       </div>
  
-      <form class="stack mt-4">
+      <form class="stack mt-4" id="profile-form" method="post" onsubmit="event.preventDefault()" novalidate>
         <label class="field">
           <span class="field__label">Họ và tên</span>
-          <input class="input" type="text" name="display_name">
+          <input class="input" type="text" name="display_name" required minlength="2" maxlength="80" autocomplete="name">
           <span class="field__error"></span>
         </label>
  
         <label class="field">
           <span class="field__label">Email</span>
-          <input class="input" type="email" name="email">
+          <input class="input" type="email" name="email" required autocomplete="email">
           <span class="field__hint">Dùng email này để đăng nhập.</span>
           <span class="field__error"></span>
         </label>
  
         <label class="field">
           <span class="field__label">Số điện thoại</span>
-          <input class="input" type="tel" name="phone">
+          <input class="input" type="tel" name="phone" autocomplete="tel">
           <span class="field__error"></span>
         </label>
  
-        <button class="btn btn--primary mt-4" type="submit">Lưu thay đổi</button>
+        <button class="btn btn--primary mt-4" type="submit" disabled>Lưu thay đổi</button>
       </form>
     </section>
  
     <!-- ==================== ĐỔI MẬT KHẨU ==================== -->
     <section class="form-card" style="margin:0">
       <h3>Đổi mật khẩu</h3>
-      <form class="stack mt-4">
+      <form class="stack mt-4" id="password-form" method="post" onsubmit="event.preventDefault()" novalidate>
         <label class="field">
           <span class="field__label">Mật khẩu hiện tại</span>
-          <input class="input" type="password" name="current_password">
+          <input class="input" type="password" name="current_password" required autocomplete="current-password" maxlength="128">
           <span class="field__error"></span>
         </label>
  
         <label class="field">
           <span class="field__label">Mật khẩu mới</span>
-          <input class="input" type="password" name="new_password">
+          <input class="input" type="password" name="new_password" required minlength="8" maxlength="128" autocomplete="new-password">
           <span class="field__hint">Tối thiểu 8 ký tự.</span>
           <span class="field__error"></span>
         </label>
  
         <label class="field">
           <span class="field__label">Nhập lại mật khẩu mới</span>
-          <input class="input" type="password" name="confirm_password">
+          <input class="input" type="password" name="confirm_password" required maxlength="128" autocomplete="new-password">
           <span class="field__error"></span>
         </label>
  
-        <button class="btn btn--primary mt-4" type="submit">Đổi mật khẩu</button>
+        <button class="btn btn--primary mt-4" type="submit" disabled>Đổi mật khẩu</button>
       </form>
     </section>
  
@@ -107,22 +109,7 @@
 <site-footer></site-footer>
 <div id="toast" role="status"></div>
  
-<script type="module">
-  import './js/components/site-header.js';
-  import './js/components/site-footer.js';
-  import { getUser } from './js/auth.js';
-
-  // Ẩn khối "Trở thành Host" nếu người dùng đã là host hoặc admin.
-  const role = getUser()?.role;
-  if (role === 'host' || role === 'admin') {
-    document.getElementById('become-host-section')?.remove();
-  }
-
-  // TODO: khi có dữ liệu thật, thêm profile.js để:
-  // 1) getUser() (từ js/auth.js) đổ giá trị thật vào 3 ô name/email/phone
-  // 2) validate + gọi API cập nhật hồ sơ khi submit form đầu
-  // 3) validate mật khẩu mới trùng khớp + gọi API đổi mật khẩu khi submit form 2
-  // 4) toast() (từ js/ui.js) báo thành công/thất bại sau khi lưu
-</script>
+<noscript><p class="container msg msg--error">Cần bật JavaScript để quản lý hồ sơ. Các form đang bị khóa.</p></noscript>
+<script type="module" src="js/pages/profile.js"></script>
 </body>
 </html>

@@ -15,6 +15,7 @@ const form = document.getElementById('host-register-form');
 if (!form) {
   throw new Error('Không tìm thấy #host-register-form');
 }
+form.querySelector('[type="submit"]').disabled = false;
 
 // ============================================================
 // VALIDATE SỐ ĐIỆN THOẠI VIỆT NAM
@@ -31,29 +32,11 @@ function isValidVietnamesePhone(phone) {
 // HIỆN / ẨN MẬT KHẨU
 // ============================================================
 
-form.querySelectorAll('.field__toggle-password').forEach(button => {
-  button.addEventListener('click', () => {
-    const targetId = button.dataset.target;
-    const input = document.getElementById(targetId);
-
-    if (!input) return;
-
-    const isPassword = input.type === 'password';
-
-    input.type = isPassword ? 'text' : 'password';
-    button.setAttribute(
-      'aria-label',
-      isPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
-    );
-  });
-});
-
-// ============================================================
-// SUBMIT FORM
-// ============================================================
+// Password visibility is handled once by ui.js.
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
+  if (form.querySelector('[type="submit"]').disabled) return;
 
   clearFieldErrors(form);
 

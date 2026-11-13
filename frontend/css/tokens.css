@@ -68,6 +68,7 @@
   /* ---- Bo góc: 3 bậc có chủ đích, không dùng một giá trị cho mọi thứ ---- */
   --radius-s:    6px;     /* nút, ô nhập, huy hiệu */
   --radius:      10px;    /* thẻ, hộp nội dung */
+  --radius-m:    var(--radius); /* tên tương thích cho thẻ cỡ vừa */
   --radius-l:    16px;    /* hero, ô tìm kiếm, hộp thoại */
   --radius-pill: 999px;   /* chip, tag */
 

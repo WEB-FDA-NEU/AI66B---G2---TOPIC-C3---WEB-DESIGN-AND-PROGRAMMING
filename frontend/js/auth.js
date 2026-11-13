@@ -7,12 +7,18 @@ const TOKEN_KEY = 'app_token';
 const USER_KEY  = 'app_user';
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const getUser  = () => JSON.parse(localStorage.getItem(USER_KEY) || 'null');
-export const isLoggedIn = () => !!getToken();
+export const getUser = () => {
+  try {
+    const user = JSON.parse(localStorage.getItem(USER_KEY) || 'null');
+    return user && typeof user === 'object' && user.id != null ? user : null;
+  } catch { return null; }
+};
+export const isLoggedIn = () => !!getToken() && !!getUser();
 
 export function saveSession({ access_token, user }) {
   localStorage.setItem(TOKEN_KEY, access_token);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+  document.querySelectorAll('[data-user-name]').forEach(el => { el.textContent = user.display_name ?? ''; });
 }
 
 export function logout() {

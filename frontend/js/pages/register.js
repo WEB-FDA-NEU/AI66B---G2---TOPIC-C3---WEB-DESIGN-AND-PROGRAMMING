@@ -5,9 +5,11 @@ import '../components/site-header.js';
 import '../components/site-footer.js';
 
 const form = document.getElementById('register-form');
+form.querySelector('[type="submit"]').disabled = false;
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
+  if (form.querySelector('[type="submit"]').disabled) return;
   clearFieldErrors(form);
 
   let ok = true;

@@ -63,7 +63,7 @@ function renderRow(b) {
   if (b.status === 'completed') {
     reviewLink.hidden = false;
     reviewLink.textContent = 'Viết đánh giá';
-    reviewLink.href = `booking-detail.html?id=${b.id}#review`;
+    reviewLink.href = `booking-detail.html?id=${b.id}#review-section`;
   }
 
   return node;

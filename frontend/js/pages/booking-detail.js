@@ -74,6 +74,7 @@ function render(b) {
 
   // Đánh giá chỉ khi đã hoàn thành
   $('review-section').hidden = b.status !== 'completed';
+  $('review-section').querySelector('a').href = `detail.html?id=${encodeURIComponent(b.homestayId)}&review=1#reviews-section`;
 }
 
 function showNotFound(err) {

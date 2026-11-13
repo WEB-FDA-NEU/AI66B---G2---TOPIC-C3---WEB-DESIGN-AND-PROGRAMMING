@@ -1,35 +1,50 @@
 {
-  "_ghi_chu": "Bảng user dùng chung cho cả site. id của host CỐ TÌNH đặt là 'host001' để khớp với HOST_ID trong api.js và hostId trong mock/host-homestays.json. password chỉ để tham khảo — login() mock hiện tại chưa thật sự kiểm tra password theo user này (xem gợi ý sửa login() ở tin nhắn trước).",
+  "_ghi_chu": "Public demo accounts only. Salted PBKDF2 verifiers, no plaintext passwords. host001 preserves host data compatibility. Persistent accounts: luxstay_mock_users_v1 (independent of booking cache).",
   "users": [
     {
       "id": 1,
       "display_name": "Nguyễn Quang Huy",
       "email": "huy@test.com",
       "phone": "0909123456",
-      "password": "12345678",
       "role": "user",
       "avatar": "img/anh_dai_dien.jpg",
-      "createdAt": "2026-08-01T03:00:00Z"
+      "createdAt": "2026-08-01T03:00:00Z",
+      "credential": {
+        "algorithm": "PBKDF2-SHA256",
+        "iterations": 600000,
+        "salt": "432400f8b2319862e6b3b210abfe62ac",
+        "hash": "ee8d24cab99ed6479579e824a9417f9c0197cc72a2aaa86dd3355b8e29979943"
+      }
     },
     {
       "id": "host001",
       "display_name": "Trần Văn Host",
       "email": "host@test.com",
       "phone": "0912345678",
-      "password": "12345678",
       "role": "host",
       "avatar": "img/anh_dai_dien.jpg",
-      "createdAt": "2026-07-20T03:00:00Z"
+      "createdAt": "2026-07-20T03:00:00Z",
+      "credential": {
+        "algorithm": "PBKDF2-SHA256",
+        "iterations": 600000,
+        "salt": "655f80d471f51aea45f5d5448d14b8f0",
+        "hash": "e2a81457d0800a278081971488ac53469810982388b6c73f4272dde841b3cab2"
+      }
     },
     {
       "id": 99,
       "display_name": "Admin LuxStay",
       "email": "admin@test.com",
       "phone": "0987654321",
-      "password": "12345678",
       "role": "admin",
       "avatar": "img/anh_dai_dien.jpg",
-      "createdAt": "2026-06-01T03:00:00Z"
+      "createdAt": "2026-06-01T03:00:00Z",
+      "credential": {
+        "algorithm": "PBKDF2-SHA256",
+        "iterations": 600000,
+        "salt": "7bda4ca3d90f2f46b380cd03a9e269c4",
+        "hash": "6178207800a9d217310ef398142a525a17982ee112d3c727e1751e5e0553f4b1"
+      }
     }
   ]
 }

@@ -37,6 +37,8 @@
 
     <form
       id="host-register-form"
+      method="post"
+      onsubmit="event.preventDefault()"
       class="stack mt-4 host-register-form"
       novalidate
     >
@@ -167,6 +169,7 @@
 
       <!-- THÔNG TIN -->
       <p class="field__hint host-register-note">
+        Tài khoản mô phỏng chỉ lưu trên trình duyệt này. Không dùng mật khẩu thật.
         <strong>Lưu ý:</strong>
         Sau khi tạo tài khoản, bạn có thể sử dụng chức năng quản lý
         homestay và phòng.
@@ -176,6 +179,7 @@
       <button
         class="btn btn--primary btn--block"
         type="submit"
+        disabled
       >
         Đăng ký Host
       </button>
