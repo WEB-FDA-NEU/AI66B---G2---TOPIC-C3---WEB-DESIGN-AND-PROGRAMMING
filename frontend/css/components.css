@@ -1454,13 +1454,14 @@ dialog::backdrop {
 }
 
 .stepper__btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: 0;
   background: var(--c-surface);
   color: var(--c-primary-l);
-  font-size: var(--fs-xl);
-  font-weight: 700;
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  line-height: 1;
   cursor: pointer;
 }
 
@@ -1476,7 +1477,10 @@ dialog::backdrop {
 .stepper__val {
   flex: 1;
   text-align: center;
+  min-width: 44px;
+  font-size: var(--fs-lg);
   font-weight: 700;
+  color: var(--c-primary);
 }
 
 .amenity-grid {
@@ -1927,3 +1931,16 @@ input[type="file"]::file-selector-button {
     justify-content: flex-start;
   }
 }
+
+/* ---------- Admin: danh sách host ---------- */
+.host-search { min-width: min(320px, 100%); margin: 0; }
+.host-detail { display: grid; grid-template-columns: max-content 1fr; gap: var(--sp-2) var(--sp-4); margin-bottom: var(--sp-4); }
+.host-detail dt { color: var(--c-muted); font-size: var(--fs-sm); }
+.host-detail dd { font-weight: 600; overflow-wrap: anywhere; }
+.host-detail__sub { font-size: var(--fs-md); margin-bottom: var(--sp-2); }
+.host-detail__list { list-style: none; padding: 0; display: grid; gap: var(--sp-2); margin-bottom: var(--sp-4); }
+.host-detail__list a { font-weight: 600; color: var(--c-primary); }
+#host-dialog { width: min(560px, calc(100% - 2 * var(--sp-3))); }
+
+/* Trang có chặn role: ẩn nội dung cho tới khi guard.js xác nhận. */
+body[data-require-role]:not([data-guard-ok]) main { visibility: hidden; }

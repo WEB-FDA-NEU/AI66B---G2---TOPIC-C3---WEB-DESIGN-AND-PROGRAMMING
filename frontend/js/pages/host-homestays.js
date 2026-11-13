@@ -3,6 +3,7 @@ import { getHostHomestays, getHostRooms, deleteHostHomestay } from '../api.js';
 import { confirmAction, toast } from '../ui.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
+import '../guard.js';
 
 const $ = id => document.getElementById(id);
 

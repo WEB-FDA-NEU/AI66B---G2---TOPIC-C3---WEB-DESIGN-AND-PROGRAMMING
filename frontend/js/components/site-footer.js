@@ -8,7 +8,7 @@ const TEMPLATE = /* html */ `
   <div class="container site-footer__grid">
 
     <div class="site-footer__brand">
-      <p class="logo">Homestay Booking</p>
+      <p class="logo">LuxStay</p>
       <p class="site-footer__tagline">Tìm homestay phù hợp và đặt phòng trực tuyến dễ dàng.</p>
     </div>
 
@@ -24,7 +24,7 @@ const TEMPLATE = /* html */ `
   </div>
 
   <div class="container site-footer__bottom">
-    <p>© ${YEAR} Homestay Booking — Đồ án Web Design &amp; Programming, lớp AI66B, National Economics University.</p>
+    <p>© ${YEAR} LuxStay — Đồ án Web Design &amp; Programming, lớp AI66B, National Economics University.</p>
   </div>
 </footer>`;
 

@@ -4,6 +4,7 @@ import { formatVND } from '../render.js';
 import { setFieldError, clearFieldErrors, confirmAction, toast } from '../ui.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
+import '../guard.js';
 
 const $ = id => document.getElementById(id);
 

@@ -218,6 +218,242 @@
       "status": "active",
       "createdAt": "2026-08-11T03:00:00Z",
       "itemId": null
+    },
+    {
+      "id": "hs011",
+      "hostId": "host001",
+      "itemId": 11,
+      "name": "Đà Lạt Hillside Villa",
+      "address": "Phường 10, Đà Lạt, Lâm Đồng",
+      "description": "Biệt thự nhỏ trên đồi thông với sân vườn và lò sưởi, thích hợp cho gia đình hoặc nhóm bạn muốn tránh xa phố.",
+      "amenities": [
+        "Wi-fi",
+        "Bãi đỗ xe",
+        "Bếp"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/252484284.jpg?k=f4969e5064ea116c96bb5623d11175b0a44ee6776e713106a434c9c2dfb70684&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/234268998.jpg?k=4b0e8163c3f7275e2d04ec44bc844b1f8fce012c7b89ed9e8c94f7a5962345ce&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/241791732.jpg?k=ec8345908031f9546a54acd9312848de5bc12fff9c43524c53692f8d5fffbd16&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/246018090.jpg?k=a6e1beb7a715e8f462a22b9078f00ebadec980842b8f7ca86a6b9c0454de00ac&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-10-05T03:00:00Z"
+    },
+    {
+      "id": "hs012",
+      "hostId": "host001",
+      "itemId": 12,
+      "name": "Sapa Cloud Bamboo House",
+      "address": "Bản Tả Van, Sa Pa, Lào Cai",
+      "description": "Nhà tre giữa ruộng bậc thang Tả Van, có ban công nhìn xuống thung lũng, bữa sáng do gia đình chủ nhà nấu.",
+      "amenities": [
+        "Wi-fi",
+        "Bếp"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/594187152.jpg?k=459453bded3bc0ea602a534e79c5f2317b526cde01819a8e9c26ca8b75d4879e&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/594178987.jpg?k=1a5482c30d884dc6a053316d67499638671cb15177e43d329aba26c1c19662ae&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-10-02T03:00:00Z"
+    },
+    {
+      "id": "hs013",
+      "hostId": "host001",
+      "itemId": 13,
+      "name": "Hội An Lantern Courtyard",
+      "address": "Cẩm Phô, Hội An, Quảng Nam",
+      "description": "Nhà sân vườn cách phố cổ 5 phút đi bộ, hồ bơi nhỏ giữa sân và đèn lồng thắp sáng mỗi tối.",
+      "amenities": [
+        "Wi-fi",
+        "Hồ bơi",
+        "Bãi đỗ xe"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/510565396.jpg?k=3c9e475c30288bb062929876491bcfb5e2c384bb45766e4131376583a718892f&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/586601369.jpg?k=ba5ab033a2a7517510d16787ac693b61d84678d6a8232631ed1bb83859e34277&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/103361914.jpg?k=df833b715f8dc3ab38170e195c1873086a90268a54f45e4159c72d6397bf05ca&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-09-30T03:00:00Z"
+    },
+    {
+      "id": "hs014",
+      "hostId": "host001",
+      "itemId": 14,
+      "name": "Đà Nẵng Skyline Studio",
+      "address": "Sơn Trà, Đà Nẵng",
+      "description": "Căn studio tầng cao nhìn ra sông Hàn và cầu Rồng, đầy đủ bếp và máy giặt cho kỳ nghỉ dài ngày.",
+      "amenities": [
+        "Wi-fi",
+        "Bếp",
+        "Bãi đỗ xe"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/872236234.jpg?k=6b05e8ea23ebae20b9189e5a259314d94e505f4f6f7027076635159baa3ab86b&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/881079560.jpg?k=cb2cff6db7b7c59ef6b48f11eb7094046390028043df8ccd8f6fd3e907f44790&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/881080993.jpg?k=da5b634e19e6ce56fbd2e1effb8dd3465c4c6ed6095ab8b2af760033589bdbd6&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/857209248.jpg?k=74291b31d7a5ff90a41b20f6486ffd204bb1d62220783872c703abafe245434a&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-09-27T03:00:00Z"
+    },
+    {
+      "id": "hs015",
+      "hostId": "host001",
+      "itemId": 15,
+      "name": "Phú Quốc Coconut Villa",
+      "address": "Dương Đông, Phú Quốc, Kiên Giang",
+      "description": "Villa riêng có hồ bơi dưới tán dừa, cách biển 300m, phù hợp nhóm đông hoặc gia đình có trẻ nhỏ.",
+      "amenities": [
+        "Wi-fi",
+        "Hồ bơi",
+        "Bếp",
+        "Bãi đỗ xe"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/928586976.jpg?k=7902f9299cd99fa5cc4e20e092808faf7cf0c2800c55537b320da7aaa1e4a1e2&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-09-24T03:00:00Z"
+    },
+    {
+      "id": "hs016",
+      "hostId": "host001",
+      "itemId": 16,
+      "name": "Nha Trang Ocean Pearl",
+      "address": "Trần Phú, Nha Trang, Khánh Hòa",
+      "description": "Phòng nhìn biển trên đường Trần Phú, đi bộ ra bãi tắm trong 2 phút, có hồ bơi trên tầng thượng.",
+      "amenities": [
+        "Wi-fi",
+        "Hồ bơi"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947925.jpg?k=4fdcb366dbd5ed229da39385782b506b1615e9d395afaf70179a423f6157820f&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947942.jpg?k=018dde6cd34c34e4802f8fe3e6c43a697a2d14989bd8823a8b14f5eece2b9a14&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947936.jpg?k=92bfffc8b67f647d9deb3d97f316c69c69f69e67508dfcea72a90daaa0d2ef27&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947923.jpg?k=ff4ba3ae78f59bdb1b053aca1f00d0e01018adb46ad283e218ec09267af0876c&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-09-21T03:00:00Z"
+    },
+    {
+      "id": "hs017",
+      "hostId": "host001",
+      "itemId": 17,
+      "name": "Hà Giang Loop Stilt House",
+      "address": "Đồng Văn, Hà Giang",
+      "description": "Nhà sàn của người Mông ở thị trấn Đồng Văn, phù hợp phượt thủ, có bữa tối cùng gia đình chủ nhà.",
+      "amenities": [
+        "Wi-fi",
+        "Bếp"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/657587245.jpg?k=23679b753af1476d42ee32eee26c8883a872115a469c88e06df600b9c8258980&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480244743.jpg?k=07151f7fea1b38b25e91c95c5cbd328dbe203aaa44db6909f10eb8e03edb5ed2&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480237699.jpg?k=5e472aa1ee6f2ef38cf2817feb7a4722d20c430cec3f8642e87a11210d0e7d24&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-09-18T03:00:00Z"
+    },
+    {
+      "id": "hs018",
+      "hostId": "host001",
+      "itemId": 18,
+      "name": "Mũi Né Sandy Cabin",
+      "address": "Hàm Tiến, Phan Thiết, Bình Thuận",
+      "description": "Cabin gỗ sát biển Mũi Né, gần đồi cát và làng chài, tiện lướt ván diều vào mùa gió.",
+      "amenities": [
+        "Wi-fi",
+        "Bãi đỗ xe",
+        "Hồ bơi"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/921398723.jpg?k=dcbbf5a9f3be26e53999f34773a83860708e2ef9f55d7d6204dfc484c47ef3ef&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/920608628.jpg?k=551e0fcf646bf7c881c4884a01e6b4884aa8ed6d56ab7c5dc7fd97c78b668fcf&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/921398736.jpg?k=96689d67717c76b0a2b8d0993270835cb6ab6b362ff8db49636c9647fa25922b&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/921398934.jpg?k=60b1d543e3c6d2b15174d93a3556af1575874f3b1307bd24f6c028d399c34a9c&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/921398729.jpg?k=ffca546f2f77a787b33c755306cdccd477583fb51f92d684ce0c6189197ee492&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-09-15T03:00:00Z"
+    },
+    {
+      "id": "hs019",
+      "hostId": "host001",
+      "itemId": 19,
+      "name": "Hà Nội West Lake Loft",
+      "address": "Tây Hồ, Hà Nội",
+      "description": "Căn gác xép gần Hồ Tây với cửa sổ lớn, nhiều cây xanh, có quán cà phê và đường đi dạo quanh hồ ngay dưới nhà.",
+      "amenities": [
+        "Wi-fi",
+        "Bếp"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/648779684.jpg?k=16bcced7f6f6895502e86c216a2ca8da72cf6f53f3b1dffec76562b262f0cf08&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-09-12T03:00:00Z"
+    },
+    {
+      "id": "hs020",
+      "hostId": "host001",
+      "itemId": 20,
+      "name": "Sài Gòn Thảo Điền Garden",
+      "address": "Thảo Điền, TP. Hồ Chí Minh",
+      "description": "Nhà vườn trong khu Thảo Điền yên tĩnh, có hồ bơi chung và quán cà phê quanh khu, gần ga metro.",
+      "amenities": [
+        "Wi-fi",
+        "Hồ bơi",
+        "Bãi đỗ xe"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947923.jpg?k=ff4ba3ae78f59bdb1b053aca1f00d0e01018adb46ad283e218ec09267af0876c&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947925.jpg?k=4fdcb366dbd5ed229da39385782b506b1615e9d395afaf70179a423f6157820f&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947942.jpg?k=018dde6cd34c34e4802f8fe3e6c43a697a2d14989bd8823a8b14f5eece2b9a14&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947936.jpg?k=92bfffc8b67f647d9deb3d97f316c69c69f69e67508dfcea72a90daaa0d2ef27&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-09-09T03:00:00Z"
+    },
+    {
+      "id": "hs021",
+      "hostId": "host001",
+      "itemId": 21,
+      "name": "Ninh Bình Tràng An Riverside",
+      "address": "Tràng An, Ninh Bình",
+      "description": "Homestay bên bờ sông Tràng An, có thể chèo thuyền sáng sớm ngắm núi đá vôi trước khi du khách đông.",
+      "amenities": [
+        "Wi-fi",
+        "Bãi đỗ xe",
+        "Bếp"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/915130524.jpg?k=c3516630e13ee2442d654aae0512a71cde1918b82c8040c51ca8cb9e902ea48a&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-09-06T03:00:00Z"
+    },
+    {
+      "id": "hs022",
+      "hostId": "host001",
+      "itemId": 22,
+      "name": "Mộc Châu Pine Hill Cabin",
+      "address": "Mộc Châu, Sơn La",
+      "description": "Cabin gỗ trên đồi thông gần đồi chè trái tim, có bếp nướng ngoài trời, phù hợp nhóm bạn đi cuối tuần.",
+      "amenities": [
+        "Wi-fi",
+        "Bếp",
+        "Bãi đỗ xe"
+      ],
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480244743.jpg?k=07151f7fea1b38b25e91c95c5cbd328dbe203aaa44db6909f10eb8e03edb5ed2&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480237699.jpg?k=5e472aa1ee6f2ef38cf2817feb7a4722d20c430cec3f8642e87a11210d0e7d24&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/657587245.jpg?k=23679b753af1476d42ee32eee26c8883a872115a469c88e06df600b9c8258980&o="
+      ],
+      "status": "active",
+      "createdAt": "2026-09-03T03:00:00Z"
     }
   ]
 }

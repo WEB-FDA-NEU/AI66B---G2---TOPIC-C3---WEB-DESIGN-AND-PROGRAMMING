@@ -14,6 +14,7 @@ import {
 
 import '../components/site-header.js';
 import '../components/site-footer.js';
+import '../guard.js';
 
 const $ = id => document.getElementById(id);
 

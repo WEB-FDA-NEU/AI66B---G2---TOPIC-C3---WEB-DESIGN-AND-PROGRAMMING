@@ -6,6 +6,7 @@
 //   • "Đơn chờ duyệt" đếm trực tiếp từ danh sách đơn xin làm host trên trang → duyệt/từ chối là số tự giảm.
 // ============================================================
 import { getAdminOverview } from '../api.js';
+import '../guard.js';
 import { periodTabs, getWindow, inWindow, bucketIndex, dayNum, fmtFullDate, fmtInt, fmtPct,
          countUp, drawChart, axisOptions, theme, palette } from '../charts.js';
 

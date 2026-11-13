@@ -21,13 +21,21 @@ import '../motion.js';
 
 // Tên thương hiệu: đổi ở ĐÂY là cả header đổi theo.
 // (Nhớ đổi cả <title> trong các file HTML nếu đổi tên.)
-const BRAND = 'Homestay Booking';
+const BRAND = 'LuxStay';
 
 // Biểu tượng ☰ dạng SVG: hiển thị giống nhau trên mọi thiết bị, không phụ thuộc font.
 const ICON_MENU = /* html */ `
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
      stroke-width="2" stroke-linecap="round" aria-hidden="true">
   <path d="M4 7h16M4 12h16M4 17h16"/>
+</svg>`;
+
+// Logo LuxStay: mái nhà + ngôi sao 4 cánh. Màu theo currentColor (xanh thông trên nền đồng thau).
+const ICON_LOGO = /* html */ `
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M3 11.5 12 4l9 7.5"/>
+  <path d="M12 12l1.3 2.7 2.7 1.3-2.7 1.3L12 20l-1.3-2.7L8 16l2.7-1.3z" fill="currentColor" stroke="none"/>
 </svg>`;
 
 // ============================================================
@@ -42,7 +50,7 @@ const TEMPLATE = /* html */ `
     <div class="site-header__top">
 
       <a class="logo" href="index.html" aria-label="${BRAND} – Trang chủ">
-        <span class="logo__mark" aria-hidden="true">${BRAND[0]}</span>
+        <span class="logo__mark" aria-hidden="true">${ICON_LOGO}</span>
         <span class="logo__text">${BRAND}</span>
       </a>
 
