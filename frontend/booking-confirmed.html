@@ -1,19 +1,23 @@
+
 <!doctype html>
 <html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Homestay Booking — Xác nhận đặt phòng</title>
+
 <link rel="stylesheet" href="css/reset.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/motion.css">
 </head>
+
 <body>
 
 <site-header active="bookings"></site-header>
 
-<main class="page container">
+<main class="page container booking-confirmed-page">
 
   <nav class="breadcrumb" aria-label="breadcrumb">
     <ol>
@@ -23,32 +27,44 @@
   </nav>
 
   <!-- THÔNG BÁO THÀNH CÔNG -->
-  <div class="msg msg--ok stack gap-2 mb-3" role="status">
-    <div class="flex gap-2">
-      <span>✅</span>
+  <section class="msg msg--ok booking-confirmed-success" role="status">
+    <div class="booking-confirmed-success__heading">
+      <span aria-hidden="true">✅</span>
       <strong>Đặt phòng thành công!</strong>
     </div>
-    <p>Chúng tôi đã gửi email xác nhận đến hộp thư của bạn.</p>
-  </div>
 
-  <div class="detail-layout">
+    <p>
+      Chúng tôi đã gửi email xác nhận đến hộp thư của bạn.
+    </p>
+  </section>
+
+  <div class="detail-layout booking-confirmed-layout">
 
     <!-- CỘT TRÁI: CHI TIẾT ĐẶT PHÒNG -->
-    <div class="stack">
+    <div class="stack booking-confirmed-content">
 
       <!-- MÃ ĐẶT PHÒNG -->
-      <section class="form-card flex-between" style="margin:0">
+      <section class="form-card booking-confirmed-code-card">
         <div>
           <p class="field__hint">Mã đặt phòng</p>
           <h2 class="text-primary" id="bCode">—</h2>
         </div>
-        <span class="badge badge--success">Đã xác nhận</span>
+
+        <span class="badge badge--success">
+          Đã xác nhận
+        </span>
       </section>
 
       <!-- THÔNG TIN HOMESTAY -->
-      <section class="form-card" style="margin:0">
+      <section class="form-card booking-confirmed-property">
         <h3 class="mb-2">Thông tin chỗ nghỉ</h3>
-        <img id="bImage" src="img/placeholder.svg" class="card__img mb-3" alt="">
+
+        <img
+          id="bImage"
+          src="img/placeholder.svg"
+          class="card__img booking-confirmed-image mb-3"
+          alt=""
+        >
 
         <h3 id="bName">—</h3>
         <p class="card__meta mb-2" id="bAddress">—</p>
@@ -56,95 +72,134 @@
       </section>
 
       <!-- NGÀY & KHÁCH -->
-      <section class="form-card stack" style="margin:0">
+      <section class="form-card booking-confirmed-stay">
         <h3>Chi tiết lưu trú</h3>
-        <div class="stack gap-2 mt-2">
-          <div class="flex-between">
+
+        <div class="booking-confirmed-info-list">
+
+          <div class="booking-confirmed-info-row">
             <span class="text-muted">Nhận phòng:</span>
             <strong id="bCheckIn">—</strong>
           </div>
-          <div class="flex-between">
+
+          <div class="booking-confirmed-info-row">
             <span class="text-muted">Trả phòng:</span>
             <strong id="bCheckOut">—</strong>
           </div>
-          <div class="flex-between">
+
+          <div class="booking-confirmed-info-row">
             <span class="text-muted">Số đêm:</span>
             <strong id="bNights">—</strong>
           </div>
-          <div class="flex-between">
+
+          <div class="booking-confirmed-info-row">
             <span class="text-muted">Số khách:</span>
             <strong id="bGuests">—</strong>
           </div>
-          <div class="flex-between">
+
+          <div class="booking-confirmed-info-row">
             <span class="text-muted">Tên khách:</span>
             <strong id="bGuestName">—</strong>
           </div>
+
         </div>
       </section>
 
       <!-- TỔNG TIỀN -->
-      <section class="form-card stack" style="margin:0">
+      <section class="form-card booking-confirmed-payment">
         <h3>Chi tiết thanh toán</h3>
-        <div class="stack gap-2 mt-2">
-          <div class="flex-between">
+
+        <div class="booking-confirmed-info-list">
+
+          <div class="booking-confirmed-info-row">
             <span class="text-muted">Tiền phòng:</span>
             <span id="bRoomTotal">—</span>
           </div>
-          <div class="flex-between">
+
+          <div class="booking-confirmed-info-row">
             <span class="text-muted">Phí dịch vụ:</span>
             <span id="bFee">—</span>
           </div>
-          <div class="filter-group flex-between">
-            <span><strong>Tổng đã thanh toán:</strong></span>
-            <span class="text-primary"><strong id="bTotal">—</strong></span>
+
+          <div class="booking-confirmed-total">
+            <strong>Tổng đã thanh toán:</strong>
+            <span class="text-primary">
+              <strong id="bTotal">—</strong>
+            </span>
           </div>
+
         </div>
       </section>
 
-      <div class="flex gap-3">
-        <a href="index.html" class="btn btn--outline btn--block">Về trang chủ</a>
-        <a href="booking-list.html" class="btn btn--outline btn--block">Đặt phòng của tôi</a>
-        <button type="button" class="btn btn--primary btn--block" onclick="window.print()">In xác nhận</button>
+      <!-- CÁC NÚT ĐIỀU HƯỚNG -->
+      <div class="booking-confirmed-actions">
+
+        <a href="index.html" class="btn btn--outline">
+          Về trang chủ
+        </a>
+
+        <a href="booking-list.html" class="btn btn--outline">
+          Đặt phòng của tôi
+        </a>
+
+        <button
+          type="button"
+          class="btn btn--primary"
+          onclick="window.print()"
+        >
+          In xác nhận
+        </button>
+
       </div>
 
     </div>
 
     <!-- CỘT PHẢI: LIÊN HỆ HOST -->
-    <aside class="detail-layout__aside stack">
-      <div class="form-card" style="margin:0">
+    <aside class="detail-layout__aside booking-confirmed-aside">
+
+      <section class="form-card booking-confirmed-host-card">
         <h3 class="mb-3">Liên hệ chủ nhà</h3>
 
-        <div class="flex gap-3 mb-3">
+        <div class="booking-confirmed-host">
           <div class="avatar-icon">🏠</div>
+
           <div>
             <strong>Chủ nhà</strong>
             <p class="field__hint">Phản hồi trong 1 giờ</p>
           </div>
         </div>
 
-        <div class="stack gap-2">
-          <div class="flex gap-2">
-            <span>📞</span>
+        <div class="booking-confirmed-contact">
+
+          <div class="booking-confirmed-contact-row">
+            <span aria-hidden="true">📞</span>
             <a id="bPhone" href="#" class="text-primary">—</a>
           </div>
-          <div class="flex gap-2">
-            <span>📍</span>
+
+          <div class="booking-confirmed-contact-row">
+            <span aria-hidden="true">📍</span>
             <span id="bHostAddress" class="text-muted">—</span>
           </div>
+
         </div>
+      </section>
+
+      <div class="msg booking-confirmed-support">
+        <p class="field__hint">
+          Cần hỗ trợ? Liên hệ Homestay Booking qua mục Liên hệ ở cuối trang.
+        </p>
       </div>
 
-      <div class="msg" style="background: var(--c-surface);">
-        <p class="field__hint">Cần hỗ trợ? Liên hệ Homestay Booking qua mục Liên hệ ở cuối trang.</p>
-      </div>
     </aside>
 
   </div>
 </main>
 
 <site-footer></site-footer>
-<div id="toast" role="status"></div>
+
+<div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module" src="js/pages/booking-confirmed.js"></script>
+
 </body>
 </html>

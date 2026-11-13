@@ -17,7 +17,8 @@
   <div class="form-card">
     <a class="text-muted underline" href="index.html">← Quay lại trang chủ</a>
     <h1>Tạo tài khoản</h1>
-    <form id="register-form" class="stack" novalidate>
+    <form id="register-form" class="stack" method="post" onsubmit="event.preventDefault()" novalidate>
+      <p class="field__hint">Tài khoản mô phỏng chỉ tồn tại trên trình duyệt này. Không dùng mật khẩu thật.</p>
       <div class="field">
         <label class="field__label" for="display_name">Tên hiển thị</label>
         <input class="input" id="display_name" name="display_name" required>
@@ -49,7 +50,7 @@
       </div>
       <p class="field__error"></p>
       </div>
-      <button class="btn btn--primary" type="submit">Đăng ký</button>
+      <button class="btn btn--primary" type="submit" disabled>Đăng ký</button>
       <p class="field__hint">Đã có tài khoản? <a class="text-primary" href="login.html">Đăng nhập</a></p>
     </form>
   </div>

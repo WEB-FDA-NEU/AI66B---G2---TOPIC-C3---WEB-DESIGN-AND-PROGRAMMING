@@ -1,9 +1,13 @@
+/* motion.css — chuyển động. Chỉ dùng cho hiệu ứng "xuất hiện" và phản hồi khi tương tác.
+   Nguyên tắc: chuyển động phải có lý do (báo hiệu nội dung mới, phản hồi thao tác).
+   KHÔNG làm thứ gì tự lặp vô hạn (nhấp nháy, nảy) vì gây xao nhãng và trông thiếu chuyên nghiệp.
+   Màu/cỡ chữ lấy từ tokens.css như mọi file khác. */
 
 :root { --ease-out: cubic-bezier(.16, .84, .44, 1); }
 
-/* ---------- Header: đổ bóng khi trang cuộn xuống ---------- */
+/* ---------- Header: đổ bóng khi trang cuộn xuống (motion.js thêm class is-scrolled) ---------- */
 .site-header { transition: box-shadow .25s ease; }
-.site-header.is-scrolled { box-shadow: 0 4px 16px rgba(0,0,0,.18); }
+.site-header.is-scrolled { box-shadow: var(--shadow-m); }
 
 /* ---------- Hero: chữ + ô tìm kiếm xuất hiện tuần tự 1 lần khi tải trang ---------- */
 .hero__inner.hero-init > * { opacity: 0; transform: translateY(16px); }
@@ -27,14 +31,19 @@
 .hero__inner.hero-init.is-ready h1.word-reveal .word { opacity: 1; transform: none; }
 
 /* ---------- Dòng số liệu nhỏ dưới phụ đề hero ---------- */
-.hero-trust { display: flex; flex-wrap: wrap; gap: 20px; margin: 18px 0 6px; }
-.hero-trust span { position: relative; padding-left: 18px; font-size: 13px; color: rgba(255,255,255,.74); }
+.hero-trust { display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-4); margin: var(--sp-3) 0 var(--sp-1); }
+.hero-trust span { position: relative; padding-left: var(--sp-3); font-size: var(--fs-sm); color: rgba(255, 255, 255, .8); }
 .hero-trust span:first-child { padding-left: 0; }
 .hero-trust span:not(:first-child)::before {
   content: ''; position: absolute; left: 0; top: 50%; width: 1px; height: 12px;
-  transform: translateY(-50%); background: rgba(255,255,255,.30);
+  transform: translateY(-50%); background: rgba(255, 255, 255, .3);
 }
-.hero-trust b { color: #fff; font-weight: 700; }
+.hero-trust b { color: var(--c-on-primary); font-weight: 700; }
+@media (max-width: 767px) {
+  .hero-trust { flex-direction: column; gap: var(--sp-1); }
+  .hero-trust span { padding-left: 0; }
+  .hero-trust span::before { display: none; }
+}
 
 /* ---------- Section cuộn tới đâu, hiện tới đó ---------- */
 [data-reveal].reveal-init {
@@ -43,10 +52,9 @@
 }
 [data-reveal].reveal-init.is-visible { opacity: 1; transform: none; }
 
-/* ---------- Thẻ homestay: lần lượt "nảy" vào khi vừa render xong ----------
-   Đây là animation thuần CSS, tự chạy ngay khi thẻ được chèn vào DOM —
-   không cần JS theo dõi, nên hoạt động với MỌI danh sách render động
-   (trang chủ, tìm kiếm, shop…) mà không cần sửa render.js. */
+/* ---------- Thẻ homestay: lần lượt hiện vào khi vừa render xong ----------
+   Animation thuần CSS, tự chạy ngay khi thẻ được chèn vào DOM — không cần JS theo dõi,
+   nên hoạt động với MỌI danh sách render động (trang chủ, tìm kiếm...) mà không cần sửa render.js. */
 .grid > .card, .card-grid > .card { animation: cardIn .5s var(--ease-out) both; }
 .grid > .card:nth-child(1),  .card-grid > .card:nth-child(1)  { animation-delay: .02s; }
 .grid > .card:nth-child(2),  .card-grid > .card:nth-child(2)  { animation-delay: .08s; }
@@ -57,17 +65,15 @@
 .grid > .card:nth-child(n+7), .card-grid > .card:nth-child(n+7) { animation-delay: .38s; }
 @keyframes cardIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 
-/* ---------- Ảnh trong thẻ: phóng nhẹ khi rê chuột ---------- */
+/* ---------- Ảnh trong thẻ: phóng nhẹ khi rê chuột (thẻ đã có overflow:hidden nên ảnh không tràn) ---------- */
 .card__img { transition: transform .35s var(--ease-out); }
-.card:hover .card__img { transform: scale(1.06); }
+.card:hover .card__img { transform: scale(1.04); }
 
-/* ---------- Badge giảm giá: nổi bật hơn + nhấp nháy nhẹ để thu hút mắt ---------- */
-.card__badge[data-status="sale"] { background: var(--c-danger); animation: badgePulse 2.4s ease-in-out infinite; }
-@keyframes badgePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-
-/* ---------- Nút: phản hồi khi bấm ---------- */
-.btn { transition: background .15s, border-color .15s, transform .12s; }
-.btn:active { transform: scale(.97); }
+/* ---------- Nút: phản hồi khi bấm ----------
+   Lưu ý: transition của .btn khai báo ở components.css (đã gồm transform). KHÔNG khai báo lại ở đây,
+   vì file này tải sau và sẽ ghi đè mất transition màu / viền focus. */
+.btn:active { transform: scale(.98); }
+.btn:disabled:active, .btn--disabled:active { transform: none; }
 
 /* ---------- Tôn trọng người dùng đã bật "giảm chuyển động" ---------- */
 @media (prefers-reduced-motion: reduce) {
@@ -75,7 +81,6 @@
   .hero h1.word-reveal .word,
   [data-reveal].reveal-init,
   .grid > .card, .card-grid > .card,
-  .card__badge[data-status="sale"],
   .card__img,
   .btn {
     animation: none !important;

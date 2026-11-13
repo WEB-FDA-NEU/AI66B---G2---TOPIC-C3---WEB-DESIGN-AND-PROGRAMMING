@@ -1,42 +1,87 @@
-/* tokens.css — NGUỒN DUY NHẤT cho màu / font / khoảng cách / breakpoint.
-   Muốn đổi giao diện toàn site → sửa ở ĐÂY, không hard-code màu trong file khác.
+/* tokens.css — NGUỒN DUY NHẤT cho màu / font / cỡ chữ / khoảng cách / bo góc / bóng.
+   Muốn đổi giao diện toàn site → sửa ở ĐÂY, không gõ cứng màu hay cỡ chữ trong file khác.
 
    BREAKPOINT RESPONSIVE (CSS chưa cho dùng biến trong @media, nên cả nhóm nhớ 2 mốc này):
      Mobile  : < 768px      →  @media (max-width: 767px)
      Tablet  : 768–1023px   →  @media (max-width: 1023px)
      Desktop : ≥ 1024px     →  mặc định (không cần media query)
-   Viết CSS theo hướng desktop trước, rồi thu gọn dần bằng 2 mốc trên. */
+   Viết CSS theo hướng desktop trước, rồi thu gọn dần bằng 2 mốc trên.
+
+   Ý TƯỞNG THIẾT KẾ: homestay ở vùng núi và phố cổ Việt Nam → xanh thông (pine) làm
+   màu thương hiệu, đồng thau (brass) làm điểm nhấn "lux" rất tiết chế (sao đánh giá,
+   viền ô tìm kiếm). Nền trắng hơi ngả xanh lá, thẻ phân tách bằng viền mảnh thay vì
+   bóng đổ; bóng chỉ dùng cho thứ nổi lên (menu, hộp thoại, hover). */
+
+/* Font duy nhất của cả app. Be Vietnam Pro do nhà thiết kế Việt thiết kế,
+   đủ dấu tiếng Việt. @import PHẢI nằm trên mọi luật CSS khác trong file này. */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+
 :root {
-  /* ---- Màu (phong cách Booking.com) ---- */
-  --c-primary:   #003b95;   /* xanh đậm: header, giá, huy hiệu */
-  --c-primary-d: #002f6c;   /* hover của primary */
-  --c-primary-l: #006ce4;   /* xanh sáng: nút chính, link nhấn */
-  --c-accent:    #febb02;   /* vàng: viền ô tìm kiếm */
+  /* ---- Màu thương hiệu ---- */
+  --c-primary:    #0f3d38;   /* xanh thông đậm: header, tiêu đề nhấn, giá */
+  --c-primary-d:  #0a2b27;   /* hover của primary */
+  --c-primary-l:  #11695f;   /* nút chính, link nhấn (chữ trắng trên nền này đạt AA) */
+  --c-primary-soft: #e6f2f0; /* nền nhạt: hover nút outline, dòng đang chọn */
+  --c-accent:     #c28a2c;   /* đồng thau: sao đánh giá, viền ô tìm kiếm. KHÔNG dùng làm màu chữ nhỏ */
 
-  --c-page:      #f5f5f5;   /* nền toàn trang */
-  --c-bg:        #ffffff;   /* nền thẻ, ô nhập, hộp */
-  --c-surface:   #f0f3f8;   /* nền phụ: hover, skeleton, footer */
-  --c-border:    #d9d9d9;
-  --c-text:      #262626;
-  --c-muted:     #6b6b6b;
+  /* ---- Nền, viền, chữ ---- */
+  --c-page:       #f5f7f6;   /* nền toàn trang */
+  --c-bg:         #ffffff;   /* nền thẻ, ô nhập, hộp */
+  --c-surface:    #eaf0ee;   /* nền phụ: hover, skeleton, footer */
+  --c-border:     #dbe3df;
+  --c-border-strong: #b9c6c0; /* viền ô nhập khi cần rõ hơn */
+  --c-text:       #1c2421;
+  --c-muted:      #5a6761;
+  --c-on-primary: #ffffff;   /* chữ trên nền primary / danger / success */
 
-  --c-danger:    #d32f2f;
-  --c-success:   #008234;
-  --c-warning:   #b26a00;
+  /* ---- Màu trạng thái (mỗi màu có bản đậm cho chữ/nút và bản nhạt cho nền) ---- */
+  --c-danger:       #b42318;
+  --c-danger-d:     #912018;
+  --c-danger-soft:  #fef3f2;
+  --c-success:      #067647;
+  --c-success-soft: #ecfdf3;
+  --c-warning:      #b54708;
+  --c-warning-soft: #fffaeb;
 
   /* ---- Font ---- */
-  --font: Arial, Helvetica, sans-serif;
+  --font: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+
+  /* ---- Cỡ chữ: chỉ dùng các bậc này, không gõ 13px / 15px / 17px lẻ ---- */
+  --fs-xs:  12px;   /* chú thích, huy hiệu */
+  --fs-sm:  14px;   /* chữ phụ, nhãn ô nhập, nút nhỏ */
+  --fs-md:  16px;   /* chữ thân bài, nút */
+  --fs-lg:  18px;   /* tiêu đề thẻ */
+  --fs-xl:  22px;   /* tiêu đề mục (h2) */
+  --fs-2xl: 28px;   /* tiêu đề trang (h1) */
+  --fs-3xl: 38px;   /* tiêu đề hero */
+  --lh-tight: 1.25; /* tiêu đề */
+  --lh-body:  1.6;  /* đoạn văn */
 
   /* ---- Khoảng cách ---- */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 16px; --sp-4: 24px;
   --sp-5: 32px; --sp-6: 48px; --sp-7: 64px;
 
-  /* ---- Bo góc / bóng / khung ---- */
-  --radius-s: 4px;
-  --radius:   6px;
-  --radius-l: 10px;
-  --shadow-s: 0 1px 3px rgba(0,0,0,.12);
-  --shadow:   0 2px 8px rgba(0,0,0,.12);
-  --shadow-l: 0 4px 16px rgba(0,0,0,.16);
+  /* ---- Kích thước ô nhập & nút: mọi nút/ô cùng hàng phải cùng chiều cao ---- */
+  --control-h:    44px;
+  --control-h-sm: 36px;
+
+  /* ---- Bo góc: 3 bậc có chủ đích, không dùng một giá trị cho mọi thứ ---- */
+  --radius-s:    6px;     /* nút, ô nhập, huy hiệu */
+  --radius:      10px;    /* thẻ, hộp nội dung */
+  --radius-m:    var(--radius); /* tên tương thích cho thẻ cỡ vừa */
+  --radius-l:    16px;    /* hero, ô tìm kiếm, hộp thoại */
+  --radius-pill: 999px;   /* chip, tag */
+
+  /* ---- Bóng: thẻ thường KHÔNG có bóng, chỉ viền. Bóng dành cho thứ "nổi" ---- */
+  --shadow-s: 0 1px 2px rgba(15, 33, 30, .06);
+  --shadow:   0 4px 14px rgba(15, 33, 30, .08);    /* hover thẻ */
+  --shadow-m: 0 8px 24px rgba(15, 33, 30, .12);    /* menu thả xuống (booking-select đang dùng tên này) */
+  --shadow-l: 0 18px 48px rgba(15, 33, 30, .18);   /* hộp thoại */
+
+  /* ---- Focus: bàn phím phải nhìn thấy đang đứng ở đâu ---- */
+  --focus-ring: 0 0 0 3px rgba(17, 105, 95, .28);
+
+  /* ---- Khung trang ---- */
   --container: 1120px;
+  --header-h:  68px;   /* chiều cao header khi cố định (sticky) */
 }

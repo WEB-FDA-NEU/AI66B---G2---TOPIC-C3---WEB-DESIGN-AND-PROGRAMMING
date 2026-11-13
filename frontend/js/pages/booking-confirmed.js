@@ -1,51 +1,152 @@
+
 // ============================================================
-//  Trang xác nhận đặt phòng — đọc booking vừa tạo từ sessionStorage
-//  (được booking-page.html lưu trước khi chuyển trang), đổ dữ liệu
-//  vào các ô hiển thị. Vào thẳng URL này mà chưa đặt phòng → về
-//  booking-list.html.
+// BOOKING CONFIRMED
+// - Đọc booking vừa tạo từ sessionStorage
+// - Hiển thị thông tin xác nhận đặt phòng
+// - Vào trực tiếp URL khi không có booking → booking-list.html
 // ============================================================
+
 import { formatVND } from '../render.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
+
 import '../components/site-header.js';
 import '../components/site-footer.js';
 
-if (!isLoggedIn()) requireLogin();
+// ============================================================
+// KIỂM TRA ĐĂNG NHẬP
+// ============================================================
+
+if (!isLoggedIn()) {
+  requireLogin();
+}
 
 const STORAGE_KEY = 'lastBooking';
 
+const $ = id => document.getElementById(id);
+
+// ============================================================
+// FORMAT NGÀY
+// ============================================================
+
 function formatDateVN(iso) {
-  return new Date(iso).toLocaleDateString('vi-VN');
+  if (!iso) return '—';
+
+  const date = new Date(iso);
+
+  if (Number.isNaN(date.getTime())) {
+    return '—';
+  }
+
+  return date.toLocaleDateString('vi-VN');
 }
+
+// ============================================================
+// HIỂN THỊ DỮ LIỆU BOOKING
+// ============================================================
 
 function render(booking) {
-  document.getElementById('bCode').textContent = booking.code;
-  document.getElementById('bImage').src = booking.homestayImage;
-  document.getElementById('bImage').alt = booking.homestayName;
-  document.getElementById('bName').textContent = booking.homestayName;
-  document.getElementById('bAddress').textContent = booking.homestayAddress;
-  document.getElementById('bRoom').textContent = booking.roomName;
 
-  document.getElementById('bCheckIn').textContent = formatDateVN(booking.checkIn);
-  document.getElementById('bCheckOut').textContent = formatDateVN(booking.checkOut);
-  document.getElementById('bNights').textContent = `${booking.nights} đêm`;
-  document.getElementById('bGuests').textContent = `${booking.guests} khách`;
-  document.getElementById('bGuestName').textContent = booking.guestName;
+  // Mã đặt phòng
+  $('bCode').textContent = booking.code ?? '—';
 
-  document.getElementById('bRoomTotal').textContent = formatVND(booking.roomSubtotal);
-  document.getElementById('bFee').textContent = formatVND(booking.serviceFee);
-  document.getElementById('bTotal').textContent = formatVND(booking.totalPrice);
+  // Thông tin homestay
+  $('bImage').src =
+    booking.homestayImage || 'img/placeholder.svg';
 
-  const phoneEl = document.getElementById('bPhone');
-  phoneEl.textContent = booking.hostPhone;
-  phoneEl.href = `tel:${booking.hostPhone}`;
-  document.getElementById('bHostAddress').textContent = booking.hostAddress;
+  $('bImage').alt =
+    booking.homestayName || 'Hình ảnh homestay';
+
+  $('bName').textContent =
+    booking.homestayName ?? '—';
+
+  $('bAddress').textContent =
+    booking.homestayAddress ?? '—';
+
+  $('bRoom').textContent =
+    booking.roomName ?? '—';
+
+  // Ngày lưu trú
+  $('bCheckIn').textContent =
+    formatDateVN(booking.checkIn);
+
+  $('bCheckOut').textContent =
+    formatDateVN(booking.checkOut);
+
+  $('bNights').textContent =
+    booking.nights != null
+      ? `${booking.nights} đêm`
+      : '—';
+
+  $('bGuests').textContent =
+    booking.guests != null
+      ? `${booking.guests} khách`
+      : '—';
+
+  $('bGuestName').textContent =
+    booking.guestName ?? '—';
+
+  // Thanh toán
+  $('bRoomTotal').textContent =
+    booking.roomSubtotal != null
+      ? formatVND(booking.roomSubtotal)
+      : '—';
+
+  $('bFee').textContent =
+    booking.serviceFee != null
+      ? formatVND(booking.serviceFee)
+      : '—';
+
+  $('bTotal').textContent =
+    booking.totalPrice != null
+      ? formatVND(booking.totalPrice)
+      : '—';
+
+  // Liên hệ chủ nhà
+  const phoneEl = $('bPhone');
+  const phone = booking.hostPhone ?? '';
+
+  phoneEl.textContent = phone || 'Chưa có số điện thoại';
+
+  if (phone) {
+    phoneEl.href = `tel:${phone}`;
+  } else {
+    phoneEl.removeAttribute('href');
+  }
+
+  $('bHostAddress').textContent =
+    booking.hostAddress ?? '—';
 }
+
+// ============================================================
+// ĐỌC BOOKING TỪ SESSION STORAGE
+// ============================================================
 
 const raw = sessionStorage.getItem(STORAGE_KEY);
 
 if (!raw) {
+
+  // Không có booking vừa tạo
   window.location.href = 'booking-list.html';
+
 } else {
-  render(JSON.parse(raw));
-  sessionStorage.removeItem(STORAGE_KEY); // dùng 1 lần, F5 lại sẽ không còn dữ liệu cũ
+
+  try {
+    const booking = JSON.parse(raw);
+
+    if (!booking || typeof booking !== 'object') {
+      throw new Error('Dữ liệu booking không hợp lệ.');
+    }
+
+    render(booking);
+
+    // Chỉ sử dụng dữ liệu một lần
+    sessionStorage.removeItem(STORAGE_KEY);
+
+  } catch (error) {
+    console.error('Không thể hiển thị booking:', error);
+
+    sessionStorage.removeItem(STORAGE_KEY);
+
+    window.location.href = 'booking-list.html';
+  }
 }

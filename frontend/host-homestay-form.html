@@ -1,80 +1,171 @@
+
 <!doctype html>
 <html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Thêm / sửa homestay — Homestay Booking</title>
+
 <link rel="stylesheet" href="css/reset.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/motion.css">
 </head>
+
 <body>
 <site-header active="host"></site-header>
 
-<main class="container page">
-  <div class="breadcrumb"><ol>
-    <li><a href="host-homestays.html">Homestay của tôi</a></li>
-    <li aria-current="page" id="crumb">Thêm homestay</li>
-  </ol></div>
+<main class="container page host-homestay-form-page">
 
-  <form class="form-card" id="form" novalidate>
-    <h1 id="formTitle">Thêm homestay mới</h1>
+  <div class="breadcrumb">
+    <ol>
+      <li><a href="host-homestays.html">Homestay của tôi</a></li>
+      <li aria-current="page" id="crumb">Thêm homestay</li>
+    </ol>
+  </div>
 
-    <label class="field"><span class="field__label">Tên homestay</span>
+  <form class="form-card host-homestay-form" id="form" novalidate>
+
+    <div class="host-homestay-form-heading">
+      <h1 id="formTitle">Thêm homestay mới</h1>
+      <p class="text-muted">
+        Cung cấp thông tin và hình ảnh để khách hàng hiểu rõ hơn về homestay của bạn.
+      </p>
+    </div>
+
+    <!-- TÊN HOMESTAY -->
+    <label class="field">
+      <span class="field__label">Tên homestay</span>
       <input class="input" id="name" name="name" required>
-      <span class="field__error"></span></label>
+      <span class="field__error"></span>
+    </label>
 
-    <label class="field"><span class="field__label">Địa chỉ</span>
-      <input class="input" id="address" name="address" placeholder="Số nhà, đường, phường/xã, tỉnh/thành" required>
-      <span class="field__error"></span></label>
+    <!-- ĐỊA CHỈ -->
+    <label class="field">
+      <span class="field__label">Địa chỉ</span>
+      <input
+        class="input"
+        id="address"
+        name="address"
+        placeholder="Số nhà, đường, phường/xã, tỉnh/thành"
+        required
+      >
+      <span class="field__error"></span>
+    </label>
 
-    <label class="field"><span class="field__label">Mô tả</span>
-      <textarea class="textarea" id="description" name="description" rows="4" required></textarea>
-      <span class="field__error"></span></label>
+    <!-- MÔ TẢ -->
+    <label class="field">
+      <span class="field__label">Mô tả</span>
+      <textarea
+        class="textarea"
+        id="description"
+        name="description"
+        rows="4"
+        required
+      ></textarea>
+      <span class="field__error"></span>
+    </label>
 
+    <!-- TIỆN ÍCH -->
     <div class="field">
       <span class="field__label">Tiện ích</span>
-      <div class="filter-list" id="amenities">
-        <label class="filter-option"><input type="checkbox" value="Wifi"> Wifi</label>
-        <label class="filter-option"><input type="checkbox" value="Bãi đỗ xe"> Bãi đỗ xe</label>
-        <label class="filter-option"><input type="checkbox" value="Bữa sáng"> Bữa sáng</label>
-        <label class="filter-option"><input type="checkbox" value="Máy sưởi"> Máy sưởi</label>
-        <label class="filter-option"><input type="checkbox" value="Điều hòa"> Điều hòa</label>
-        <label class="filter-option"><input type="checkbox" value="Bếp chung"> Bếp chung</label>
-        <label class="filter-option"><input type="checkbox" value="Hồ bơi"> Hồ bơi</label>
-        <label class="filter-option"><input type="checkbox" value="Thú cưng"> Cho phép thú cưng</label>
+
+      <div class="filter-list host-homestay-amenities" id="amenities">
+        <label class="filter-option">
+          <input type="checkbox" value="Wifi"> Wifi
+        </label>
+
+        <label class="filter-option">
+          <input type="checkbox" value="Bãi đỗ xe"> Bãi đỗ xe
+        </label>
+
+        <label class="filter-option">
+          <input type="checkbox" value="Bữa sáng"> Bữa sáng
+        </label>
+
+        <label class="filter-option">
+          <input type="checkbox" value="Máy sưởi"> Máy sưởi
+        </label>
+
+        <label class="filter-option">
+          <input type="checkbox" value="Điều hòa"> Điều hòa
+        </label>
+
+        <label class="filter-option">
+          <input type="checkbox" value="Bếp chung"> Bếp chung
+        </label>
+
+        <label class="filter-option">
+          <input type="checkbox" value="Hồ bơi"> Hồ bơi
+        </label>
+
+        <label class="filter-option">
+          <input type="checkbox" value="Thú cưng"> Cho phép thú cưng
+        </label>
       </div>
     </div>
 
+    <!-- HÌNH ẢNH -->
     <div class="field">
       <span class="field__label">Hình ảnh homestay (tối đa 12)</span>
-      <div class="uploader">
+
+      <div class="uploader host-homestay-uploader">
         <input type="file" id="images" accept="image/*" multiple>
-        <p class="field__hint">Chọn 1–12 ảnh: toàn cảnh, phòng khách, xung quanh... càng nhiều góc càng giúp khách hình dung địa điểm. Ảnh chỉ xem trước, chưa upload lên máy chủ ở Mốc 2.</p>
+
+        <p class="field__hint">
+          Chọn 1–12 ảnh: toàn cảnh, phòng khách, xung quanh...
+          Càng nhiều góc càng giúp khách hình dung địa điểm.
+          Ảnh chỉ xem trước, chưa upload lên máy chủ ở Mốc 2.
+        </p>
       </div>
-      <div class="preview" id="preview"></div>
+
+      <div class="preview host-homestay-preview" id="preview"></div>
       <p class="field__error" id="imagesErr"></p>
     </div>
 
-    <div class="flex gap-2 mt-4">
-      <button class="btn btn--primary" type="submit">Lưu homestay</button>
-      <a class="btn" href="host-homestays.html">Hủy</a>
-      <button class="btn btn--danger" id="deleteBtn" type="button" style="display:none;margin-left:auto">Xóa homestay</button>
+    <!-- THÔNG BÁO -->
+    <p class="msg host-homestay-form-message" id="formMsg" hidden></p>
+
+    <!-- ACTIONS -->
+    <div class="host-homestay-form-actions">
+      <div class="host-homestay-form-primary-actions">
+        <button class="btn btn--primary" type="submit">
+          Lưu homestay
+        </button>
+
+        <a class="btn" href="host-homestays.html">
+          Hủy
+        </a>
+      </div>
+
+      <button
+        class="btn btn--danger host-homestay-delete"
+        id="deleteBtn"
+        type="button"
+        hidden
+      >
+        Xóa homestay
+      </button>
     </div>
-    <p class="msg mt-3" id="formMsg" style="display:none"></p>
+
   </form>
 </main>
 
 <site-footer></site-footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
 <dialog id="confirm-dialog">
   <h3 class="dialog__title"></h3>
   <p class="dialog__message"></p>
+
   <div class="dialog__actions">
     <button class="btn" data-cancel type="button">Hủy</button>
     <button class="btn btn--danger" data-confirm type="button">Xóa</button>
   </div>
 </dialog>
+
 <script type="module" src="js/pages/host-homestay-form.js"></script>
 </body>
 </html>

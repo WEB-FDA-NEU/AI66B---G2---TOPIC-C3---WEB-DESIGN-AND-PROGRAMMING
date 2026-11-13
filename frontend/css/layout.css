@@ -1,59 +1,104 @@
 /* layout.css — bố cục: container, header, nav, hero, section, lưới, footer.
-   Mobile < 768px · Tablet < 1024px (xem tokens.css) */
-body { font-family: var(--font); background: var(--c-page); color: var(--c-text); }
-h1, h2, h3 { line-height: 1.25; }
-h1 { font-size: 32px; } h2 { font-size: 24px; } h3 { font-size: 18px; }
+   Mobile < 768px · Tablet < 1024px (xem tokens.css). Màu/cỡ chữ/khoảng cách: chỉ dùng biến.
 
-.container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--sp-3); }
+   QUY TẮC CĂN LỀ (cả nhóm theo, để các trang không chỗ giữa chỗ trái):
+   1. Tiêu đề trang, đoạn văn, form, bảng, danh sách → CĂN TRÁI.
+   2. Chỉ căn giữa: trang đăng nhập/đăng ký (cả khối .form-card đứng một mình trong <main>),
+      trạng thái rỗng (.empty), trang 404, và dòng gợi ý ngắn dưới nút.
+   3. Thẻ (.form-card) nằm TRONG .stack / .detail-layout / .layout-2col / aside là thẻ bình thường:
+      rộng hết cột, không tự canh giữa. KHÔNG viết style="margin:0" để chữa nữa.
+   4. Căn giữa/trái bằng class (.text-center, .text-right), không dùng style inline. */
+
+html { scroll-padding-top: calc(var(--header-h) + var(--sp-3)); }   /* link #neo không bị header che */
+
+body {
+  font-family: var(--font); font-size: var(--fs-md); line-height: var(--lh-body);
+  background: var(--c-page); color: var(--c-text);
+  min-height: 100vh; display: flex; flex-direction: column;       /* footer luôn nằm đáy khi trang ngắn */
+}
+main { flex: 1 0 auto; }
+
+h1, h2, h3 { line-height: var(--lh-tight); font-weight: 700; }
+h1 { font-size: clamp(var(--fs-xl), 5vw, var(--fs-2xl)); letter-spacing: -0.01em; }
+h2 { font-size: clamp(var(--fs-lg), 4vw, var(--fs-xl)); }
+h3 { font-size: var(--fs-lg); font-weight: 600; }
+
+.container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--sp-4); }
 .page    { padding-block: var(--sp-5); }
 .section { padding-block: var(--sp-5); }
 .stack > * + * { margin-top: var(--sp-3); }
 .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-3); }
 .section-head p { color: var(--c-muted); }
 
-/* ---------- Header ----------
-   <site-header> là custom element → mặc định inline. Phải display:block và có min-height
-   để trang không bị giật khi component gắn vào. */
-site-header { display: block; min-height: 118px; }
-.site-header { background: var(--c-primary); color: #fff; position: relative; z-index: 100; }
-.site-header__top { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
-.logo { display: inline-flex; align-items: center; gap: 9px; font-size: 24px; font-weight: 700; color: #fff; text-decoration: none; white-space: nowrap; }
-.logo__mark {
-  width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 9px; background: var(--c-primary-l); color: #fff; font-size: 20px; font-weight: 800;
-}
-.logo__text { font-weight: 800; letter-spacing: -0.03em; }
-.site-header__actions { display: flex; align-items: center; gap: var(--sp-2); font-size: 14px; }
+/* ---------- form-card: đứng một mình thì canh giữa (đăng nhập), nằm trong lưới thì là thẻ thường ---------- */
+:is(.stack, .detail-layout, .layout-2col, aside, .grid) > .form-card { max-width: none; margin-inline: 0; }
+.stack > .form-card, .detail-layout > .form-card, .layout-2col > .form-card { margin-block: 0; }
+.stack > * + .form-card { margin-top: var(--sp-3); }
+
+
+/* ============================================================
+   HEADER — cố định khi cuộn, MỘT hàng: logo · menu · tài khoản.
+   Không cần sửa HTML: .site-header__top được "gỡ" bằng display:contents
+   rồi xếp logo/nav/actions vào lưới 3 cột theo grid-column.
+   ============================================================ */
+/* <site-header> là custom element → mặc định inline. Phải display:block, có min-height
+   và có màu nền để trang không giật/nháy trắng trước khi component gắn vào. */
+site-header { display: block; position: sticky; top: 0; z-index: 100; min-height: var(--header-h); background: var(--c-primary); }
+.site-header { background: var(--c-primary); color: var(--c-on-primary); border-bottom: 1px solid rgba(255, 255, 255, .1); }
+.site-header > .container { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: var(--sp-4); }
+.site-header__top { display: contents; }
+
+.logo { grid-column: 1; grid-row: 1; display: inline-flex; align-items: center; gap: 10px; min-height: var(--header-h); min-width: 0;
+  font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: var(--c-on-primary); text-decoration: none; white-space: nowrap; }
+.logo__mark { flex: none; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-s); background: var(--c-accent); color: var(--c-primary); font-size: var(--fs-lg); font-weight: 700; letter-spacing: 0; }
+
+.main-nav { grid-column: 2; grid-row: 1; padding: 0; }
+.nav-links { display: flex; align-items: stretch; gap: 2px; list-style: none; padding: 0; height: var(--header-h); }
+.nav-links li { display: flex; }
+.nav-links a { display: inline-flex; align-items: center; gap: var(--sp-2); padding: 0 var(--sp-3);
+  color: rgba(255, 255, 255, .82); font-size: var(--fs-sm); font-weight: 500; text-decoration: none; white-space: nowrap;
+  box-shadow: inset 0 -3px 0 transparent; transition: background .15s, color .15s, box-shadow .15s; }
+.nav-links a:hover { background: rgba(255, 255, 255, .07); color: var(--c-on-primary); }
+.nav-links a:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -2px; }
+.nav-links a.is-active { color: var(--c-on-primary); box-shadow: inset 0 -3px 0 var(--c-accent); }
+.nav-toggle { display: none; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; background: none; border: 0; color: var(--c-on-primary); cursor: pointer; border-radius: var(--radius-s); }
+.nav-toggle:focus-visible { outline: 2px solid var(--c-accent); }
+
+.site-header__actions { grid-column: 3; grid-row: 1; justify-self: end; display: flex; align-items: center; gap: var(--sp-3);
+  min-height: var(--header-h); font-size: var(--fs-sm); color: rgba(255, 255, 255, .85); }
 .site-header__actions [data-auth] { display: flex; align-items: center; gap: var(--sp-2); }
 .site-header__actions [hidden] { display: none; }
-.site-header__link { color: #fff; text-decoration: none; padding: 8px; }
+.site-header__actions .btn { height: var(--control-h-sm); }           /* nút trong header gọn hơn nút thường */
+.site-header__actions [data-user-name] { display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }  /* tên dài không đẩy menu */
+.site-header__link { color: var(--c-on-primary); text-decoration: none; padding: 8px; }
 .site-header__link:hover { text-decoration: underline; }
 
-.main-nav { padding-bottom: 12px; }
-.nav-links { display: flex; align-items: center; gap: var(--sp-2); list-style: none; padding: 0; }
-.nav-links a { display: inline-flex; align-items: center; gap: var(--sp-2); padding: 10px 14px; color: #fff;
-  border: 1px solid transparent; border-radius: 24px; text-decoration: none; font-size: 15px; font-weight: 500;
-  transition: background .15s, border-color .15s; }
-.nav-links a:hover { background: rgba(255,255,255,.12); }
-.nav-links a.is-active { border-color: #fff; background: rgba(255,255,255,.08); }
-.nav-toggle { display: none; background: none; border: 0; color: #fff; font-size: 28px; cursor: pointer; padding: 4px 8px; }
 
-/* ---------- Hero + ô tìm kiếm ---------- */
-.hero { background: linear-gradient(rgba(0,59,149,.95), rgba(0,47,108,.9)); color: #fff; }
-.hero__inner { padding-block: 56px 72px; }
-.hero h1 { font-size: clamp(30px, 5vw, 44px); margin-bottom: var(--sp-2); }
-.hero p { font-size: 18px; margin-bottom: 28px; }
-.search-box { display: grid; grid-template-columns: 1.5fr 1fr 1fr .8fr auto; gap: 4px; padding: 4px;
-  background: var(--c-accent); border-radius: var(--radius); box-shadow: var(--shadow-l); }
+/* ============================================================
+   HERO + Ô TÌM KIẾM
+   ============================================================ */
+.hero { background: var(--c-primary); color: var(--c-on-primary); }
+.hero__inner { padding-block: 64px 80px; }
+.hero h1 { font-size: clamp(28px, 5vw, var(--fs-3xl)); margin-bottom: var(--sp-2); max-width: 720px; }
+.hero-sub, .hero p:not(.msg) { font-size: var(--fs-lg); color: rgba(255, 255, 255, .86); max-width: 60ch; margin-bottom: var(--sp-4); }
+
+.search-box { display: grid; grid-template-columns: 1.5fr 1fr 1fr .8fr auto; gap: 6px; padding: 6px;
+  background: var(--c-accent); border-radius: var(--radius-l); box-shadow: var(--shadow-l); }
 .search-field { display: flex; flex-direction: column; justify-content: center; min-height: 64px;
-  padding: 8px 14px; background: var(--c-bg); color: var(--c-text); border-radius: 3px; }
-.search-field label { color: var(--c-muted); font-size: 12px; font-weight: 500; margin-bottom: 2px; }
-.search-field input, .search-field select { width: 100%; border: 0; outline: 0; background: transparent; font-size: 15px; font-weight: 500; }
-.search-box__btn { min-width: 120px; padding: 0 20px; border: 0; border-radius: var(--radius-s);
-  background: var(--c-primary-l); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
+  padding: 8px 14px; background: var(--c-bg); color: var(--c-text); border-radius: var(--radius); }
+.search-field:focus-within { box-shadow: inset 0 0 0 2px var(--c-primary-l); }
+.search-field label { color: var(--c-muted); font-size: var(--fs-xs); font-weight: 600; margin-bottom: 2px; }
+.search-field input, .search-field select { width: 100%; border: 0; outline: 0; background: transparent; font-size: var(--fs-md); font-weight: 500; }
+.search-box__btn { min-width: 128px; padding: 0 var(--sp-4); border: 0; border-radius: var(--radius);
+  background: var(--c-primary-l); color: var(--c-on-primary); font-size: var(--fs-md); font-weight: 600; cursor: pointer; transition: background .15s; }
 .search-box__btn:hover { background: var(--c-primary); }
+.search-box__btn:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
 
-/* ---------- Lưới ---------- */
+
+/* ============================================================
+   LƯỚI & BỐ CỤC TRANG
+   ============================================================ */
 /* auto-fill: tự xuống dòng, không cần media query */
 .grid, .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-4); }
 .destination-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); }
@@ -61,48 +106,2069 @@ site-header { display: block; min-height: 118px; }
 /* Trang có sidebar (search.html) — minmax(0,1fr) chặn nội dung đẩy tràn ngang trên điện thoại */
 .search-layout, .shop-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--sp-4); align-items: start; padding-block: var(--sp-4); }
 .search-layout > *, .shop-layout > * { min-width: 0; }
-.filter-sidebar, .shop-sidebar { position: sticky; top: 20px; padding: var(--sp-3); background: var(--c-bg);
+.filter-sidebar, .shop-sidebar { position: sticky; top: calc(var(--header-h) + var(--sp-3)); padding: var(--sp-3); background: var(--c-bg);
   border: 1px solid var(--c-border); border-radius: var(--radius); }
 
 /* Trang chi tiết: nội dung + hộp đặt phòng */
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sp-4); align-items: start; margin-top: var(--sp-4); }
-.detail-layout__aside { position: sticky; top: 20px; }
+.detail-layout__aside { position: sticky; top: calc(var(--header-h) + var(--sp-3)); }
 
-/* ---------- Footer ---------- */
+/* MỚI — hai cột: thẻ tóm tắt bên trái + nội dung bên phải (dùng cho hồ sơ cá nhân, cài đặt...).
+   <div class="layout-2col"><aside class="layout-2col__aside">…</aside><div class="stack">…</div></div> */
+.layout-2col { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
+.layout-2col > * { min-width: 0; }
+.layout-2col__aside { position: sticky; top: calc(var(--header-h) + var(--sp-3)); }
+
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
 site-footer { display: block; margin-top: var(--sp-6); }
 .site-footer { border-top: 1px solid var(--c-border); background: var(--c-bg); padding-top: var(--sp-5); }
-.site-footer__grid { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: var(--sp-4); padding-bottom: var(--sp-4); }
-.site-footer__brand .logo { color: var(--c-primary); }
-.site-footer__tagline { color: var(--c-muted); font-size: 14px; margin-top: var(--sp-2); }
-.site-footer__title { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--c-muted); margin-bottom: var(--sp-2); }
+/* auto-fit: footer có bao nhiêu cột thì chia bấy nhiêu, không để lại ô trống */
+.site-footer__grid { display: grid; grid-template-columns: minmax(0, 2fr) repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-4); padding-bottom: var(--sp-4); }
+.site-footer__brand .logo { color: var(--c-primary); min-height: 0; }
+.site-footer__tagline { color: var(--c-muted); font-size: var(--fs-sm); margin-top: var(--sp-2); max-width: 40ch; }
+.site-footer__title { font-size: var(--fs-sm); font-weight: 700; color: var(--c-text); margin-bottom: var(--sp-2); }
 .site-footer__col ul { list-style: none; padding: 0; display: grid; gap: var(--sp-2); }
-.site-footer__col a { text-decoration: none; font-size: 14px; color: var(--c-primary-l); }
-.site-footer__col a:hover { text-decoration: underline; }
-.site-footer__bottom { border-top: 1px solid var(--c-border); padding-block: var(--sp-3); font-size: 13px; color: var(--c-muted); }
+.site-footer__col a { text-decoration: none; font-size: var(--fs-sm); color: var(--c-muted); }
+.site-footer__col a:hover { color: var(--c-primary-l); text-decoration: underline; }
+.site-footer__bottom { border-top: 1px solid var(--c-border); padding-block: var(--sp-3); font-size: var(--fs-xs); color: var(--c-muted); }
+
 
 /* ================= RESPONSIVE ================= */
-@media (max-width: 1023px) {                      /* Tablet */
+/* Header thu gọn thành nút ☰ khi màn hình ≤ 1099px.
+   Mốc này được ĐO, không đoán: menu dài nhất (host/khách) cộng logo và khu vực tài khoản phải vừa một hàng.
+   Nếu thêm mục menu hoặc đổi nhãn dài hơn → đo lại rồi nâng mốc này lên. */
+@media (max-width: 1099px) {
+  .site-header > .container { grid-template-columns: minmax(0, 1fr) auto; }
+  .logo { grid-column: 1; grid-row: 1; }
+  .site-header__actions { grid-column: 2; grid-row: 1; gap: var(--sp-2); }
+  .nav-toggle { display: inline-flex; }
+  .main-nav { grid-column: 1 / -1; grid-row: 2; display: none; padding-bottom: var(--sp-2); max-height: calc(100vh - var(--header-h)); overflow-y: auto; }
+  .main-nav.is-open { display: block; }
+  .nav-links { flex-direction: column; align-items: stretch; height: auto; gap: 0; }
+  .nav-links a { height: 48px; padding: 0 var(--sp-3); box-shadow: inset 3px 0 0 transparent; }
+  .nav-links a.is-active { box-shadow: inset 3px 0 0 var(--c-accent); background: rgba(255, 255, 255, .07); }
+}
+
+@media (max-width: 1023px) {                     /* Tablet */
   .destination-grid { grid-template-columns: repeat(2, 1fr); }
   .search-box { grid-template-columns: 1fr 1fr; }
   .search-box__btn { grid-column: 1 / -1; min-height: 48px; }
-  .site-footer__grid { grid-template-columns: 1fr 1fr; }
+  .layout-2col { grid-template-columns: 260px minmax(0, 1fr); }
 }
-@media (max-width: 767px) {                       /* Mobile */
-  h1 { font-size: 26px; } h2 { font-size: 21px; }
-  site-header { min-height: 64px; }
-  .site-header__top { flex-wrap: wrap; }
-  .site-header__actions { margin-left: auto; }
+
+@media (max-width: 767px) {                      /* Mobile */
+  .container { padding-inline: var(--sp-3); }
   .hide-sm { display: none !important; }
-  .nav-toggle { display: block; }
-  .main-nav { display: none; padding-bottom: var(--sp-2); }
-  .main-nav.is-open { display: block; }
-  .nav-links { flex-direction: column; align-items: stretch; }
+
+  /* Logo: chữ xuống 2 dòng cho vừa 320–390px */
+  .logo { white-space: normal; font-size: var(--fs-md); gap: 8px; }
+  .logo__mark { width: 30px; height: 30px; font-size: var(--fs-md); }
+
   .hero__inner { padding-block: 40px 48px; }
   .search-box { grid-template-columns: 1fr; }
-  .search-layout, .shop-layout, .detail-layout { grid-template-columns: minmax(0, 1fr); }
-  .filter-sidebar, .shop-sidebar, .detail-layout__aside { position: static; }
+  .search-layout, .shop-layout, .detail-layout, .layout-2col { grid-template-columns: minmax(0, 1fr); }
+  .filter-sidebar, .shop-sidebar, .detail-layout__aside, .layout-2col__aside { position: static; }
   .shop-sidebar, .filter-sidebar.is-collapsible { display: none; }
   .shop-sidebar.is-open, .filter-sidebar.is-open { display: block; }
   .section-head { flex-direction: column; align-items: flex-start; }
   .site-footer__grid { grid-template-columns: 1fr; }
+}
+
+
+/* ==================== PROFILE PAGE ==================== */
+
+.profile-layout {
+  align-items: start;
+}
+
+.profile-main {
+  min-width: 0;
+}
+
+.profile-avatar-card {
+  width: 100%;
+}
+
+.profile-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+
+.profile-avatar {
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-uploader {
+  flex: 1;
+  min-width: 0;
+  padding: var(--sp-2) var(--sp-3);
+}
+
+.profile-uploader .input {
+  width: 100%;
+  min-width: 0;
+}
+
+.profile-uploader .field__hint {
+  margin-top: var(--sp-2);
+}
+
+@media (max-width: 767px) {
+  .profile-avatar-row {
+    align-items: flex-start;
+  }
+}
+
+
+/* ==================== BOOKING LIST PAGE ==================== */
+
+.bookings-page {
+  width: 100%;
+}
+
+/* Bộ lọc trạng thái */
+.booking-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+
+.booking-filters .btn {
+  justify-content: center;
+}
+
+/* Grid danh sách booking */
+.booking-list-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+  width: 100%;
+  min-width: 0;
+}
+
+/* Trong grid, khoảng cách do gap đảm nhận. Phải bỏ margin-top của ".row + .row"
+   (components.css), nếu không các thẻ từ thứ 2 trở đi bị đẩy xuống thấp hơn thẻ đầu. */
+.bookings-page .booking-list-grid > .row {
+  margin-top: 0;
+}
+
+/* Từng booking */
+.booking-list-item {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3);
+}
+
+/* Ảnh homestay */
+.booking-list-item .row__img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: var(--radius-s);
+}
+
+/* Thông tin booking */
+.booking-list-item__info {
+  min-width: 0;
+}
+
+.booking-list-item__info .row__title,
+.booking-list-item__info .row__meta,
+.booking-list-item__info .row__price {
+  overflow-wrap: anywhere;
+}
+
+/* Các nút thao tác */
+.booking-list-item__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.booking-list-item__actions .btn {
+  justify-content: center;
+}
+
+.booking-list-item__actions [hidden] {
+  display: none;
+}
+
+/* Trạng thái rỗng */
+#booking-empty {
+  width: 100%;
+  text-align: center;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .booking-list-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .booking-filters .btn {
+    flex: 1 1 auto;
+  }
+
+  .booking-list-item {
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: var(--sp-2);
+  }
+
+  .booking-list-item .row__img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .booking-list-item__actions {
+    grid-column: 1 / -1;
+  }
+
+  .booking-list-item__actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
+
+/* ==================== BOOKING DETAIL PAGE ==================== */
+
+.booking-detail-page {
+  width: 100%;
+}
+
+/* Tiêu đề */
+.booking-detail-heading {
+  align-items: center;
+}
+
+/* Timeline */
+.booking-detail-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+
+.booking-detail-timeline .btn {
+  justify-content: center;
+}
+
+/* Bố cục chi tiết */
+.booking-detail-layout {
+  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: start;
+}
+
+.booking-detail-content {
+  min-width: 0;
+}
+
+/* Thông tin homestay */
+.booking-property-card {
+  width: 100%;
+}
+
+.booking-property-row {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-3);
+  border: 0;
+  padding: 0;
+  margin-top: var(--sp-3);
+}
+
+.booking-property-row .row__img {
+  width: 160px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-s);
+}
+
+.booking-property-info {
+  min-width: 0;
+}
+
+.booking-property-info .row__title,
+.booking-property-info .row__meta {
+  overflow-wrap: anywhere;
+}
+
+/* Thời gian lưu trú */
+.booking-stay-card {
+  width: 100%;
+}
+
+.booking-stay-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+
+.booking-stay-item {
+  min-width: 0;
+}
+
+.booking-stay-item p:last-child {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Liên hệ homestay */
+.booking-contact-card {
+  width: 100%;
+}
+
+.booking-contact-info {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.booking-contact-info p {
+  overflow-wrap: anywhere;
+}
+
+/* Đánh giá */
+.booking-review-card {
+  width: 100%;
+}
+
+/* Hộp thanh toán */
+.booking-payment-aside {
+  min-width: 0;
+}
+
+.booking-summary {
+  width: 100%;
+}
+
+.booking-summary__price {
+  color: var(--c-primary);
+  text-align: right;
+}
+
+.booking-payment-actions {
+  min-width: 0;
+}
+
+.booking-payment-actions .field__hint {
+  line-height: 1.6;
+}
+
+/* Tablet */
+@media (max-width: 1023px) {
+  .booking-detail-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+
+  .booking-property-row {
+    grid-template-columns: 120px minmax(0, 1fr);
+  }
+
+  .booking-property-row .row__img {
+    width: 120px;
+    height: 110px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .booking-detail-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .booking-payment-aside {
+    position: static;
+  }
+
+  .booking-detail-heading {
+    align-items: flex-start;
+  }
+
+  .booking-detail-timeline {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .booking-detail-timeline .btn {
+    white-space: normal;
+    min-height: 44px;
+  }
+}
+
+/* Mobile nhỏ */
+@media (max-width: 480px) {
+  .booking-property-row {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-property-row .row__img {
+    width: 100%;
+    height: 180px;
+  }
+
+  .booking-stay-info {
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+  }
+
+  .booking-detail-heading {
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+
+  .booking-detail-timeline {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ==================== HOST DASHBOARD PAGE ==================== */
+
+.host-dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+/* Khu vực thống kê */
+.host-dashboard-stats-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.host-dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-4);
+  width: 100%;
+}
+
+.host-dashboard-stats .stat-card {
+  min-width: 0;
+}
+
+.host-dashboard-skeleton {
+  width: 100%;
+  height: 56px;
+  aspect-ratio: auto;
+}
+
+/* Thao tác nhanh */
+.host-dashboard-actions-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  width: 100%;
+}
+
+.host-dashboard-actions-section h2 {
+  margin: 0;
+}
+
+.host-dashboard-quick-links {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-3);
+  width: 100%;
+}
+
+.host-dashboard-quick-links .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 48px;
+  text-align: center;
+  white-space: normal;
+}
+
+/* Đặt phòng gần đây */
+.host-dashboard-recent-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.host-dashboard-recent {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .host-dashboard-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .host-dashboard-quick-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .host-dashboard-page {
+    gap: var(--sp-4);
+  }
+
+  .host-dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .host-dashboard-quick-links {
+    grid-template-columns: 1fr;
+  }
+
+  .host-dashboard-quick-links .btn {
+    width: 100%;
+  }
+}
+
+
+/* ==================== HOST DASHBOARD BOOKING LIST ==================== */
+
+.host-dashboard-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  width: 100%;
+}
+
+.host-dashboard-booking-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-width: 0;
+  padding: var(--sp-3);
+}
+
+.host-dashboard-booking-thumb {
+  width: 96px;
+  height: 72px;
+  background: var(--c-surface);
+  border-radius: var(--radius-s);
+}
+
+.host-dashboard-booking-info {
+  min-width: 0;
+}
+
+.host-dashboard-booking-info .row__title,
+.host-dashboard-booking-info .row__meta {
+  overflow-wrap: anywhere;
+}
+
+.host-dashboard-booking-status {
+  min-width: 120px;
+  text-align: right;
+}
+
+.host-dashboard-booking-status .row__price {
+  margin-bottom: 0;
+}
+
+/* Tablet và mobile */
+@media (max-width: 767px) {
+  .host-dashboard-booking-row {
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: var(--sp-2);
+  }
+
+  .host-dashboard-booking-thumb {
+    width: 80px;
+    height: 72px;
+  }
+
+  .host-dashboard-booking-status {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    min-width: 0;
+    text-align: left;
+  }
+
+  .host-dashboard-booking-status .row__price {
+    margin-top: 0;
+  }
+}
+
+
+/* ==================== HOST HOMESTAYS PAGE ==================== */
+
+.host-homestays-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: 100%;
+}
+
+/* Tiêu đề trang */
+.host-homestays-heading {
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.host-homestays-heading > div {
+  min-width: 0;
+}
+
+.host-homestays-heading .btn {
+  flex-shrink: 0;
+}
+
+/* Khu vực danh sách */
+.host-homestays-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.host-homestays-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--sp-4);
+  width: 100%;
+  min-width: 0;
+}
+
+.host-homestays-grid > * {
+  min-width: 0;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .host-homestays-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-3);
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .host-homestays-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .host-homestays-heading .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .host-homestays-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ==================== HOST HOMESTAY CARD ==================== */
+
+.host-homestay-card {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-m);
+  background: var(--c-surface);
+}
+
+.host-homestay-card__img {
+  grid-column: 1;
+  grid-row: 1;
+  width: 120px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: var(--radius-s);
+}
+
+.host-homestay-card__info {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.host-homestay-card__info .row__title {
+  display: inline-block;
+  margin-bottom: var(--sp-2);
+  overflow-wrap: anywhere;
+}
+
+.host-homestay-card__info .row__meta {
+  overflow-wrap: anywhere;
+}
+
+.host-homestay-card__address {
+  margin-bottom: var(--sp-2);
+}
+
+.host-homestay-card__actions {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.host-homestay-card__actions .btn {
+  justify-content: center;
+}
+
+.host-homestays-empty {
+  grid-column: 1 / -1;
+  width: 100%;
+  text-align: center;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .host-homestay-card {
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: var(--sp-2);
+  }
+
+  .host-homestay-card__img {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .host-homestay-card {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+
+  .host-homestay-card__actions {
+    justify-content: stretch;
+  }
+
+  .host-homestay-card__actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .host-homestay-card {
+    grid-template-columns: 1fr;
+  }
+
+  .host-homestay-card__img {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: 180px;
+  }
+
+  .host-homestay-card__info {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .host-homestay-card__actions {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
+
+
+/* ==================== HOST ROOMS PAGE ==================== */
+
+.host-rooms-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: 100%;
+}
+
+/* Tiêu đề */
+.host-rooms-heading {
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.host-rooms-heading > div {
+  min-width: 0;
+}
+
+.host-rooms-heading .btn {
+  flex-shrink: 0;
+}
+
+/* Form thêm / sửa phòng */
+.room-form {
+  display: none;
+  width: 100%;
+  margin: 0 0 var(--sp-4);
+}
+
+.room-form.is-open {
+  display: block;
+}
+
+.host-room-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+
+.host-room-form-grid .field {
+  min-width: 0;
+}
+
+/* Danh sách ngày bị chặn */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--sp-2);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--c-surface);
+  font-size: 13px;
+}
+
+.tag button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Thêm ngày chặn */
+.host-room-block-date {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.host-room-block-date .input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Nút lưu / hủy */
+.host-room-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+/* Khu vực danh sách */
+.host-rooms-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.host-rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--sp-4);
+  width: 100%;
+  min-width: 0;
+}
+
+.host-rooms-grid > * {
+  min-width: 0;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .host-rooms-grid {
+    gap: var(--sp-3);
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .host-rooms-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .host-rooms-heading .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .host-room-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .host-room-block-date {
+    align-items: stretch;
+  }
+
+  .host-room-form-actions {
+    flex-direction: column;
+  }
+
+  .host-room-form-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .host-rooms-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 380px) {
+  .host-room-block-date {
+    flex-direction: column;
+  }
+
+  .host-room-block-date .btn {
+    width: 100%;
+  }
+}
+
+
+/* ==================== HOST ROOM CARD ==================== */
+
+.host-room-card {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-m);
+  background: var(--c-surface);
+}
+
+.host-room-card__img {
+  grid-column: 1;
+  grid-row: 1;
+  width: 120px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: var(--radius-s);
+}
+
+.host-room-card__info {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.host-room-card__info .row__title {
+  margin-bottom: var(--sp-2);
+  overflow-wrap: anywhere;
+}
+
+.host-room-card__description {
+  overflow-wrap: anywhere;
+}
+
+.host-room-card__info .row__price {
+  margin-top: var(--sp-2);
+}
+
+.host-room-card__actions {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.host-room-card__actions .btn {
+  justify-content: center;
+}
+
+/* Dropdown chọn homestay */
+.host-room-homestay-select {
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+  margin-left: var(--sp-2);
+}
+
+/* Danh sách ảnh xem trước */
+#rPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  width: 100%;
+  margin-top: var(--sp-2);
+}
+
+#rPreview .thumb {
+  position: relative;
+  flex: 0 0 100px;
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  border-radius: var(--radius-s);
+}
+
+#rPreview .thumb__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#rPreview .thumb__remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--c-surface);
+  cursor: pointer;
+}
+
+/* Trạng thái rỗng */
+.host-rooms-empty {
+  grid-column: 1 / -1;
+  width: 100%;
+  text-align: center;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .host-room-card {
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: var(--sp-2);
+  }
+
+  .host-room-card__img {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .host-room-card__actions {
+    justify-content: stretch;
+  }
+
+  .host-room-card__actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .host-room-card {
+    grid-template-columns: 1fr;
+  }
+
+  .host-room-card__img {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: 180px;
+  }
+
+  .host-room-card__info {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .host-room-card__actions {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .host-room-homestay-select {
+    display: block;
+    width: 100%;
+    margin: var(--sp-2) 0 0;
+  }
+}
+
+
+/* ==================== HOST BOOKINGS PAGE ==================== */
+
+.host-bookings-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: 100%;
+}
+
+.host-bookings-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.host-bookings-heading > div {
+  min-width: 0;
+}
+
+.host-bookings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.host-bookings-tabs .btn {
+  justify-content: center;
+  white-space: normal;
+}
+
+.host-bookings-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.host-bookings-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--sp-4);
+  width: 100%;
+  min-width: 0;
+}
+
+.host-bookings-list > * {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .host-bookings-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .host-bookings-page {
+    gap: var(--sp-3);
+  }
+
+  .host-bookings-heading {
+    align-items: flex-start;
+  }
+
+  .host-bookings-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .host-bookings-tabs .btn {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .host-bookings-list {
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+  }
+}
+
+
+/* ==================== HOST BOOKING CARD ==================== */
+
+.host-bookings-empty {
+  grid-column: 1 / -1;
+  width: 100%;
+  text-align: center;
+}
+
+.host-booking-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-4);
+  width: 100%;
+  min-width: 0;
+  padding: var(--sp-4);
+}
+
+.host-booking-info {
+  min-width: 0;
+}
+
+.host-booking-info .row__title,
+.host-booking-info .row__meta {
+  overflow-wrap: anywhere;
+}
+
+.host-booking-reject-reason {
+  margin-top: var(--sp-2);
+}
+
+.host-booking-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-2);
+  min-width: 150px;
+  text-align: right;
+}
+
+.host-booking-price {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.host-booking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.host-booking-actions .btn {
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .host-booking-card {
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+  }
+
+  .host-booking-summary {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    width: 100%;
+    text-align: left;
+  }
+
+  .host-booking-price {
+    margin-left: auto;
+  }
+
+  .host-booking-actions {
+    width: 100%;
+    justify-content: stretch;
+    margin-top: var(--sp-2);
+  }
+
+  .host-booking-actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
+
+/* ==================== HOST REGISTER PAGE ==================== */
+
+.host-register-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.host-register-card {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.host-register-form {
+  width: 100%;
+}
+
+.host-register-form .field {
+  width: 100%;
+  min-width: 0;
+}
+
+.host-register-form .input {
+  width: 100%;
+  min-width: 0;
+}
+
+.host-register-form .field__input-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+.host-register-note {
+  line-height: 1.6;
+}
+
+.host-register-login {
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .host-register-page {
+    padding-left: var(--sp-3);
+    padding-right: var(--sp-3);
+  }
+
+  .host-register-card {
+    padding: var(--sp-3);
+  }
+}
+
+
+/* ==================== HOST HOMESTAY FORM PAGE ==================== */
+
+.host-homestay-form-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.host-homestay-form {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.host-homestay-form-heading {
+  margin-bottom: var(--sp-4);
+}
+
+.host-homestay-form-heading h1 {
+  margin-bottom: var(--sp-2);
+}
+
+.host-homestay-form-heading p {
+  line-height: 1.6;
+}
+
+.host-homestay-form .field {
+  width: 100%;
+  min-width: 0;
+}
+
+.host-homestay-form .input,
+.host-homestay-form .textarea {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Tiện ích */
+.host-homestay-amenities {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-2);
+  width: 100%;
+}
+
+.host-homestay-amenities .filter-option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-2);
+}
+
+.host-homestay-amenities input {
+  flex-shrink: 0;
+}
+
+/* Khu vực tải ảnh */
+.host-homestay-uploader {
+  width: 100%;
+}
+
+.host-homestay-uploader .field__hint {
+  margin-top: var(--sp-2);
+  line-height: 1.6;
+}
+
+/* Ảnh xem trước */
+.host-homestay-preview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-3);
+  width: 100%;
+  margin-top: var(--sp-3);
+}
+
+.host-homestay-preview > * {
+  min-width: 0;
+}
+
+/* Thông báo */
+.host-homestay-form-message:not([hidden]) {
+  display: block;
+  margin-top: var(--sp-2);
+}
+
+/* Nút thao tác */
+.host-homestay-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  width: 100%;
+  margin-top: var(--sp-4);
+}
+
+.host-homestay-form-primary-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.host-homestay-delete {
+  margin-left: auto;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .host-homestay-form {
+    padding: var(--sp-3);
+  }
+
+  .host-homestay-amenities {
+    grid-template-columns: 1fr;
+  }
+
+  .host-homestay-preview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .host-homestay-form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .host-homestay-form-primary-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .host-homestay-form-primary-actions .btn {
+    justify-content: center;
+  }
+
+  .host-homestay-delete {
+    width: 100%;
+    margin-left: 0;
+    justify-content: center;
+  }
+}
+
+
+/* ==================== BOOKING CONFIRMED PAGE ==================== */
+
+.booking-confirmed-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Thông báo thành công */
+.booking-confirmed-success {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: 100%;
+  margin-bottom: var(--sp-4);
+}
+
+.booking-confirmed-success__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* Bố cục chính */
+.booking-confirmed-layout {
+  grid-template-columns: minmax(0, 1fr) 320px;
+  align-items: start;
+  gap: var(--sp-4);
+}
+
+.booking-confirmed-content {
+  min-width: 0;
+}
+
+.booking-confirmed-content > .form-card {
+  width: 100%;
+  margin: 0;
+}
+
+/* Mã đặt phòng */
+.booking-confirmed-code-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.booking-confirmed-code-card h2 {
+  overflow-wrap: anywhere;
+}
+
+/* Hình ảnh homestay */
+.booking-confirmed-property {
+  min-width: 0;
+}
+
+.booking-confirmed-image {
+  display: block;
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  border-radius: var(--radius-s);
+}
+
+.booking-confirmed-property h3,
+.booking-confirmed-property p {
+  overflow-wrap: anywhere;
+}
+
+/* Thông tin lưu trú và thanh toán */
+.booking-confirmed-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+
+.booking-confirmed-info-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.booking-confirmed-info-row > :last-child {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.booking-confirmed-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--c-border, #ddd);
+}
+
+.booking-confirmed-total > :last-child {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* Nút điều hướng */
+.booking-confirmed-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-2);
+  width: 100%;
+}
+
+.booking-confirmed-actions .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 44px;
+  text-align: center;
+  white-space: normal;
+}
+
+.booking-confirmed-actions .btn:last-child {
+  grid-column: 1 / -1;
+}
+
+/* Cột liên hệ chủ nhà */
+.booking-confirmed-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.booking-confirmed-host-card {
+  width: 100%;
+  margin: 0;
+}
+
+.booking-confirmed-host {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.booking-confirmed-contact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.booking-confirmed-contact-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.booking-confirmed-contact-row > :last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.booking-confirmed-support {
+  margin: 0;
+  background: var(--c-surface);
+}
+
+.booking-confirmed-support .field__hint {
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .booking-confirmed-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .booking-confirmed-aside {
+    position: static;
+  }
+
+  .booking-confirmed-image {
+    height: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-confirmed-code-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .booking-confirmed-info-row {
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+
+  .booking-confirmed-info-row > :last-child {
+    text-align: left;
+  }
+
+  .booking-confirmed-total {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+
+  .booking-confirmed-total > :last-child {
+    text-align: left;
+  }
+
+  .booking-confirmed-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-confirmed-actions .btn:last-child {
+    grid-column: auto;
+  }
+}
+
+/* Khi in xác nhận */
+@media print {
+  site-header,
+  site-footer,
+  #toast,
+  .booking-confirmed-actions,
+  .booking-confirmed-support {
+    display: none !important;
+  }
+
+  .booking-confirmed-layout {
+    grid-template-columns: 1fr 280px;
+  }
+
+  .booking-confirmed-page {
+    max-width: 100%;
+  }
+
+  .form-card {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+}
+
+
+/* ==================== BOOKING CHECKOUT PAGE ==================== */
+
+.booking-page {
+  width: 100%;
+}
+
+.booking-checkout-layout {
+  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: start;
+  gap: var(--sp-4);
+}
+
+.booking-checkout-main {
+  min-width: 0;
+}
+
+.booking-error-alert {
+  width: 100%;
+}
+
+.booking-account-card {
+  align-items: center;
+  width: 100%;
+  margin: 0;
+}
+
+.booking-account-avatar {
+  flex-shrink: 0;
+}
+
+.booking-account-info {
+  min-width: 0;
+}
+
+.booking-account-info strong,
+.booking-account-info p {
+  overflow-wrap: anywhere;
+}
+
+.booking-form-card {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.booking-form-notice {
+  line-height: 1.6;
+}
+
+.booking-checkout-form {
+  width: 100%;
+  min-width: 0;
+}
+
+.booking-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+}
+
+.booking-form-grid .field {
+  min-width: 0;
+}
+
+.booking-form-grid .input,
+.booking-checkout-form > .field .input {
+  width: 100%;
+  min-width: 0;
+}
+
+.booking-form-message {
+  display: none;
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.booking-submit-button {
+  width: 100%;
+  min-height: 48px;
+  white-space: normal;
+}
+
+.booking-summary-aside {
+  min-width: 0;
+}
+
+.booking-property-summary,
+.booking-price-summary {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.booking-summary-image {
+  display: block;
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  border-radius: var(--radius-s);
+}
+
+.booking-property-summary h3,
+.booking-property-summary p {
+  overflow-wrap: anywhere;
+}
+
+.booking-rating {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.booking-price-details {
+  width: 100%;
+  min-width: 0;
+}
+
+.booking-summary-row {
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.booking-summary-row > :last-child {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.booking-room-lines {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.booking-grand-total {
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.booking-grand-total > :last-child {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.booking-edit-selection {
+  display: inline-block;
+  margin-top: var(--sp-3);
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .booking-checkout-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+
+  .booking-summary-image {
+    height: 170px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .booking-checkout-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .booking-summary-aside {
+    position: static;
+  }
+
+  .booking-summary-image {
+    height: 220px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .booking-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .booking-account-card {
+    align-items: flex-start;
+  }
+
+  .booking-summary-row {
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+
+  .booking-summary-row > :last-child {
+    text-align: left;
+  }
+
+  .booking-grand-total {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+
+  .booking-grand-total > :last-child {
+    text-align: left;
+  }
+}
+
+/* ==================== BOOKING CHECKOUT — LÀM ĐẸP (bổ sung) ==================== */
+
+/* --- Thanh các bước (thay breadcrumb) --- */
+.booking-steps { padding-top: var(--sp-4); }
+.booking-steps ol {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) 0;
+  list-style: none; padding: 0; margin: 0; font-size: var(--fs-sm); color: var(--c-muted);
+}
+.booking-steps li { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.booking-steps li + li::before {            /* đường nối giữa các bước */
+  content: ""; width: 32px; height: 2px; margin-inline: var(--sp-2);
+  background: var(--c-border); border-radius: 2px;
+}
+.booking-steps li.is-done + li::before { background: var(--c-primary-l); }
+.booking-steps a { color: var(--c-primary-l); text-decoration: none; font-weight: 600; }
+.booking-steps a:hover { text-decoration: underline; }
+.booking-steps li.is-current { color: var(--c-text); font-weight: 600; }
+.booking-steps__dot {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--c-surface); color: var(--c-muted); font-size: var(--fs-xs); font-weight: 700;
+}
+.booking-steps li.is-done .booking-steps__dot    { background: var(--c-primary-l); color: var(--c-on-primary); }
+.booking-steps li.is-current .booking-steps__dot { background: var(--c-primary);   color: var(--c-on-primary); }
+
+/* --- Khoảng cách: bớt khoảng trống giữa thanh bước và nội dung --- */
+.booking-page { padding-top: var(--sp-3); padding-bottom: var(--sp-6); }
+.booking-page .booking-checkout-layout { margin-top: 0; }
+
+/* Thẻ đầu tiên của cột trái từng bị đẩy xuống vì #errorAlert[hidden] vẫn là "anh em liền trước"
+   (luật .stack > * + .form-card). Cắt margin đó để 2 cột bắt đầu cùng một hàng. */
+.booking-checkout-main > [hidden] + .form-card { margin-top: 0; }
+
+/* --- Thẻ --- */
+.booking-page .form-card { padding: var(--sp-4) var(--sp-5); }
+.booking-page .form-card h3 { font-size: var(--fs-lg); }
+.booking-account-card { display: flex; gap: var(--sp-3); padding-block: var(--sp-3); }
+.booking-account-info p { margin: 0; }
+
+.booking-form-card h3 { margin-bottom: var(--sp-3); }
+.booking-form-notice {
+  display: flex; gap: var(--sp-2); align-items: flex-start;
+  margin-bottom: var(--sp-4); padding: var(--sp-3);
+  background: var(--c-primary-soft); border: 1px solid var(--c-border); border-radius: var(--radius-s);
+  color: var(--c-text);
+}
+.booking-form-notice .icon-info { background: var(--c-primary-l); margin-top: 1px; }
+.booking-form-notice p { margin: 0; }
+.booking-form-notice .field__hint { margin-top: 2px; }
+
+/* --- Form: khoảng cách đều, các ô cạnh nhau thẳng hàng --- */
+.booking-checkout-form { display: grid; gap: var(--sp-3); }
+.booking-checkout-form > * { margin: 0; }
+.booking-form-grid { gap: var(--sp-3); }
+.booking-form-grid .field + .field { margin-top: 0; }   /* tránh luật ".field + .field" đẩy ô thứ 2 xuống */
+.booking-form-section {
+  margin: var(--sp-2) 0 0; padding-top: var(--sp-4);
+  border-top: 1px solid var(--c-border);
+  font-size: var(--fs-md); font-weight: 700; color: var(--c-primary);
+}
+.booking-submit-button { min-height: 50px; font-size: var(--fs-md); font-weight: 700; justify-content: center; }
+.booking-secure-note { margin-top: var(--sp-2); text-align: center; }
+.booking-form-message { margin: 0; }
+
+/* --- Cột phải: tóm tắt --- */
+.booking-property-summary { padding: var(--sp-3); }
+.booking-property-summary h3 { margin-top: var(--sp-3); }
+.booking-summary-image { height: 190px; background: var(--c-surface); }
+.booking-summary-location { margin: var(--sp-1) 0 var(--sp-3); font-size: var(--fs-sm); }
+.booking-summary-location::before { content: "📍 "; }
+
+.booking-rating { display: flex; gap: var(--sp-2); align-items: center; }
+.booking-rating[hidden] { display: none; }              /* display:flex ở trên sẽ đè thuộc tính hidden nếu thiếu dòng này */
+.booking-rating__score {
+  display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+  padding: 3px 10px; border-radius: var(--radius-pill);
+  background: var(--c-primary-l); color: var(--c-on-primary);
+  font-size: var(--fs-sm); font-weight: 700; line-height: 1.4;
+}
+.booking-rating__score::before { content: "★"; color: #f5c46b; }
+.booking-rating__text { font-size: var(--fs-sm); color: var(--c-muted); line-height: 1.4; }
+.booking-rating__text strong { color: var(--c-text); }
+
+.booking-price-summary h3 { margin-bottom: var(--sp-3); }
+.booking-price-details { display: grid; gap: var(--sp-2); }
+.booking-price-details > hr { margin: var(--sp-1) 0; }
+.booking-summary-row { font-size: var(--fs-sm); }
+.booking-room-lines { display: grid; gap: var(--sp-2); font-size: var(--fs-sm); }
+.booking-room-lines .flex-between { align-items: flex-start; }
+.booking-room-lines .flex-between > :last-child { white-space: nowrap; font-weight: 600; }
+.booking-grand-total {
+  margin-top: var(--sp-2); padding-top: var(--sp-3); border-top: 2px solid var(--c-border);
+  font-weight: 700;
+}
+.booking-grand-total > :last-child { font-size: var(--fs-xl); color: var(--c-primary); }
+.booking-edit-selection {
+  display: inline-block; margin-top: var(--sp-3);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--c-primary-l); text-decoration: none;
+}
+.booking-edit-selection:hover { text-decoration: underline; }
+
+@media (max-width: 767px) {
+  .booking-page .form-card { padding: var(--sp-3); }
+  .booking-steps li + li::before { width: 16px; margin-inline: var(--sp-1); }
+}
+/* Mobile nhỏ: chỉ bước hiện tại hiện chữ để thanh bước luôn nằm trên 1 dòng */
+@media (max-width: 480px) {
+  .booking-steps li:not(.is-current) .booking-steps__label { display: none; }
+  /* Đè luật cũ (xếp dọc + canh trái): giữ nhãn bên trái, giá trị bên phải như desktop */
+  .booking-summary-row, .booking-grand-total { flex-direction: row; align-items: flex-start; gap: var(--sp-3); }
+  .booking-grand-total { align-items: center; }
+  .booking-summary-row > :last-child, .booking-grand-total > :last-child { text-align: right; }
 }

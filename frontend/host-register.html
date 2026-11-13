@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="vi">
 <head>
@@ -9,15 +10,16 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/motion.css">
 </head>
 
 <body>
 
 <site-header></site-header>
 
-<main class="container page">
+<main class="container page host-register-page">
 
-  <div class="form-card">
+  <div class="form-card host-register-card">
 
     <a class="text-muted underline" href="index.html">
       ← Quay lại trang chủ
@@ -35,16 +37,15 @@
 
     <form
       id="host-register-form"
-      class="stack mt-4"
+      method="post"
+      onsubmit="event.preventDefault()"
+      class="stack mt-4 host-register-form"
       novalidate
     >
 
       <!-- HỌ VÀ TÊN -->
       <div class="field">
-        <label
-          class="field__label"
-          for="host-display-name"
-        >
+        <label class="field__label" for="host-display-name">
           Họ và tên
         </label>
 
@@ -61,13 +62,9 @@
         <p class="field__error"></p>
       </div>
 
-
       <!-- EMAIL -->
       <div class="field">
-        <label
-          class="field__label"
-          for="host-email"
-        >
+        <label class="field__label" for="host-email">
           Email
         </label>
 
@@ -84,13 +81,9 @@
         <p class="field__error"></p>
       </div>
 
-
       <!-- SỐ ĐIỆN THOẠI -->
       <div class="field">
-        <label
-          class="field__label"
-          for="host-phone"
-        >
+        <label class="field__label" for="host-phone">
           Số điện thoại
         </label>
 
@@ -102,7 +95,7 @@
           placeholder="Ví dụ: 0912345678"
           autocomplete="tel"
           inputmode="numeric"
-          maxlength="10"
+          maxlength="12"
           required
         >
 
@@ -113,18 +106,13 @@
         <p class="field__error"></p>
       </div>
 
-
       <!-- MẬT KHẨU -->
       <div class="field">
-        <label
-          class="field__label"
-          for="host-password"
-        >
+        <label class="field__label" for="host-password">
           Mật khẩu
         </label>
 
         <div class="field__input-wrapper">
-
           <input
             class="input"
             id="host-password"
@@ -137,31 +125,25 @@
           >
 
           <button
-          type="button"
+            type="button"
             class="field__toggle-password"
             data-target="host-password"
             aria-label="Hiện mật khẩu"
           >
             👁
           </button>
-
         </div>
 
         <p class="field__error"></p>
       </div>
 
-
       <!-- XÁC NHẬN MẬT KHẨU -->
       <div class="field">
-        <label
-          class="field__label"
-          for="host-confirm"
-        >
+        <label class="field__label" for="host-confirm">
           Nhập lại mật khẩu
         </label>
 
         <div class="field__input-wrapper">
-
           <input
             class="input"
             id="host-confirm"
@@ -180,37 +162,32 @@
           >
             👁
           </button>
-
         </div>
 
         <p class="field__error"></p>
       </div>
 
-
       <!-- THÔNG TIN -->
-      <p class="field__hint">
+      <p class="field__hint host-register-note">
+        Tài khoản mô phỏng chỉ lưu trên trình duyệt này. Không dùng mật khẩu thật.
         <strong>Lưu ý:</strong>
         Sau khi tạo tài khoản, bạn có thể sử dụng chức năng quản lý
         homestay và phòng.
       </p>
 
-
       <!-- SUBMIT -->
       <button
         class="btn btn--primary btn--block"
         type="submit"
+        disabled
       >
         Đăng ký Host
       </button>
 
-
       <!-- LOGIN -->
-      <p class="field__hint">
+      <p class="field__hint host-register-login">
         Đã có tài khoản?
-        <a
-          class="text-primary"
-          href="login.html"
-        >
+        <a class="text-primary" href="login.html">
           Đăng nhập
         </a>
       </p>
@@ -225,20 +202,9 @@
 
 <div id="toast" role="status"></div>
 
-<script
-  type="module"
-  src="js/components/site-header.js"
-></script>
-
-<script
-  type="module"
-  src="js/components/site-footer.js"
-></script>
-
-<script
-  type="module"
-  src="js/pages/host-register.js"
-></script>
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
+<script type="module" src="js/pages/host-register.js"></script>
 
 </body>
 </html>

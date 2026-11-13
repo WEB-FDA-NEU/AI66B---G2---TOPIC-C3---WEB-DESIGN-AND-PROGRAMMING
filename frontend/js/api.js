@@ -6,7 +6,18 @@
 //  thêm hàm vào vùng của mình.
 // ============================================================
 import { USE_MOCK, API_BASE, MOCK_BASE } from './config.js';
-import { getToken, getUser } from './auth.js';
+import { getToken, getUser, saveSession } from './auth.js';
+
+// ---- Phiên bản dữ liệu mock ----
+// Dữ liệu mock được copy vào localStorage lần đầu đọc, nên khi ai đó sửa mock/*.json mà máy các bạn
+// vẫn giữ bản cũ thì sẽ thấy dữ liệu "không đổi". TĂNG số này mỗi khi sửa mock/*.json:
+// lần mở trang kế tiếp, mọi máy tự xóa cache mock cũ (không đụng tới phiên đăng nhập).
+const MOCK_DATA_VERSION = '2026-11-13-a';
+if (USE_MOCK && localStorage.getItem('mock_version') !== MOCK_DATA_VERSION) {
+  ['customerBookings', 'homestays', 'rooms', 'bookings'].forEach(k => localStorage.removeItem(k));
+  Object.keys(localStorage).filter(k => k.startsWith('reviews_')).forEach(k => localStorage.removeItem(k));
+  localStorage.setItem('mock_version', MOCK_DATA_VERSION);
+}
 
 export class ApiError extends Error {
   constructor(status, detail) {
@@ -113,47 +124,154 @@ export async function addReview(itemId, review) {
 }
 
 // ══════════ NGƯỜI 2 — tài khoản ══════════
-/** Cache danh sách user đọc từ mock/users.json — dùng chung cho login() và register(). */
-let MOCK_USERS = null;
+// Chỉ mô phỏng trên thiết bị này. Người dùng có thể sửa localStorage để giả phiên/quyền.
+// Chỉ lưu hồ sơ + PBKDF2 verifier có salt; không lưu mật khẩu thô hay verifier vào app_user.
+const MOCK_USERS_KEY = 'luxstay_mock_users_v1';
+const PASSWORD_ITERATIONS = 600000;
+const publicUser = u => Object.fromEntries(
+  ['id', 'display_name', 'email', 'phone', 'role', 'avatar', 'createdAt'].map(k => [k, u[k]])
+);
+const mockSession = user => ({ access_token: 'mock-token', token_type: 'bearer', user: publicUser(user) });
+const normalizeEmail = email => String(email ?? '').trim().toLowerCase();
+
+function writeMockUsers(users) {
+  try { localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users)); }
+  catch { throw new ApiError(0, 'Không lưu được tài khoản mock. Bộ nhớ trình duyệt có thể đã đầy hoặc bị chặn.'); }
+}
+
 async function loadMockUsers() {
-  if (!MOCK_USERS) {
-    const data = await request(`${MOCK_BASE}/users.json`);
-    MOCK_USERS = data.users ?? [];
+  const cached = localStorage.getItem(MOCK_USERS_KEY);
+  if (cached !== null) {
+    try {
+      const users = JSON.parse(cached);
+      if (!Array.isArray(users) || users.some(u => !u || !u.email || !u.credential)) throw new Error();
+      return users;
+    } catch { throw new ApiError(0, 'Dữ liệu tài khoản mock bị hỏng. Hãy sao lưu rồi xóa riêng luxstay_mock_users_v1 để khởi tạo lại.'); }
   }
-  return MOCK_USERS;
+  const data = await request(`${MOCK_BASE}/users.json`);
+  // Tab khác có thể đã khởi tạo trong khi chờ tải JSON.
+  if (localStorage.getItem(MOCK_USERS_KEY) !== null) return loadMockUsers();
+  const users = data.users.map(u => ({ ...publicUser(u), credential: u.credential }));
+  writeMockUsers(users);
+  return users;
+}
+
+function validateProfile(data) {
+  const display_name = String(data.display_name ?? '').trim();
+  const email = normalizeEmail(data.email);
+  const phone = String(data.phone ?? '').trim();
+  if (display_name.length < 2 || display_name.length > 80) throw new ApiError(400, 'Họ tên phải có từ 2 đến 80 ký tự.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ApiError(400, 'Email không hợp lệ.');
+  if (phone && !/^(0|\+84)[35789][0-9]{8}$/.test(phone)) throw new ApiError(400, 'Số điện thoại không hợp lệ.');
+  return { display_name, email, phone };
+}
+
+function validatePassword(password) {
+  if (typeof password !== 'string' || password.length < 8 || password.length > 128)
+    throw new ApiError(400, 'Mật khẩu phải có từ 8 đến 128 ký tự.');
+}
+
+async function derivePassword(password, salt) {
+  if (!globalThis.crypto?.subtle) throw new ApiError(0, 'Đổi/kiểm tra mật khẩu mock cần HTTPS hoặc localhost và trình duyệt hỗ trợ Web Crypto.');
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256',
+    salt: Uint8Array.from(salt.match(/../g), x => parseInt(x, 16)), iterations: PASSWORD_ITERATIONS }, key, 256);
+  return Array.from(new Uint8Array(bits), x => x.toString(16).padStart(2, '0')).join('');
+}
+
+async function makeCredential(password) {
+  validatePassword(password);
+  if (!globalThis.crypto?.subtle) throw new ApiError(0, 'Tài khoản mock cần HTTPS hoặc localhost và Web Crypto.');
+  const salt = Array.from(crypto.getRandomValues(new Uint8Array(16)), x => x.toString(16).padStart(2, '0')).join('');
+  return { algorithm: 'PBKDF2-SHA256', iterations: PASSWORD_ITERATIONS, salt, hash: await derivePassword(password, salt) };
+}
+
+async function verifyCredential(password, c) {
+  if (!c || c.algorithm !== 'PBKDF2-SHA256' || c.iterations !== PASSWORD_ITERATIONS
+      || !/^[a-f0-9]{32}$/.test(c.salt) || !/^[a-f0-9]{64}$/.test(c.hash))
+    throw new ApiError(0, 'Dữ liệu mật khẩu mock không hợp lệ.');
+  return await derivePassword(password, c.salt) === c.hash;
+}
+
+function currentMockUser(users) {
+  const me = getToken() === 'mock-token' && getUser();
+  const found = me && users.find(u => String(u.id) === String(me.id));
+  if (!found) throw new ApiError(401, 'Bạn cần đăng nhập lại bằng tài khoản mock.');
+  return found;
 }
 
 export async function login(email, password) {
   if (USE_MOCK) {
     const users = await loadMockUsers();
-    const found = users.find(u => u.email === email.trim().toLowerCase());
-    if (!found || found.password !== password)
+    const found = users.find(u => normalizeEmail(u.email) === normalizeEmail(email));
+    validatePassword(password);
+    if (!found || !(await verifyCredential(password, found.credential)))
       throw new ApiError(401, 'Email hoặc mật khẩu không đúng.');
-    const { password: _pw, ...user } = found;   // không bao giờ trả password về client
-    return { access_token: 'mock-token', token_type: 'bearer', user };
+    return mockSession(found);
   }
   return request(`${API_BASE}/auth/login`, { method: 'POST', body: { email, password } });
 }
 
 export async function register(payload) {
   if (USE_MOCK) {
+    const profile = validateProfile(payload);
+    const credential = await makeCredential(payload.password);
     const users = await loadMockUsers();
-    const email = payload.email.trim().toLowerCase();
+    const email = profile.email;
     if (users.some(u => u.email === email))
       throw new ApiError(409, 'Email đã được đăng ký.');
     const user = {
-      id: users.length + 1,
-      display_name: payload.display_name,
-      email,
-      phone: payload.phone ?? '',
-      role: payload.role ?? 'user',
+      id: Math.max(0, ...users.map(u => Number(u.id) || 0)) + 1,
+      ...profile,
+      role: payload.role === 'host' ? 'host' : 'user',
       avatar: 'img/placeholder.svg',
       createdAt: new Date().toISOString(),
+      credential,
     };
     users.push(user);
-    return { access_token: 'mock-token', token_type: 'bearer', user };
+    writeMockUsers(users);
+    return mockSession(user);
   }
   return request(`${API_BASE}/auth/register`, { method: 'POST', body: payload });
+}
+
+export async function getProfile() {
+  if (!USE_MOCK) throw new ApiError(400, 'Hồ sơ hiện chỉ hỗ trợ chế độ mock.');
+  const user = currentMockUser(await loadMockUsers());
+  saveSession(mockSession(user));
+  return publicUser(user);
+}
+
+export async function updateProfile(payload) {
+  if (!USE_MOCK) throw new ApiError(400, 'Hồ sơ hiện chỉ hỗ trợ chế độ mock.');
+  const profile = validateProfile(payload);
+  const users = await loadMockUsers();
+  const user = currentMockUser(users);
+  if (users.some(u => u.id !== user.id && normalizeEmail(u.email) === profile.email))
+    throw new ApiError(409, 'Email đã được đăng ký.');
+  if (payload.avatar !== undefined && !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(payload.avatar))
+    throw new ApiError(400, 'Ảnh đại diện không hợp lệ.');
+  if (payload.avatar?.length > 500000) throw new ApiError(400, 'Ảnh đại diện quá lớn để lưu mock.');
+  Object.assign(user, profile, payload.avatar === undefined ? {} : { avatar: payload.avatar });
+  writeMockUsers(users);
+  saveSession(mockSession(user));
+  return publicUser(user);
+}
+
+export async function changePassword(currentPassword, newPassword) {
+  if (!USE_MOCK) throw new ApiError(400, 'Đổi mật khẩu hiện chỉ hỗ trợ chế độ mock.');
+  validatePassword(newPassword);
+  const user = currentMockUser(await loadMockUsers());
+  if (!(await verifyCredential(currentPassword, user.credential))) throw new ApiError(400, 'Mật khẩu hiện tại không đúng.');
+  if (currentPassword === newPassword) throw new ApiError(400, 'Mật khẩu mới phải khác mật khẩu hiện tại.');
+  const credential = await makeCredential(newPassword);
+  // Đọc lại sau crypto để giữ các thay đổi hồ sơ phát sinh trong lúc chờ.
+  const users = await loadMockUsers();
+  const latest = currentMockUser(users);
+  if (latest.id !== user.id || latest.credential.hash !== user.credential.hash)
+    throw new ApiError(409, 'Tài khoản đã thay đổi ở tab khác. Vui lòng thử lại.');
+  latest.credential = credential;
+  writeMockUsers(users);
 }
 
 // ══════════ NGƯỜI 3 — TODO: thêm vùng của em ở đây ══════════
@@ -162,9 +280,36 @@ export async function getBookings() {
   if (USE_MOCK) {
     const list = await readTable('customerBookings', 'bookings.json');
     const me = getUser();
-    return me ? list.filter(b => b.userId === me.id) : list;
+    return me ? list.filter(b => String(b.userId) === String(me.id)) : list;
   }
   return request(`${API_BASE}/me/bookings`);
+}
+
+export async function getBooking(id) {
+  if (USE_MOCK) {
+    const b = (await getBookings()).find(x => String(x.id) === String(id));
+    if (!b) throw new ApiError(404, 'Không tìm thấy đặt phòng này.');
+    return b;
+  }
+  return request(`${API_BASE}/me/bookings/${id}`);
+}
+
+export async function createBooking(payload) {
+  if (USE_MOCK) {
+    const me = getUser();
+    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để đặt phòng.');
+    const list = await readTable('customerBookings', 'bookings.json');
+    const id = list.reduce((m, b) => Math.max(m, Number(b.id) || 0), 0) + 1;
+    const booking = {
+      id, userId: me.id, status: 'pending', createdAt: new Date().toISOString(),
+      code: 'BK' + String(id).padStart(6, '0'),   // cùng định dạng mã với booking-detail
+      ...payload,
+    };
+    list.push(booking);
+    writeTable('customerBookings', list);
+    return booking;
+  }
+  return request(`${API_BASE}/me/bookings`, { method: 'POST', body: payload });
 }
 
 export async function cancelBooking(id) {
@@ -323,7 +468,26 @@ export async function updateBookingStatus(id, status, reason = '') {
   }
   return request(`${API_BASE}/host/bookings/${id}/status`, { method: 'PATCH', body: { status, reason } });
 }
-
+// ---------- Admin dashboard ----------
+// Trả về dữ liệu THÔ để trang tự tính (đếm, nhóm theo kỳ/tỉnh): { users, bookings, homestays }
+//  - users:     [{ id, createdAt, role }]
+//  - bookings:  [{ id, itemId, createdAt, status, totalPrice }]
+//  - homestays: [{ id, title, location }]
+// Mock: mock/admin-overview.json + mock/items.json. Backend thật: GET /admin/overview (cùng dạng).
+export async function getAdminOverview() {
+  if (USE_MOCK) {
+    const [ov, items] = await Promise.all([
+      request(`${MOCK_BASE}/admin-overview.json`),
+      request(`${MOCK_BASE}/items.json`),
+    ]);
+    return {
+      users: ov.users,
+      bookings: ov.bookings,
+      homestays: items.items.map(i => ({ id: i.id, title: i.title, location: i.location })),
+    };
+  }
+  return request(`${API_BASE}/admin/overview`);
+}
 // ══════════ NGƯỜI 5 — TODO: thêm vùng của em ở đây ══════════
 
 

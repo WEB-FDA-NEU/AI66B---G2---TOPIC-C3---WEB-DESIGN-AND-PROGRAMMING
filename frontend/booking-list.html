@@ -1,9 +1,11 @@
+
 <!doctype html>
 <html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Homestay Booking — Lịch sử đặt phòng</title>
+
 <link rel="stylesheet" href="css/reset.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
@@ -11,83 +13,137 @@
 <link rel="stylesheet" href="css/motion.css">
 </head>
 <body>
- 
+
 <site-header active="bookings"></site-header>
- 
+
 <main class="page container bookings-page">
- 
+
   <div class="section-head">
     <div>
       <h1>Lịch sử đặt phòng</h1>
       <p>Xem lại các homestay bạn đã đặt và trạng thái hiện tại.</p>
     </div>
   </div>
- 
-  <!-- TODO: khi có dữ liệu thật, gắn data-status vào từng nút và lọc bằng JS -->
-  <div class="tabs">
-    <button class="btn is-active" type="button" data-filter="all">Tất cả <span class="tab-count"></span></button>
-    <button class="btn" type="button" data-filter="pending">Chờ xác nhận <span class="tab-count"></span></button>
-    <button class="btn" type="button" data-filter="confirmed">Đã xác nhận <span class="tab-count"></span></button>
-    <button class="btn" type="button" data-filter="checked_in">Đã nhận phòng <span class="tab-count"></span></button>
-    <button class="btn" type="button" data-filter="completed">Hoàn thành <span class="tab-count"></span></button>
-    <button class="btn" type="button" data-filter="cancelled">Đã huỷ <span class="tab-count"></span></button>
+
+  <!-- BỘ LỌC TRẠNG THÁI -->
+  <div class="tabs booking-filters">
+
+    <button class="btn is-active" type="button" data-filter="all">
+      Tất cả <span class="tab-count"></span>
+    </button>
+
+    <button class="btn" type="button" data-filter="pending">
+      Chờ xác nhận <span class="tab-count"></span>
+    </button>
+
+    <button class="btn" type="button" data-filter="confirmed">
+      Đã xác nhận <span class="tab-count"></span>
+    </button>
+
+    <button class="btn" type="button" data-filter="checked_in">
+      Đã nhận phòng <span class="tab-count"></span>
+    </button>
+
+    <button class="btn" type="button" data-filter="completed">
+      Hoàn thành <span class="tab-count"></span>
+    </button>
+
+    <button class="btn" type="button" data-filter="cancelled">
+      Đã huỷ <span class="tab-count"></span>
+    </button>
+
   </div>
- 
-  <!-- ========================================================
-       DANH SÁCH BOOKING
-       Đây là dữ liệu MẪU để xem giao diện. Khi có mock/bookings.json,
-       phần này sẽ được thay bằng JS render (giống render.js), mỗi
-       .row ứng với 1 booking, class .row lặp lại cho từng item.
-       ======================================================== -->
-  <div class="stack" id="booking-list">
- 
-  
- 
+
+  <!-- DANH SÁCH BOOKING -->
+  <div class="booking-list-grid" id="booking-list">
+    <!-- Dữ liệu booking được render bằng booking-list.js -->
   </div>
- 
-  <!-- ========================================================
-       TRẠNG THÁI RỖNG — chỉ hiện khi không có booking nào (ẩn sẵn).
-       Khi có JS thật: nếu danh sách rỗng thì hiện khối này thay
-       cho #booking-list, và có thể xoá phần data mẫu ở trên.
-       ======================================================== -->
+
+  <!-- TRẠNG THÁI RỖNG -->
   <div class="empty" id="booking-empty" hidden>
+
     <p class="empty__title">Bạn chưa có đặt phòng nào</p>
-    <p class="empty__hint">Tìm một homestay ưng ý và đặt phòng ngay hôm nay.</p>
-    <a class="btn btn--primary empty__action" href="search.html">Tìm homestay</a>
+
+    <p class="empty__hint">
+      Tìm một homestay ưng ý và đặt phòng ngay hôm nay.
+    </p>
+
+    <a class="btn btn--primary empty__action" href="search.html">
+      Tìm homestay
+    </a>
+
   </div>
- 
-<template id="tpl-booking-row">
-    <article class="row">
-    <img class="row__img" src="" alt="">
-    <div>
-      <a class="row__title" href="#"></a>
-      <p class="row__meta"></p>
-      <p class="row__price"></p>
-    </div>
-    <div class="row__actions">
-      <span class="badge"></span>
-      <a class="btn btn--outline" href="#">Xem chi tiết</a>
-      <button class="btn btn--danger" type="button" data-action="cancel" hidden>Huỷ</button>
-      <a class="btn" href="#" data-review hidden>Viết đánh giá</a>
-    </div>
+
+  <!-- TEMPLATE BOOKING -->
+  <template id="tpl-booking-row">
+
+    <article class="row booking-list-item">
+
+      <img class="row__img" src="" alt="">
+
+      <div class="booking-list-item__info">
+        <a class="row__title" href="#"></a>
+        <p class="row__meta"></p>
+        <p class="row__price"></p>
+      </div>
+
+      <div class="row__actions booking-list-item__actions">
+
+        <span class="badge"></span>
+
+        <a class="btn btn--outline" href="#">
+          Xem chi tiết
+        </a>
+
+        <button
+          class="btn btn--danger"
+          type="button"
+          data-action="cancel"
+          hidden
+        >
+          Huỷ
+        </button>
+
+        <a class="btn" href="#" data-review hidden>
+          Viết đánh giá
+        </a>
+
+      </div>
+
     </article>
+
   </template>
- 
+
 </main>
- 
+
 <site-footer></site-footer>
+
 <div id="toast" role="status"></div>
- 
-<!-- Hộp xác nhận Huỷ — dùng chung cho mọi nút [data-action="cancel"] -->
+
+<!-- HỘP XÁC NHẬN HUỶ -->
 <dialog id="confirm-dialog">
+
   <h3 class="dialog__title">Huỷ đặt phòng?</h3>
-  <p class="dialog__message">Bạn có chắc muốn huỷ đặt phòng này không?</p>
+
+  <p class="dialog__message">
+    Bạn có chắc muốn huỷ đặt phòng này không?
+  </p>
+
   <div class="dialog__actions">
-    <button class="btn" type="button" data-cancel>Đóng</button>
-    <button class="btn btn--danger" type="button" data-confirm>Huỷ đặt phòng</button>
+
+    <button class="btn" type="button" data-cancel>
+      Đóng
+    </button>
+
+    <button class="btn btn--danger" type="button" data-confirm>
+      Huỷ đặt phòng
+    </button>
+
   </div>
+
 </dialog>
- 
+
 <script type="module" src="js/pages/booking-list.js"></script>
+
 </body>
 </html>

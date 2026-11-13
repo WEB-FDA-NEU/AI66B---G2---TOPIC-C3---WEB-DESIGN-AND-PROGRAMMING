@@ -5,9 +5,11 @@ import '../components/site-header.js';
 import '../components/site-footer.js';
 
 const form = document.getElementById('login-form');
+form.querySelector('[type="submit"]').disabled = false;
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
+  if (form.querySelector('[type="submit"]').disabled) return;
   clearFieldErrors(form);
 
   // 1. Validate phía trình duyệt — để phản hồi nhanh

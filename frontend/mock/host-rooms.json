@@ -1,15 +1,17 @@
 {
-  "_ghi_chu": "Phòng thuộc các homestay ở host-homestays.json. hs010 cố tình chưa có phòng nào để test empty state. Mỗi phòng lấy 1 ảnh khác nhau trong bộ ảnh của homestay cha (mock/items.json) để không trùng ảnh.",
+  "_ghi_chu": "Phòng của các homestay ở host-homestays.json, khớp 1-1 với items.json -> rooms[] qua itemRoomId (cùng tên, giá, ảnh). hs010 cố tình chưa có phòng nào để test empty state.",
   "rooms": [
     {
       "id": "rm001",
       "homestayId": "hs001",
-      "name": "Phòng Gia Đình",
-      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
-      "capacity": 4,
-      "pricePerNight": 850000,
+      "itemRoomId": "r1-1",
+      "name": "Phòng Giường Đôi View Thung Lũng",
+      "description": "Cửa sổ lớn nhìn ra thung lũng Mường Hoa, có lò sưởi nhỏ.",
+      "capacity": 2,
+      "pricePerNight": 450000,
       "images": [
-        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/594187152.jpg?k=459453bded3bc0ea602a534e79c5f2317b526cde01819a8e9c26ca8b75d4879e&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max500/594179214.jpg?k=65f87d9895ddc943258c8ed110e42944aa2c02156e70333d18cbb2a1a480ecf9&o="
       ],
       "blockedDates": [
         "2026-10-21"
@@ -18,24 +20,28 @@
     {
       "id": "rm002",
       "homestayId": "hs001",
-      "name": "Phòng Tập Thể (Dorm)",
-      "description": "Giường tầng, phù hợp khách du lịch bụi, tiết kiệm.",
-      "capacity": 6,
-      "pricePerNight": 150000,
+      "itemRoomId": "r1-2",
+      "name": "Phòng Gia Đình View Núi",
+      "description": "Hai giường, ban công riêng hướng núi, phù hợp gia đình nhỏ.",
+      "capacity": 4,
+      "pricePerNight": 720000,
       "images": [
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max300/594187144.jpg?k=ae063b1498fce1625abf8ba5ead7757cddc5b4827dbc8fdf5c3ced412770d84c&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max300/594187149.jpg?k=12c148500b5a07cc6705ec5d9f0886326086108f4140dcdcb89bb16896566d00&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm003",
-      "homestayId": "hs002",
-      "name": "Phòng Đôi",
-      "description": "Giường đôi tiêu chuẩn, đầy đủ tiện nghi cơ bản.",
-      "capacity": 2,
-      "pricePerNight": 390000,
+      "homestayId": "hs001",
+      "itemRoomId": "r1-3",
+      "name": "Nguyên Căn Nhà Sàn (6 khách)",
+      "description": "Cả căn nhà sàn gồm 3 phòng ngủ và bếp chung riêng tư.",
+      "capacity": 6,
+      "pricePerNight": 1250000,
       "images": [
-        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/594178987.jpg?k=1a5482c30d884dc6a053316d67499638671cb15177e43d329aba26c1c19662ae&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/594187152.jpg?k=459453bded3bc0ea602a534e79c5f2317b526cde01819a8e9c26ca8b75d4879e&o="
       ],
       "blockedDates": [
         "2026-11-12"
@@ -44,72 +50,84 @@
     {
       "id": "rm004",
       "homestayId": "hs002",
-      "name": "Phòng Đôi 2",
-      "description": "Giường đôi tiêu chuẩn, đầy đủ tiện nghi cơ bản.",
-      "capacity": 2,
-      "pricePerNight": 400000,
+      "itemRoomId": "r2-1",
+      "name": "Phòng Đơn Hướng Vườn",
+      "description": "Phòng gọn gàng nhìn ra vườn hoa giấy, yên tĩnh.",
+      "capacity": 1,
+      "pricePerNight": 380000,
       "images": [
-        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/103361914.jpg?k=df833b715f8dc3ab38170e195c1873086a90268a54f45e4159c72d6397bf05ca&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/510565396.jpg?k=3c9e475c30288bb062929876491bcfb5e2c384bb45766e4131376583a718892f&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm005",
-      "homestayId": "hs003",
-      "name": "Phòng Đơn",
-      "description": "Giường đơn, gọn gàng, phù hợp khách đi một mình.",
-      "capacity": 1,
-      "pricePerNight": 410000,
+      "homestayId": "hs002",
+      "itemRoomId": "r2-2",
+      "name": "Phòng Đôi View Sông",
+      "description": "Ban công nhìn ra sông Thu Bồn, có bàn trà.",
+      "capacity": 2,
+      "pricePerNight": 480000,
       "images": [
-        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max500/586601977.jpg?k=65dbcdfa04d008f42079315d30cc4d15a03db612888be3ef213cb6783b002d49&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max300/586601840.jpg?k=a8138ec2e2ea729bf3b1554cb1f04c44e3245165ed0008a4081995e10cde4b23&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm006",
-      "homestayId": "hs003",
-      "name": "Phòng Đôi",
-      "description": "Giường đôi tiêu chuẩn, đầy đủ tiện nghi cơ bản.",
-      "capacity": 2,
-      "pricePerNight": 390000,
+      "homestayId": "hs002",
+      "itemRoomId": "r2-3",
+      "name": "Phòng Gia Đình Có Hồ Bơi",
+      "description": "Mở cửa ra hồ bơi chung, đủ chỗ cho 4 người.",
+      "capacity": 4,
+      "pricePerNight": 760000,
       "images": [
-        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/586601369.jpg?k=ba5ab033a2a7517510d16787ac693b61d84678d6a8232631ed1bb83859e34277&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/103361914.jpg?k=df833b715f8dc3ab38170e195c1873086a90268a54f45e4159c72d6397bf05ca&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm007",
       "homestayId": "hs003",
-      "name": "Phòng Gia Đình",
-      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
-      "capacity": 4,
-      "pricePerNight": 660000,
+      "itemRoomId": "r3-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng gỗ thông ấm cúng, cửa sổ nhìn ra rừng thông.",
+      "capacity": 2,
+      "pricePerNight": 420000,
       "images": [
-        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/252484284.jpg?k=f4969e5064ea116c96bb5623d11175b0a44ee6776e713106a434c9c2dfb70684&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/234268998.jpg?k=4b0e8163c3f7275e2d04ec44bc844b1f8fce012c7b89ed9e8c94f7a5962345ce&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm008",
-      "homestayId": "hs004",
-      "name": "Phòng Đơn",
-      "description": "Giường đơn, gọn gàng, phù hợp khách đi một mình.",
-      "capacity": 1,
-      "pricePerNight": 360000,
+      "homestayId": "hs003",
+      "itemRoomId": "r3-2",
+      "name": "Deluxe Studio Hướng Núi",
+      "description": "Có góc sofa và bếp nhỏ, tầm nhìn thung lũng Đà Lạt.",
+      "capacity": 3,
+      "pricePerNight": 640000,
       "images": [
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/241791732.jpg?k=ec8345908031f9546a54acd9312848de5bc12fff9c43524c53692f8d5fffbd16&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max300/236932671.jpg?k=3c12644a3b38b5542ba93df90269476cdb332eeb58b2f78da76b9d604f682931&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm009",
-      "homestayId": "hs004",
-      "name": "Phòng Đôi View Đẹp",
-      "description": "Giường đôi, ban công hoặc cửa sổ view đẹp.",
-      "capacity": 2,
-      "pricePerNight": 630000,
+      "homestayId": "hs003",
+      "itemRoomId": "r3-3",
+      "name": "Phòng Gia Đình Có Lò Sưởi",
+      "description": "Hai phòng ngủ thông nhau, lò sưởi và bàn ăn riêng.",
+      "capacity": 4,
+      "pricePerNight": 880000,
       "images": [
-        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/246018090.jpg?k=a6e1beb7a715e8f462a22b9078f00ebadec980842b8f7ca86a6b9c0454de00ac&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/252484284.jpg?k=f4969e5064ea116c96bb5623d11175b0a44ee6776e713106a434c9c2dfb70684&o="
       ],
       "blockedDates": [
         "2026-10-19"
@@ -117,13 +135,15 @@
     },
     {
       "id": "rm010",
-      "homestayId": "hs005",
-      "name": "Phòng Tập Thể (Dorm)",
-      "description": "Giường tầng, phù hợp khách du lịch bụi, tiết kiệm.",
-      "capacity": 6,
-      "pricePerNight": 170000,
+      "homestayId": "hs004",
+      "itemRoomId": "r4-1",
+      "name": "Phòng Đơn View Phố",
+      "description": "Phòng nhỏ gọn, cách biển Mỹ Khê 3 phút đi bộ.",
+      "capacity": 1,
+      "pricePerNight": 380000,
       "images": [
-        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/857209248.jpg?k=74291b31d7a5ff90a41b20f6486ffd204bb1d62220783872c703abafe245434a&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/872236234.jpg?k=6b05e8ea23ebae20b9189e5a259314d94e505f4f6f7027076635159baa3ab86b&o="
       ],
       "blockedDates": [
         "2026-10-21"
@@ -131,73 +151,85 @@
     },
     {
       "id": "rm011",
-      "homestayId": "hs005",
-      "name": "Phòng Đơn",
-      "description": "Giường đơn, gọn gàng, phù hợp khách đi một mình.",
-      "capacity": 1,
-      "pricePerNight": 360000,
+      "homestayId": "hs004",
+      "itemRoomId": "r4-2",
+      "name": "Phòng Đôi View Biển",
+      "description": "Ban công nhìn thẳng ra biển Mỹ Khê.",
+      "capacity": 2,
+      "pricePerNight": 560000,
       "images": [
-        "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/881079560.jpg?k=cb2cff6db7b7c59ef6b48f11eb7094046390028043df8ccd8f6fd3e907f44790&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max500/856937715.jpg?k=eb131737f08c2ff77e1eb8487df4888989091516dbf43649cfe4df1c04936e4f&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm012",
-      "homestayId": "hs006",
-      "name": "Phòng Tập Thể (Dorm)",
-      "description": "Giường tầng, phù hợp khách du lịch bụi, tiết kiệm.",
-      "capacity": 6,
-      "pricePerNight": 150000,
+      "homestayId": "hs004",
+      "itemRoomId": "r4-3",
+      "name": "Phòng Gia Đình Hướng Biển",
+      "description": "Rộng rãi, 2 giường, cửa kính lớn nhìn ra biển.",
+      "capacity": 4,
+      "pricePerNight": 820000,
       "images": [
-        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/881080993.jpg?k=da5b634e19e6ce56fbd2e1effb8dd3465c4c6ed6095ab8b2af760033589bdbd6&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/857209248.jpg?k=74291b31d7a5ff90a41b20f6486ffd204bb1d62220783872c703abafe245434a&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm013",
-      "homestayId": "hs006",
-      "name": "Phòng Gia Đình",
-      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
-      "capacity": 4,
-      "pricePerNight": 860000,
+      "homestayId": "hs005",
+      "itemRoomId": "r5-1",
+      "name": "Studio Loft Trung Tâm",
+      "description": "Gác lửng phong cách công nghiệp, ngay trung tâm Quận 1.",
+      "capacity": 2,
+      "pricePerNight": 550000,
       "images": [
-        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947923.jpg?k=ff4ba3ae78f59bdb1b053aca1f00d0e01018adb46ad283e218ec09267af0876c&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947925.jpg?k=4fdcb366dbd5ed229da39385782b506b1615e9d395afaf70179a423f6157820f&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm014",
-      "homestayId": "hs006",
-      "name": "Phòng Đôi View Đẹp",
-      "description": "Giường đôi, ban công hoặc cửa sổ view đẹp.",
-      "capacity": 2,
-      "pricePerNight": 640000,
+      "homestayId": "hs005",
+      "itemRoomId": "r5-2",
+      "name": "Loft Hai Giường View Thành Phố",
+      "description": "Hai tầng, cửa sổ toàn cảnh, bếp đầy đủ.",
+      "capacity": 4,
+      "pricePerNight": 850000,
       "images": [
-        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947942.jpg?k=018dde6cd34c34e4802f8fe3e6c43a697a2d14989bd8823a8b14f5eece2b9a14&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max500/914947919.jpg?k=b3de2fcc2a1a82cbd74bc01170b5f2653e9206346bbc380f1dcd55048212aabb&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm015",
-      "homestayId": "hs007",
-      "name": "Phòng Gia Đình",
-      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
+      "homestayId": "hs006",
+      "itemRoomId": "r6-1",
+      "name": "Phòng Tập Thể 4 Giường Tầng",
+      "description": "Phòng chung cho khách du lịch bụi, có khóa tủ cá nhân.",
       "capacity": 4,
-      "pricePerNight": 760000,
+      "pricePerNight": 300000,
       "images": [
-        "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max500/915134261.jpg?k=b8da3027036b441ae31ebde0d7c1b7ed912e8c60de3a4c2ef1aa1e1d6621658e&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max500/915131701.jpg?k=7550d3044386368fdf18be1c485aadfcba3f23a35c4e79a7d43afe1e3ba72abe&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm016",
-      "homestayId": "hs007",
-      "name": "Phòng Đôi",
-      "description": "Giường đôi tiêu chuẩn, đầy đủ tiện nghi cơ bản.",
+      "homestayId": "hs006",
+      "itemRoomId": "r6-2",
+      "name": "Phòng Đôi View Ruộng Lúa",
+      "description": "Cửa sổ nhìn ra cánh đồng lúa Tam Cốc.",
       "capacity": 2,
-      "pricePerNight": 450000,
+      "pricePerNight": 480000,
       "images": [
-        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max300/915133486.jpg?k=fa32457457852eda9962687c07c8c28f8495b2b3597abaab5057449c812d199b&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max300/915131711.jpg?k=f880e45472febcb98b20683eac6f78dc66932842dfc334eb1dddc42fc030faa1&o="
       ],
       "blockedDates": [
         "2026-11-26"
@@ -205,53 +237,121 @@
     },
     {
       "id": "rm017",
-      "homestayId": "hs008",
-      "name": "Phòng Gia Đình",
-      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
+      "homestayId": "hs006",
+      "itemRoomId": "r6-3",
+      "name": "Phòng Gia Đình View Núi Đá",
+      "description": "Ban công riêng nhìn núi đá vôi, phù hợp 4 người.",
       "capacity": 4,
-      "pricePerNight": 930000,
+      "pricePerNight": 720000,
       "images": [
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/915130524.jpg?k=c3516630e13ee2442d654aae0512a71cde1918b82c8040c51ca8cb9e902ea48a&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max500/915134261.jpg?k=b8da3027036b441ae31ebde0d7c1b7ed912e8c60de3a4c2ef1aa1e1d6621658e&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm018",
-      "homestayId": "hs008",
-      "name": "Phòng Gia Đình 2",
-      "description": "2 giường đôi, phù hợp gia đình hoặc nhóm bạn.",
-      "capacity": 4,
-      "pricePerNight": 740000,
+      "homestayId": "hs007",
+      "itemRoomId": "r7-1",
+      "name": "Bungalow Đôi Gần Biển",
+      "description": "Bungalow gỗ riêng biệt, cách bãi Trường 50 m.",
+      "capacity": 2,
+      "pricePerNight": 650000,
       "images": [
-        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max500/928584427.jpg?k=048cc79d67d663ba3cb66bf5fcf50f84c96ab0ed7e861a2ddd20a29969862caa&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max500/928586514.jpg?k=bcaecbd02bb90f93b1b2aad774ca6f0c2f64e05b447903545af49fd7cfaa8e31&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm019",
-      "homestayId": "hs009",
-      "name": "Phòng Đơn",
-      "description": "Giường đơn, gọn gàng, phù hợp khách đi một mình.",
-      "capacity": 1,
-      "pricePerNight": 290000,
+      "homestayId": "hs007",
+      "itemRoomId": "r7-2",
+      "name": "Bungalow Gia Đình View Biển",
+      "description": "Hiên rộng nhìn biển, 2 phòng ngủ.",
+      "capacity": 4,
+      "pricePerNight": 980000,
       "images": [
-        "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max300/928582702.jpg?k=e9f8b1390deacdab7e0bd75af6d4fd8691304a5c671a9c11a19e79541f33f21e&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max300/928581644.jpg?k=647957a043af00a8eff9cab60ee44a847cde7a6f8eefb1ae28b7ebe852254379&o="
       ],
       "blockedDates": []
     },
     {
       "id": "rm020",
-      "homestayId": "hs009",
-      "name": "Phòng Đôi",
-      "description": "Giường đôi tiêu chuẩn, đầy đủ tiện nghi cơ bản.",
-      "capacity": 2,
-      "pricePerNight": 480000,
+      "homestayId": "hs008",
+      "itemRoomId": "r8-1",
+      "name": "Phòng Đơn Phố Cổ",
+      "description": "Phòng nhỏ ấm cúng trong ngõ phố cổ, có điều hòa.",
+      "capacity": 1,
+      "pricePerNight": 250000,
       "images": [
-        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=85"
+        "https://cf.bstatic.com/xdata/images/hotel/max500/648780714.jpg?k=d182b6564b27f612056d04d0a7b4a9f486e53540367721836f4fe71e7b4d8d8b&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max500/648779838.jpg?k=f24f6c9b70bbb3afb728d4d07e587c07db681f9ff0fa07a062c67226024d7d80&o="
       ],
       "blockedDates": [
         "2026-11-23"
       ]
+    },
+    {
+      "id": "rm021",
+      "homestayId": "hs008",
+      "itemRoomId": "r8-2",
+      "name": "Phòng Đôi Có Ban Công",
+      "description": "Ban công nhìn xuống phố, gần Hồ Gươm.",
+      "capacity": 2,
+      "pricePerNight": 390000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max300/656353999.jpg?k=fb8a143f7e055b769c850b532edd1ead4c4ebb5bd83f3fd399983f71068b13b3&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max300/648779557.jpg?k=f3912fc0e1ef66d6f707f3b993e69a5b69383b607b0e03294e66ee9f2bde9ff5&o="
+      ],
+      "blockedDates": [
+        "2026-10-21"
+      ]
+    },
+    {
+      "id": "rm022",
+      "homestayId": "hs009",
+      "itemRoomId": "r9-1",
+      "name": "Phòng Tập Thể 6 Giường",
+      "description": "Giường tầng sạch sẽ, phòng tắm chung, giá tiết kiệm.",
+      "capacity": 6,
+      "pricePerNight": 350000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/657587245.jpg?k=23679b753af1476d42ee32eee26c8883a872115a469c88e06df600b9c8258980&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480244743.jpg?k=07151f7fea1b38b25e91c95c5cbd328dbe203aaa44db6909f10eb8e03edb5ed2&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm023",
+      "homestayId": "hs009",
+      "itemRoomId": "r9-2",
+      "name": "Phòng Đôi View Đồi Chè",
+      "description": "Nhìn ra đồi chè Mộc Châu buổi sớm.",
+      "capacity": 2,
+      "pricePerNight": 520000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max500/480237888.jpg?k=150679aeb1bbedf6d19c5823fb98570e0611568680de778697bafdd1b36b8e82&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max500/480237801.jpg?k=faa951360eb908a8573ae9b999d5a5df737f30337b04d3bf2e83cc2e29f379a0&o="
+      ],
+      "blockedDates": [
+        "2026-11-12"
+      ]
+    },
+    {
+      "id": "rm024",
+      "homestayId": "hs009",
+      "itemRoomId": "r9-3",
+      "name": "Phòng Gia Đình Có Bếp",
+      "description": "Có bếp nhỏ để tự nấu, phù hợp nhóm bạn 4 người.",
+      "capacity": 4,
+      "pricePerNight": 780000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480237699.jpg?k=5e472aa1ee6f2ef38cf2817feb7a4722d20c430cec3f8642e87a11210d0e7d24&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/657587245.jpg?k=23679b753af1476d42ee32eee26c8883a872115a469c88e06df600b9c8258980&o="
+      ],
+      "blockedDates": []
     }
   ]
 }
