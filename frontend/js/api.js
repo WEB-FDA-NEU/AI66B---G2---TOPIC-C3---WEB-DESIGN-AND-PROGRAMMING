@@ -12,7 +12,7 @@ import { getToken, getUser, saveSession } from './auth.js';
 // Dữ liệu mock được copy vào localStorage lần đầu đọc, nên khi ai đó sửa mock/*.json mà máy các bạn
 // vẫn giữ bản cũ thì sẽ thấy dữ liệu "không đổi". TĂNG số này mỗi khi sửa mock/*.json:
 // lần mở trang kế tiếp, mọi máy tự xóa cache mock cũ (không đụng tới phiên đăng nhập).
-const MOCK_DATA_VERSION = '2026-11-10-a';
+const MOCK_DATA_VERSION = '2026-11-13-a';
 if (USE_MOCK && localStorage.getItem('mock_version') !== MOCK_DATA_VERSION) {
   ['customerBookings', 'homestays', 'rooms', 'bookings'].forEach(k => localStorage.removeItem(k));
   Object.keys(localStorage).filter(k => k.startsWith('reviews_')).forEach(k => localStorage.removeItem(k));
@@ -468,7 +468,26 @@ export async function updateBookingStatus(id, status, reason = '') {
   }
   return request(`${API_BASE}/host/bookings/${id}/status`, { method: 'PATCH', body: { status, reason } });
 }
-
+// ---------- Admin dashboard ----------
+// Trả về dữ liệu THÔ để trang tự tính (đếm, nhóm theo kỳ/tỉnh): { users, bookings, homestays }
+//  - users:     [{ id, createdAt, role }]
+//  - bookings:  [{ id, itemId, createdAt, status, totalPrice }]
+//  - homestays: [{ id, title, location }]
+// Mock: mock/admin-overview.json + mock/items.json. Backend thật: GET /admin/overview (cùng dạng).
+export async function getAdminOverview() {
+  if (USE_MOCK) {
+    const [ov, items] = await Promise.all([
+      request(`${MOCK_BASE}/admin-overview.json`),
+      request(`${MOCK_BASE}/items.json`),
+    ]);
+    return {
+      users: ov.users,
+      bookings: ov.bookings,
+      homestays: items.items.map(i => ({ id: i.id, title: i.title, location: i.location })),
+    };
+  }
+  return request(`${API_BASE}/admin/overview`);
+}
 // ══════════ NGƯỜI 5 — TODO: thêm vùng của em ở đây ══════════
 
 

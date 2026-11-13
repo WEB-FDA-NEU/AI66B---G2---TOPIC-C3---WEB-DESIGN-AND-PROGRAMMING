@@ -8,6 +8,9 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
+
+<!-- Chart.js 4.4.1 (UMD, ghim đúng phiên bản). Tải về window.Chart; mất mạng thì trang vẫn chạy, chỉ thiếu biểu đồ. -->
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -21,29 +24,50 @@
       <h1>Admin Dashboard</h1>
       <p>Tổng quan hệ thống và duyệt đơn xin làm host.</p>
     </div>
+    <div id="period-tabs"></div>
   </div>
+  <p class="dash-note" id="period-note" aria-live="polite"></p>
 
   <!-- ==================== SỐ LIỆU TỔNG QUAN ====================
        Dùng chung class .stat-grid/.stat-card với Host Dashboard (components.css)
        để 2 trang nhìn đồng bộ — đừng quay lại kiểu .form-card text-center cũ. -->
   <div class="stat-grid">
     <div class="stat-card">
-      <div class="stat-card__num">10</div>
+      <div class="stat-card__num" id="kpi-homestays">—</div>
       <div class="stat-card__label">Tổng homestay</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card__num">964</div>
+      <div class="stat-card__num" id="kpi-bookings-total">—</div>
       <div class="stat-card__label">Tổng booking</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card__num">12</div>
-      <div class="stat-card__label">User mới hôm nay</div>
+      <div class="stat-card__num" id="kpi-users-new">—</div>
+      <div class="stat-card__label">User mới <span id="kpi-period-label">trong kỳ</span></div>
     </div>
     <div class="stat-card">
-      <div class="stat-card__num is-warning">5</div>
+      <div class="stat-card__num is-warning" id="kpi-pending">—</div>
       <div class="stat-card__label">Đơn chờ duyệt</div>
     </div>
   </div>
+
+  <!-- ==================== BIỂU ĐỒ (Chart.js, số liệu tính từ mock/admin-overview.json + items.json) ==================== -->
+  <section class="chart-grid">
+    <article class="chart-card chart-card--wide">
+      <div class="chart-card__head">
+        <h2>Tăng trưởng người dùng &amp; booking</h2>
+        <p class="dash-note" id="growth-note">Số lượng mới theo từng ngày/tháng trong kỳ</p>
+      </div>
+      <div class="chart-box"><canvas id="chart-growth" role="img" aria-label="Biểu đồ đường tăng trưởng người dùng và booking"></canvas><p class="chart-msg" hidden></p></div>
+    </article>
+
+    <article class="chart-card">
+      <div class="chart-card__head">
+        <h2>Cơ cấu đơn theo tỉnh</h2>
+        <p class="dash-note">Top 5 tỉnh/thành, còn lại gộp “Khác”</p>
+      </div>
+      <div class="chart-box"><canvas id="chart-province" role="img" aria-label="Biểu đồ donut cơ cấu đơn theo tỉnh"></canvas><p class="chart-msg" hidden></p></div>
+    </article>
+  </section>
 
   <!-- Hàng nút thao tác nhanh — cùng class .quick-links với Host Dashboard để 2 trang đồng bộ.
        Admin hiện chỉ có 1 khu vực (hàng đợi đơn host) nên chỉ có 1 nút, trỏ neo xuống thẳng đó. -->
@@ -207,5 +231,6 @@
     toast(`Đã từ chối đơn của ${name}.`, 'error');
   };
 </script>
+<script type="module" src="js/pages/admin-dashboard.js"></script>
 </body>
 </html>
