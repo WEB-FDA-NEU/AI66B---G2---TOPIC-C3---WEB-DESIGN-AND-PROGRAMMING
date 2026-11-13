@@ -405,6 +405,20 @@ dialog .btn--danger:hover {
   margin-top: var(--sp-3);
 }
 
+/* Nhóm nút trong trạng thái rỗng / màn hình bị chặn role: căn giữa, có khoảng cách, tự xuống dòng trên mobile. */
+.empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+
+.empty__actions .btn {
+  min-width: 160px;
+  padding-inline: var(--sp-4);
+}
+
 .skeleton-card {
   aspect-ratio: 4 / 5;
   border-radius: var(--radius);

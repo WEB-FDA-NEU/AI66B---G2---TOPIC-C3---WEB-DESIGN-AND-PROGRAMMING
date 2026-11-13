@@ -25,13 +25,14 @@ function showDenied(user) {
     className: 'empty__title', textContent: `Trang này chỉ dành cho ${LABEL[required] ?? required}.` });
   const hint = Object.assign(document.createElement('p'), {
     className: 'empty__hint', textContent: `Bạn đang đăng nhập với tài khoản ${user.display_name ?? ''}.` });
-  const home = Object.assign(document.createElement('a'), {
-    className: 'btn btn--primary empty__action', href: 'index.html', textContent: 'Về trang chủ' });
-  box.append(title, hint, home);
+  const actions = Object.assign(document.createElement('div'), { className: 'empty__actions' });
+  actions.append(Object.assign(document.createElement('a'), {
+    className: 'btn btn--primary', href: 'index.html', textContent: 'Về trang chủ' }));
   if (required === 'host' && user.role === 'user') {
-    box.append(Object.assign(document.createElement('a'), {
-      className: 'btn', href: 'host-register.html', textContent: 'Đăng ký làm host' }));
+    actions.append(Object.assign(document.createElement('a'), {
+      className: 'btn btn--outline', href: 'host-register.html', textContent: 'Đăng ký làm host' }));
   }
+  box.append(title, hint, actions);
   document.querySelector('main')?.replaceChildren(box);
 }
 
