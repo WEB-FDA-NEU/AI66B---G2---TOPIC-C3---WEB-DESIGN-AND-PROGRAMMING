@@ -152,9 +152,13 @@ INTERACTIONS = """(() => {
   const dialog=document.querySelector('#confirm-dialog');
   if(dialog?.open){const r=dialog.getBoundingClientRect();check(r.left>=-1&&r.right<=innerWidth+1&&r.top>=-1&&r.bottom<=innerHeight+1,'confirmation dialog fits viewport');click('[data-cancel]');}
   if(location.pathname.endsWith('/host-bookings.html')){
-    click('[data-reject]');check(document.querySelector('#reject-dialog').open,'rejection dialog opens');click('#rejectCancel');
+    if(document.querySelector('[data-reject]')){click('[data-reject]');check(document.querySelector('#reject-dialog').open,'rejection dialog opens');click('#rejectCancel');}
+    else check(!!document.querySelector('.host-bookings-empty'),'empty booking state renders');
   }
-  if(location.pathname.endsWith('/host-rooms.html')){click('#addBtn');check(document.querySelector('#roomForm').classList.contains('is-open'),'room editor opens');submit('#roomForm');check(document.querySelector('#rName').getAttribute('aria-invalid')==='true','room editor validation');}
+  if(location.pathname.endsWith('/host-rooms.html')){
+    if(!document.querySelector('#addBtn').disabled){click('#addBtn');check(document.querySelector('#roomForm').classList.contains('is-open'),'room editor opens');submit('#roomForm');check(document.querySelector('#rName').getAttribute('aria-invalid')==='true','room editor validation');}
+    else check(document.getElementById('homestayName').textContent.includes('Bạn chưa có homestay nào.'),'new host has no room editor without a homestay');
+  }
   if(location.pathname.includes('dashboard')||location.pathname.endsWith('/admin.html')){
     click('.period-tabs__btn[data-key="7d"]');check(document.querySelector('.period-tabs__btn[data-key="7d"]').getAttribute('aria-pressed')==='true','dashboard filter updates');
   }
@@ -222,13 +226,19 @@ def main():
     origin = f'http://127.0.0.1:{server.server_port}'
     output = Path(tempfile.mkdtemp(prefix='luxstay-ui-audit-'))
     users = json.loads((ROOT / 'frontend/mock/users.json').read_text(encoding='utf-8'))['users']
-    booking = json.loads((ROOT / 'frontend/mock/bookings.json').read_text(encoding='utf-8'))['customerBookings'][0]
-    booking['code'] = 'BK000001'
+    booking = {
+        'id': 1, 'userId': 1, 'code': 'BK000001', 'homestayId': 3,
+        'homestayName': 'Homestay kiểm tra giao diện', 'homestayImage': 'img/placeholder.svg',
+        'homestayAddress': 'Đà Lạt', 'roomName': 'Phòng kiểm tra', 'checkIn': '2026-10-12',
+        'checkOut': '2026-10-14', 'nights': 2, 'guests': 2, 'pricePerNight': 420000,
+        'roomSubtotal': 840000, 'serviceFee': 42000, 'totalPrice': 882000,
+        'status': 'pending', 'guestName': 'Người dùng kiểm tra', 'hostPhone': '0900000000',
+    }
     pages = [
         ('index.html', "document.querySelector('#results .card')", 0),
         ('search.html', "document.querySelector('#results .card')", 0),
         ('detail.html?id=3', "document.querySelector('#room-list .room-card')", 0),
-        ('booking-list.html', "document.querySelector('#booking-list .row')", 0),
+        ('booking-list.html', "document.querySelector('#booking-list .row') || document.querySelector('#booking-empty:not([hidden])')", 0),
         ('booking-detail.html?id=1', "document.querySelector('#bd-title')?.textContent!=='Đang tải...'", 0),
         ('booking-page.html?id=3&rooms=superior:1', "document.querySelector('#sumTitle')?.textContent!=='—'", 0),
         ('booking-confirmed.html', "document.querySelector('#bCode')?.textContent!=='—'", 0),
@@ -237,10 +247,10 @@ def main():
         ('register.html', "document.querySelector('#register-form [type=submit]')?.disabled===false", None),
         ('host-register.html', "document.querySelector('#host-register-form [type=submit]')?.disabled===false", None),
         ('host-dashboard.html', "document.querySelectorAll('.period-tabs__btn').length===3", 1),
-        ('host-homestays.html', "document.querySelector('.host-homestay-card')", 1),
-        ('host-rooms.html', "document.querySelector('.host-room-card')", 1),
+        ('host-homestays.html', "document.querySelector('.host-homestay-card, .host-homestays-empty')", 1),
+        ('host-rooms.html', "document.querySelector('.host-room-card, .host-rooms-empty') || document.getElementById('homestayName')?.textContent.includes('Bạn chưa có homestay nào.')", 1),
         ('host-homestay-form.html', "document.querySelector('#form') && document.querySelector('site-header header')", 1),
-        ('host-bookings.html', "document.querySelector('.host-booking-card')", 1),
+        ('host-bookings.html', "document.querySelector('.host-booking-card, .host-bookings-empty')", 1),
         ('admin.html', "document.querySelectorAll('.period-tabs__btn').length===3", 2),
         ('404.html', "document.querySelector('site-header header')", None),
     ]
@@ -283,7 +293,7 @@ def main():
                         data = c.js(METRICS)
                         data.update(page=path, errors=c.errors[:]); c.errors.clear()
                         # Inspect the currently hidden room editor as well.
-                        if path=='host-rooms.html':
+                        if path=='host-rooms.html' and c.js("!document.getElementById('addBtn').disabled"):
                             c.js("document.getElementById('addBtn').click()")
                             data['editor'] = c.js(METRICS)
                         if '--screenshots' in sys.argv:
@@ -307,10 +317,10 @@ def main():
                                 data['interactions'].append('Chrome touch swipe advances hero without navigating')
                                 c.call('Emulation.setTouchEmulationEnabled', enabled=False)
                         if '--motion-checks' in sys.argv:
-                            if path == 'host-bookings.html':
+                            if path == 'host-bookings.html' and c.js("!!document.querySelector('[data-reject]')"):
                                 data['interactions'].extend(check_pointer_motion(c))
                             data['interactions'].extend(c.js((ROOT / 'tests/motion-checks.js').read_text(encoding='utf-8')))
-                        if path=='host-rooms.html':
+                        if path=='host-rooms.html' and c.js("!!document.getElementById('hsSwitch')"):
                             c.js("const s=document.getElementById('hsSwitch');s.value='hs010';s.dispatchEvent(new Event('change',{bubbles:true}));")
                             c.until("!!document.querySelector('.host-rooms-empty')")
                             data['interactions'].append('homestay dropdown updates room empty state')

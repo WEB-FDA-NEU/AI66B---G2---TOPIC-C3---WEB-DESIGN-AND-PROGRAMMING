@@ -1,5 +1,5 @@
 import { getAdminOverview, getAdminApplications, decideHostApplication, getAdminUsers, updateAdminUser,
-  getAdminHomestays, moderateHomestay, getAdminHosts } from '../api.js';
+  getAdminHomestays, moderateHomestay, getAdminHosts, getAdminHostCancellations, cancelAdminHost } from '../api.js';
 import { safeImageURL } from '../config.js';
 import { confirmAction, toast } from '../ui.js';
 import { periodTabs, getWindow, dayNum, bucketIndex, countUp, drawChart, axisOptions, theme, palette, fmtVND } from '../charts.js';
@@ -141,6 +141,20 @@ export async function initAdmin() {
       actions.append(toggle); row.append(picture(user.avatar), info, actions); return row;
     } });
 
+  pagedList({ root: $('host-cancellations'), list: $('host-cancellation-list'), filters: [],
+    fetchRows: getAdminHostCancellations,
+    renderRow(record) {
+      const row = el('article', 'row'), info = el('div');
+      const created = new Date(record.createdAt);
+      info.append(
+        el('p', 'row__title', `${record.host.display_name} · ${record.host.email}`),
+        el('p', 'row__meta', `Lý do: ${record.reason}`),
+        el('p', 'row__meta', `Thời gian: ${Number.isNaN(created.getTime()) ? record.createdAt : created.toLocaleString('vi-VN')}`),
+      );
+      row.append(info);
+      return row;
+    } });
+
   const staySection = section('admin-homestays', 'Kiểm duyệt homestay');
   const stayStatus = filter('admin-stay-status', 'status', [['','Tất cả trạng thái'],['active','Đang hoạt động'],['inactive','Tạm ngừng'],['deleted','Đã xóa']]);
   pagedList({ ...staySection, filters: [['Trạng thái',stayStatus]], fetchRows: getAdminHomestays,
@@ -165,19 +179,35 @@ export async function initAdmin() {
 
   // Backend has no host name search parameter: disclose that this search covers the current page.
   $('host-search').placeholder = 'Tìm trong trang host hiện tại'; $('host-empty').hidden = true;
-  let hostRows = [];
+  let hostRows = [], reloadHostRows = async () => {};
   const renderHosts = () => {
     const query = $('host-search').value.trim().toLocaleLowerCase('vi');
     $('host-list').replaceChildren(...hostRows.filter(h => `${h.display_name} ${h.email} ${h.phone}`.toLocaleLowerCase('vi').includes(query)).map(host => {
-      const row = el('article','row'), info = el('div');
+      const row = el('article','row'), info = el('div'), actions = el('div', 'row__actions');
       info.append(el('p','row__title',host.display_name),el('p','row__meta',`${host.email} · ${host.phone || ''}`),
         el('p','row__meta',`${host.bookingCount} booking · Giá trị đơn hoàn tất ${fmtVND(host.revenue)} (không phải tiền đã thu)`),
         el('p','row__meta',`Danh sách homestay tối đa ${host.homestayProjectionLimit}: ${host.homestays.map(h=>h.title).join(', ') || 'Chưa có'}`));
-      row.append(picture(host.avatar),info); return row;
+      const cancel = button('Hủy làm Host'); cancel.classList.add('btn--danger');
+      cancel.onclick = async () => {
+        if (cancel.disabled || !await confirmAction({
+          title: 'Hủy quyền Host?',
+          message: `Hủy quyền của ${host.display_name}? Thao tác bị chặn nếu còn booking đang chờ, đã xác nhận hoặc khách đang lưu trú.`,
+          confirmText: 'Hủy làm Host',
+        })) return;
+        cancel.disabled = true;
+        try {
+          await cancelAdminHost(host.id);
+          toast(`Đã hủy quyền Host của ${host.display_name}.`);
+          await reloadHostRows();
+          await renderOverview();
+        } catch (error) { toast(error.detail || 'Không thể hủy quyền Host.', 'error'); }
+        finally { cancel.disabled = false; }
+      };
+      actions.append(cancel); row.append(picture(host.avatar),info,actions); return row;
     }));
   };
   $('host-search').oninput = renderHosts;
-  pagedList({ root: $('host-section'), list: $('host-list'), filters: [], fetchRows: getAdminHosts,
+  reloadHostRows = pagedList({ root: $('host-section'), list: $('host-list'), filters: [], fetchRows: getAdminHosts,
     renderRow: () => el('div'), afterLoad(rows) { hostRows = rows; renderHosts(); $('host-count').textContent = `(${rows.length} trong trang)`; } });
   await renderOverview(tabs.value);
 }

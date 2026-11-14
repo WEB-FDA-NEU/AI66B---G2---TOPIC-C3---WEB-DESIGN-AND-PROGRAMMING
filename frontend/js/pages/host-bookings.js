@@ -2,12 +2,14 @@ import { animateList, animateStatus } from '../motion.js';
 
 import { getHostBookings, getHostRooms, getHostHomestays, updateBookingStatus } from '../api.js';
 import { ACCOUNT_API_MODE } from '../config.js';
+import { initHostDashboardReturn } from '../host-navigation.js';
 import { formatVND } from '../render.js';
 import { toast } from '../ui.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
 import '../guard.js';
 
+initHostDashboardReturn();
 const $ = id => document.getElementById(id);
 
 const STATUS_LABEL = {
@@ -153,7 +155,7 @@ function render({ changedId = null } = {}) {
     title.firstChild.textContent = String(b.customerName || '');
     title.querySelector('span').textContent = ` \u2014 ${b.customerPhone || ''}`;
     const meta = card.querySelectorAll('.host-booking-info > .row__meta');
-    meta[0].textContent = `${ACCOUNT_API_MODE ? b.homestayName || '' : hs?.name || ''} \u00b7 ${ACCOUNT_API_MODE ? b.roomName || '' : room?.name || ''}`;
+    meta[0].textContent = `${b.homestayName || hs?.name || ''} \u00b7 ${b.roomName || room?.name || ''}`;
     meta[1].textContent = `\ud83d\udcc5 ${b.checkIn} \u2192 ${b.checkOut} \u00b7 ${b.guests} kh\u00e1ch`;
     const reason = card.querySelector('.host-booking-reject-reason');
     reason.hidden = b.status !== 'rejected' || !b.rejectReason;

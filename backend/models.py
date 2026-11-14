@@ -87,6 +87,17 @@ class HostApplicationHistory(Base):
     reviewed_at: Mapped[datetime] = mapped_column(UTCDateTime())
 
 
+class HostCancellation(Base):
+    __tablename__ = "host_cancellations"
+    __table_args__ = (CheckConstraint("source IN ('host','admin')", name="valid_source"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    host_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    actor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    source: Mapped[str] = mapped_column(String(20), default="host")
+    reason: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow, index=True)
+
+
 class Homestay(Base):
     __tablename__ = "homestays"
     __table_args__ = (CheckConstraint("status IN ('active','inactive','deleted')", name="valid_status"),)

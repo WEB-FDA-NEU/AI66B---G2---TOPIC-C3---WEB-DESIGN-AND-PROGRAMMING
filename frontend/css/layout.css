@@ -220,11 +220,51 @@ main, section, aside, form, .grid > *, .detail-layout > *, .layout-2col > * { mi
 .booking-payment-actions { margin-top: var(--sp-4); }
 
 /* Host management and dashboard. */
+.host-cancellation-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(170px, .8fr);
+  align-items: start;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-m);
+  background: var(--c-bg);
+  box-shadow: var(--shadow-s);
+}
+.host-cancellation-card__host { display: flex; align-items: flex-start; gap: var(--sp-3); min-width: 0; }
+.host-cancellation-card__avatar {
+  display: grid;
+  flex: 0 0 var(--control-h);
+  place-items: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  border-radius: 50%;
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+}
+.host-cancellation-card__identity { min-width: 0; }
+.host-cancellation-card__name { margin: 0; font-size: var(--fs-md); line-height: var(--lh-tight); overflow-wrap: anywhere; }
+.host-cancellation-card__email { margin-top: var(--sp-1); color: var(--c-muted); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.host-cancellation-card__reason {
+  min-width: 0;
+  padding: var(--sp-3);
+  border-left: 3px solid var(--c-primary-l);
+  border-radius: var(--radius-s);
+  background: var(--c-surface);
+}
+.host-cancellation-card__label { display: block; margin-bottom: var(--sp-1); color: var(--c-muted); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.host-cancellation-card__reason-text { margin: 0; color: var(--c-text); overflow-wrap: anywhere; white-space: pre-wrap; }
+.host-cancellation-card__time { display: grid; gap: var(--sp-1); min-width: 0; }
+.host-cancellation-card__timestamp { color: var(--c-text); font-size: var(--fs-sm); font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .host-dashboard-page, .host-homestays-page, .host-rooms-page, .host-bookings-page { display: flex; flex-direction: column; gap: var(--sp-4); }
 .host-dashboard-page > .section-head, .host-homestays-page > .section-head, .host-rooms-page > .section-head, .host-bookings-page > .section-head { margin-bottom: 0; }
 .host-dashboard-page .stat-grid, .host-dashboard-page .chart-grid, .host-dashboard-page .quick-links { margin-bottom: 0; }
 .host-dashboard-quick-links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); margin-top: var(--sp-3); }
 .host-dashboard-quick-links .btn { white-space: normal; }
+.host-dashboard-return { align-self: flex-start; }
+.host-homestay-form-page > .host-dashboard-return { margin-bottom: var(--sp-4); }
 .host-dashboard-recent-list { display: flex; flex-direction: column; gap: var(--sp-3); }
 .host-dashboard-booking-row { grid-template-columns: 96px minmax(0, 1fr) auto; }
 .host-dashboard-booking-status { text-align: right; }
@@ -341,6 +381,8 @@ main, section, aside, form, .grid > *, .detail-layout > *, .layout-2col > * { mi
   .host-homestay-form-grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
   .host-homestay-media { padding-left: 0; padding-top: var(--sp-4); border-left: 0; border-top: 1px solid var(--c-border); }
   .host-homestay-details .textarea { min-height: 160px; }
+  .host-cancellation-card { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+  .host-cancellation-card__time { grid-column: 2; }
 }
 @media (max-width: 1199px) {
   .profile-layout { grid-template-columns: minmax(0, 1fr); }
@@ -354,6 +396,8 @@ main, section, aside, form, .grid > *, .detail-layout > *, .layout-2col > * { mi
 }
 @media (max-width: 767px) {
   .detail-layout { grid-template-columns: minmax(0, 1fr); }
+  .host-cancellation-card { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); padding: var(--sp-3); }
+  .host-cancellation-card__time { grid-column: auto; }
   .host-dashboard-quick-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .booking-list-item { grid-template-columns: 80px minmax(0, 1fr); padding: var(--sp-3); }
   .booking-list-item .row__img { width: 80px; }

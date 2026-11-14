@@ -7,7 +7,9 @@ import '../components/site-footer.js';
 import '../guard.js';
 
 import { ACCOUNT_API_MODE, safeImageURL } from '../config.js';
+import { initHostDashboardReturn } from '../host-navigation.js';
 
+initHostDashboardReturn();
 if (ACCOUNT_API_MODE) {
   const { initHostRooms } = await import('./api-host-rooms.js');
   await initHostRooms();

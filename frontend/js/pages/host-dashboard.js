@@ -1,4 +1,5 @@
 import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
+import { initHostDashboardNavigation } from '../host-navigation.js';
 import { getHostDashboard } from '../api.js';
 // ============================================================
 //  Host Dashboard: số liệu + biểu đồ tính từ dữ liệu host (getHost*), có bộ lọc kỳ.
@@ -60,6 +61,8 @@ async function load() {
   } catch (e) {
     $('recent').replaceChildren(make('p', 'text-danger', `Không tải được dữ liệu. ${e.detail ?? ''}`));
     console.error(e);
+  } finally {
+    window.dispatchEvent(new Event('host-dashboard-ready'));
   }
 }
 
@@ -271,4 +274,5 @@ function renderRecent() {
   $('recent').replaceChildren(wrap);
 }
 
+initHostDashboardNavigation();
 load();

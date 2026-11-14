@@ -163,6 +163,12 @@
         </form>
       </section>
 
+      <section class="form-card" id="cancel-host-section" hidden>
+        <h3>Hủy làm Host</h3>
+        <p class="mt-3 text-muted">Bạn chỉ có thể hủy khi homestay không còn booking đang chờ, đã xác nhận hoặc khách đang lưu trú. Homestay đang hoạt động sẽ tạm ngừng nhận đặt phòng; dữ liệu vẫn được giữ lại.</p>
+        <button class="btn btn--danger mt-3" id="cancel-host-open" type="button">Hủy làm Host</button>
+      </section>
+
       <section class="form-card" id="delete-account-section" hidden>
         <h3>Xóa tài khoản</h3>
         <p class="mt-3 text-muted">Bạn chỉ có thể xóa tài khoản khi không còn đặt phòng hoặc khách đang lưu trú tại homestay của bạn.</p>
@@ -182,6 +188,20 @@
   <div class="dialog__actions">
     <button class="btn" type="button" data-cancel>Không</button>
     <button class="btn btn--danger" type="button" data-confirm>Có, tôi chắc chắn</button>
+  </div>
+</dialog>
+
+<dialog id="cancel-host-dialog" aria-labelledby="cancel-host-title">
+  <h3 class="dialog__title" id="cancel-host-title">Xác nhận hủy làm Host</h3>
+  <p class="dialog__message">Quyền Host sẽ được hủy ngay sau khi gửi. Hãy nhập lý do để quản trị viên xem.</p>
+  <label class="field mt-3">
+    <span class="field__label">Lý do hủy Host</span>
+    <textarea class="input" id="cancel-host-reason" rows="4" minlength="3" maxlength="1000" required></textarea>
+    <span class="field__error" id="cancel-host-error" role="status" hidden></span>
+  </label>
+  <div class="dialog__actions">
+    <button class="btn" type="button" data-cancel>Quay lại</button>
+    <button class="btn btn--danger" type="button" data-confirm>Hủy làm Host</button>
   </div>
 </dialog>
  

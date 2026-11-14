@@ -1,4 +1,4 @@
-import { getProfile, updateProfile, changePassword, getHostApplication, applyHost, deleteAccount } from '../api.js';
+import { getProfile, updateProfile, changePassword, getHostApplication, applyHost, deleteAccount, cancelHost } from '../api.js';
 import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { toast, clearFieldErrors, setFieldError } from '../ui.js';
@@ -33,6 +33,7 @@ function fillProfile() {
     document.getElementById('host-apply-description').textContent = 'Bạn có thể theo dõi trạng thái đơn đăng ký Host tại đây.';
   }
   document.getElementById('delete-account-section').hidden = !['user', 'host'].includes(user.role);
+  document.getElementById('cancel-host-section').hidden = user.role !== 'host';
 }
 preview.addEventListener('error', () => {
   if (!preview.src.endsWith('/img/placeholder.svg')) preview.src = 'img/placeholder.svg';
@@ -56,7 +57,7 @@ function renderHostApplication(application) {
     pending: 'Đơn đăng ký đang chờ quản trị viên xét duyệt.',
     approved: user.role === 'host'
       ? 'Đơn đã được duyệt. Tài khoản hiện đã có quyền Host.'
-      : 'Đơn đã được duyệt. Đăng xuất rồi đăng nhập lại để cập nhật quyền Host.',
+      : 'Bạn không còn quyền Host. Có thể đăng ký làm Host lại.',
     rejected: `Đơn đăng ký bị từ chối.${application?.rejectReason ? ` Lý do: ${application.rejectReason}` : ''}`,
   };
   if (application) {
@@ -71,7 +72,7 @@ function renderHostApplication(application) {
     hostApplicationStatus.textContent = user.role === 'host' ? 'Tài khoản của bạn đã có quyền Host.' : '';
     hostApplicationStatus.hidden = user.role !== 'host';
   }
-  hostApplyButton.hidden = !['user'].includes(user.role) || application?.status === 'pending' || application?.status === 'approved';
+  hostApplyButton.hidden = user.role !== 'user' || application?.status === 'pending';
   hostApplyButton.textContent = application?.status === 'rejected' ? 'Nộp lại đơn' : 'Trở thành host';
   hostApplicationForm.hidden = true;
 }
@@ -266,6 +267,50 @@ deleteAccountConfirm.addEventListener('click', async () => {
   } finally {
     deleteAccountButton.disabled = false;
     deleteAccountConfirm.disabled = false;
+  }
+});
+
+const cancelHostButton = document.getElementById('cancel-host-open');
+const cancelHostDialog = document.getElementById('cancel-host-dialog');
+const cancelHostReason = document.getElementById('cancel-host-reason');
+const cancelHostError = document.getElementById('cancel-host-error');
+const cancelHostConfirm = cancelHostDialog.querySelector('[data-confirm]');
+cancelHostButton.addEventListener('click', () => {
+  cancelHostReason.value = '';
+  cancelHostError.textContent = '';
+  cancelHostError.hidden = true;
+  cancelHostReason.removeAttribute('aria-invalid');
+  cancelHostDialog.showModal();
+  cancelHostReason.focus();
+});
+cancelHostDialog.querySelector('[data-cancel]').addEventListener('click', () => cancelHostDialog.close());
+cancelHostDialog.addEventListener('cancel', event => {
+  if (cancelHostConfirm.disabled) event.preventDefault();
+});
+cancelHostDialog.addEventListener('click', event => {
+  if (event.target === cancelHostDialog && !cancelHostConfirm.disabled) cancelHostDialog.close();
+});
+cancelHostConfirm.addEventListener('click', async () => {
+  if (cancelHostConfirm.disabled) return;
+  const reason = cancelHostReason.value.trim();
+  if (reason.length < 3 || reason.length > 1000) {
+    cancelHostError.textContent = 'Lý do phải có từ 3 đến 1000 ký tự.';
+    cancelHostError.hidden = false;
+    cancelHostReason.setAttribute('aria-invalid', 'true');
+    return;
+  }
+  cancelHostConfirm.disabled = cancelHostButton.disabled = true;
+  try {
+    await cancelHost(reason);
+    cancelHostDialog.close();
+    toast('Đã hủy quyền Host. Vui lòng đăng nhập lại với quyền Khách.');
+    location.href = accountHref('login.html');
+  } catch (error) {
+    if (error.status === 401) { requireLogin(); return; }
+    cancelHostError.textContent = error.detail || 'Không thể hủy quyền Host.';
+    cancelHostError.hidden = false;
+  } finally {
+    cancelHostConfirm.disabled = cancelHostButton.disabled = false;
   }
 });
 

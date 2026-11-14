@@ -1,11 +1,11 @@
 // ============================================================
-//  Admin Dashboard: số liệu + biểu đồ tính từ getAdminOverview() (mock: admin-overview.json + items.json).
+//  Admin Dashboard: số liệu + biểu đồ tính từ getAdminOverview() (mock: dữ liệu đang lưu).
 //  Không còn con số viết cứng trong HTML.
 //   • "User mới" / đường tăng trưởng / cơ cấu theo tỉnh: theo NGÀY TẠO (createdAt) trong kỳ.
 //   • Tỉnh/thành: phần cuối của location (sau dấu phẩy cuối) của homestay mà đơn đặt.
 //   • "Đơn chờ duyệt" đếm trực tiếp từ danh sách đơn xin làm host trên trang → duyệt/từ chối là số tự giảm.
 // ============================================================
-import { getAdminOverview, getAdminApplications, decideHostApplication } from '../api.js';
+import { getAdminOverview, getAdminApplications, decideHostApplication, getAdminHostCancellations } from '../api.js';
 import '../guard.js';
 import { periodTabs, getWindow, inWindow, bucketIndex, dayNum, fmtFullDate, fmtInt, fmtPct,
          countUp, drawChart, axisOptions, theme, palette } from '../charts.js';
@@ -33,7 +33,7 @@ async function load() {
     countUp($('kpi-homestays'), homestays.length);
     countUp($('kpi-bookings-total'), bookings.length);
     watchPending();
-    await loadApplications();
+    await Promise.all([loadApplications(), loadHostCancellations()]);
 
     tabs = periodTabs($('period-tabs'), { initial: 'year', onChange: render });
     render(tabs.value);
@@ -41,6 +41,67 @@ async function load() {
     console.error(e);
     $('period-note').textContent = `Không tải được số liệu. ${e.detail ?? ''}`;
     $('period-note').classList.add('text-danger');
+  }
+}
+
+async function loadHostCancellations() {
+  const list = $('host-cancellation-list');
+  const empty = $('host-cancellation-empty');
+  try {
+    const records = await getAdminHostCancellations({ page: 1, page_size: 100 });
+    list.replaceChildren(...records.map(record => {
+      const card = document.createElement('article');
+      card.className = 'host-cancellation-card';
+      const host = document.createElement('div');
+      host.className = 'host-cancellation-card__host';
+      const avatar = document.createElement('span');
+      avatar.className = 'host-cancellation-card__avatar';
+      avatar.setAttribute('aria-hidden', 'true');
+      avatar.textContent = (record.host.display_name || record.host.email || '').trim().slice(0, 1).toLocaleUpperCase('vi-VN') || '?';
+      const identity = document.createElement('div');
+      identity.className = 'host-cancellation-card__identity';
+      const name = document.createElement('h3');
+      name.className = 'host-cancellation-card__name';
+      name.textContent = record.host.display_name || 'Host';
+      const email = document.createElement('p');
+      email.className = 'host-cancellation-card__email';
+      email.textContent = record.host.email || '';
+      identity.append(name, email);
+      host.append(avatar, identity);
+
+      const reasonGroup = document.createElement('div');
+      reasonGroup.className = 'host-cancellation-card__reason';
+      const reasonLabel = document.createElement('span');
+      reasonLabel.className = 'host-cancellation-card__label';
+      reasonLabel.textContent = 'Lý do tự hủy';
+      const reason = document.createElement('p');
+      reason.className = 'host-cancellation-card__reason-text';
+      reason.textContent = record.reason || 'Không có lý do được cung cấp.';
+      reasonGroup.append(reasonLabel, reason);
+
+      const timeGroup = document.createElement('div');
+      timeGroup.className = 'host-cancellation-card__time';
+      const timeLabel = document.createElement('span');
+      timeLabel.className = 'host-cancellation-card__label';
+      timeLabel.textContent = 'Thời gian';
+      const at = new Date(record.createdAt);
+      const created = document.createElement('time');
+      created.className = 'host-cancellation-card__timestamp';
+      created.textContent = Number.isNaN(at.getTime()) ? String(record.createdAt || 'Không rõ') : at.toLocaleString('vi-VN');
+      if (!Number.isNaN(at.getTime())) created.dateTime = at.toISOString();
+      timeGroup.append(timeLabel, created);
+      card.append(host, reasonGroup, timeGroup);
+      return card;
+    }));
+    empty.hidden = records.length > 0;
+  } catch (error) {
+    console.error(error);
+    list.replaceChildren();
+    empty.hidden = true;
+    const notice = document.createElement('p');
+    notice.className = 'text-danger';
+    notice.textContent = error.detail || 'Không tải được thông báo hủy Host.';
+    list.append(notice);
   }
 }
 

@@ -1,4 +1,5 @@
 import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
+import { initHostDashboardReturn } from '../host-navigation.js';
 
 import { getHostHomestays, getHostRooms, deleteHostHomestay } from '../api.js';
 import { confirmAction, toast } from '../ui.js';
@@ -7,6 +8,7 @@ import '../components/site-footer.js';
 import '../guard.js';
 
 const $ = id => document.getElementById(id);
+initHostDashboardReturn();
 let page = 1;
 let loading = false;
 const pager = document.createElement('div'); pager.className = 'row__actions'; $('list').after(pager);

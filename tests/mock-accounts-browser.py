@@ -119,6 +119,67 @@ try {
   const storage = JSON.stringify(Object.fromEntries(Object.keys(localStorage).map(k => [k,localStorage[k]])));
   assert(!storage.includes(oldPassword) && !storage.includes(newPassword), 'No raw passwords persisted');
   assert(!('credential' in JSON.parse(localStorage.app_user)), 'Session excludes password verifier');
+  const hostAuth=await win().eval("import('./js/auth.js')");
+  const seededHost=JSON.parse(localStorage.luxstay_mock_users_v1).find(user=>user.id==='host001');
+  localStorage.setItem('luxstay_mock_host_applications_v1',JSON.stringify([{
+    id:'approved-host-app',userId:'host001',status:'approved',
+    application_data:{homestay_name:'Previous Homestay',address:'123 Test Street',province:'Lam Dong',
+      room_count:1,description:'A previous approved host application.',experience:'',phone:'0912345678',accept_terms:true},
+    createdAt:new Date().toISOString(),history:[],
+  }]));
+  hostAuth.saveSession({access_token:'mock-token',user:seededHost});
+  await page('profile.html?host-cancel-test=1',d=>!d.getElementById('cancel-host-section').hidden);
+  service=await api();
+  const ownedStays=await service.getHostHomestays(), ownedRooms=await service.getHostRooms();
+  assert(ownedStays.length===22 && ownedRooms.length===48,'Host cancellation starts with seeded owned homestays and rooms');
+  localStorage.setItem('bookings',JSON.stringify([{id:'active-cancel-guard',roomId:ownedRooms[0].id,status:'confirmed'}]));
+  doc().getElementById('cancel-host-open').click();
+  assert(doc().getElementById('cancel-host-dialog').open,'Host cancellation dialog opens');
+  doc().getElementById('cancel-host-reason').value='Tôi không còn kinh doanh homestay.';
+  doc().querySelector('#cancel-host-dialog [data-confirm]').click();
+  await waitFor(()=>!!doc().getElementById('cancel-host-error').textContent
+    &&!doc().querySelector('#cancel-host-dialog [data-confirm]').disabled,'active booking cancellation rejection');
+  assert(JSON.parse(localStorage.luxstay_mock_users_v1).find(user=>user.id==='host001').role==='host',
+    'Active booking rejection preserves Host role');
+  localStorage.setItem('bookings','[]');
+  doc().getElementById('cancel-host-reason').value='Tôi không còn kinh doanh homestay.';
+  doc().querySelector('#cancel-host-dialog [data-confirm]').click();
+  await waitFor(()=>win().location.pathname.endsWith('/login.html')&&!localStorage.app_token,'successful host cancellation sign-out');
+  assert(JSON.parse(localStorage.luxstay_mock_users_v1).find(user=>user.id==='host001').role==='user',
+    'Successful cancellation changes Host role to Customer');
+  assert(JSON.parse(localStorage.homestays).filter(stay=>stay.hostId==='host001').every(stay=>stay.status==='inactive'),
+    'Successful cancellation pauses only the former Host homestays');
+  service=await api();
+  const adminAuth=await win().eval("import('./js/auth.js')");
+  adminAuth.saveSession({access_token:'mock-token',user:{id:99,display_name:'Admin LuxStay',role:'admin'}});
+  const notices=await service.getAdminHostCancellations();
+  assert(notices.some(notice=>notice.host.id==='host001'
+    &&notice.reason==='Tôi không còn kinh doanh homestay.'),'Admin can read self-cancellation reason');
+  assert(!(await service.getAdminHosts()).some(host=>host.id==='host001'),'Former Host leaves the Admin host list');
+  const formerHost=JSON.parse(localStorage.luxstay_mock_users_v1).find(user=>user.id==='host001');
+  adminAuth.saveSession({access_token:'mock-token',user:formerHost});
+  await page('profile.html?after-host-cancel=1',d=>!d.getElementById('host-apply-open').hidden);
+  service=await api();
+  assert(doc().getElementById('host-apply-open').textContent==='Trở thành host',
+    'Former Host sees the become-host action again');
+  doc().getElementById('host-apply-open').click();
+  assert(!doc().getElementById('host-application-form').hidden,'Former Host can open a fresh application form');
+  const newApplication=await service.applyHost({
+    homestay_name:'New Homestay',address:'123 Test Street',province:'Lam Dong',room_count:2,
+    description:'A comfortable place for future guest stays.',experience:'',phone:'0912345678',accept_terms:true,
+  });
+  assert(newApplication.status==='pending','Former Host can submit a new application for review');
+  const formerAuth=await win().eval("import('./js/auth.js')");
+  formerAuth.saveSession({access_token:'mock-token',user:{id:99,display_name:'Admin LuxStay',role:'admin'}});
+  await page('admin.html?host-notification-test=1',d=>!!d.querySelector('#host-cancellation-list .host-cancellation-card'));
+  const cancellationCard=doc().querySelector('#host-cancellation-list .host-cancellation-card');
+  assert(cancellationCard.textContent.includes('Tôi không còn kinh doanh homestay.')
+    &&cancellationCard.querySelector('.host-cancellation-card__email')
+    &&cancellationCard.querySelector('time'),
+  'Admin dashboard renders self-cancellation details in the dedicated card layout');
+  const currentAuth=await win().eval("import('./js/auth.js')");
+  const changedUser=JSON.parse(localStorage.luxstay_mock_users_v1).find(user=>user.email==='changed@example.test');
+  currentAuth.saveSession({access_token:'mock-token',user:changedUser});
   await page('host-register.html', d => !!d.getElementById('host-password'));
   const button=doc().querySelector('[data-target="host-password"]'), password=doc().getElementById('host-password');
   button.click(); assert(password.type==='text','Host password toggle changes once');

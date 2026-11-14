@@ -1,14 +1,23 @@
 from datetime import date, timedelta
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..database import get_db
 from ..deps import get_admin
-from ..models import Booking, Homestay, HostApplication, HostApplicationHistory, User, utcnow
+from ..host_service import cancel_host_role
+from ..models import (
+    Booking,
+    Homestay,
+    HostApplication,
+    HostApplicationHistory,
+    HostCancellation,
+    User,
+    utcnow,
+)
 from ..serializers import application_out, homestay_out, iso, user_out
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -253,6 +262,47 @@ def users(
         {**user_out(u), "is_active": u.is_active}
         for u in db.scalars(query.order_by(order, User.id).offset((page - 1) * page_size).limit(page_size))
     ]
+
+
+@router.get("/host-cancellations")
+def host_cancellations(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=100),
+    user: User = Depends(get_admin),
+    db: Session = Depends(get_db),
+):
+    rows = db.execute(
+        select(HostCancellation, User)
+        .join(User, User.id == HostCancellation.host_id)
+        .where(HostCancellation.source == "host")
+        .order_by(HostCancellation.created_at.desc(), HostCancellation.id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    ).all()
+    return [
+        {
+            "id": cancellation.id,
+            "host": user_out(host),
+            "reason": cancellation.reason,
+            "createdAt": iso(cancellation.created_at),
+        }
+        for cancellation, host in rows
+    ]
+
+
+@router.post("/users/{user_id}/cancel-host", status_code=204)
+def cancel_host_by_admin(
+    user_id: int,
+    actor: User = Depends(get_admin),
+    db: Session = Depends(get_db),
+):
+    host = db.scalar(
+        select(User).where(User.id == user_id).with_for_update().execution_options(populate_existing=True)
+    )
+    if not host:
+        raise HTTPException(404, "Không tìm thấy người dùng.")
+    cancel_host_role(db, host, actor, "admin")
+    return Response(status_code=204)
 
 
 @router.patch("/users/{user_id}")

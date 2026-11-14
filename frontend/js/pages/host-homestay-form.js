@@ -1,4 +1,5 @@
 import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
+import { initHostDashboardReturn } from '../host-navigation.js';
 import { uploadImage } from '../api.js';
 
 import {
@@ -19,6 +20,7 @@ import '../components/site-footer.js';
 import '../guard.js';
 
 const $ = id => document.getElementById(id);
+initHostDashboardReturn();
 
 const id = new URLSearchParams(location.search).get('id');
 if (ACCOUNT_API_MODE) {

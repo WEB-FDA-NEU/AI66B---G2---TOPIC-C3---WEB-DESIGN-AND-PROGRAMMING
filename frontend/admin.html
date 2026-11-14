@@ -74,6 +74,7 @@
        Admin hiện chỉ có 1 khu vực (hàng đợi đơn host) nên chỉ có 1 nút, trỏ neo xuống thẳng đó. -->
   <div class="quick-links">
     <a class="btn btn--primary" href="#application-list">Xem đơn chờ duyệt</a>
+    <a class="btn" href="#host-cancellations">Thông báo hủy Host</a>
     <a class="btn" href="#host-section">Danh sách host</a>
   </div>
 
@@ -92,6 +93,19 @@
     <div class="empty" id="application-empty" hidden>
       <p class="empty__title">Không còn đơn nào chờ duyệt</p>
       <p class="empty__hint">Mọi đơn xin làm host đã được xử lý.</p>
+    </div>
+  </section>
+
+  <section class="mt-6" id="host-cancellations" aria-labelledby="host-cancellations-title">
+    <div class="section-head">
+      <div>
+        <h2 id="host-cancellations-title">Thông báo Host tự hủy</h2>
+        <p>Hiển thị lý do Host đã gửi khi tự hủy quyền.</p>
+      </div>
+    </div>
+    <div class="stack" id="host-cancellation-list"></div>
+    <div class="empty" id="host-cancellation-empty" hidden>
+      <p class="empty__title">Chưa có thông báo hủy Host</p>
     </div>
   </section>
 

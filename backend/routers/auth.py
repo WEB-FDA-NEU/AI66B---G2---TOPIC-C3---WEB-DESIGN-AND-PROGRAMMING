@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from .. import schemas
 from ..database import get_db
 from ..deps import get_current_user
+from ..host_service import cancel_host_role
 from ..media import normalize_image
 from ..models import AuthSession, Booking, Homestay, HostApplication, User, utcnow
 from ..rate_limit import check_auth_limit
@@ -170,6 +171,19 @@ def delete_account(user: User = Depends(get_current_user), db: Session = Depends
     return Response(status_code=204)
 
 
+@router.post("/me/host/cancel", status_code=204)
+def cancel_my_host_role(
+    payload: schemas.ReasonIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    host = db.scalar(
+        select(User).where(User.id == user.id).with_for_update().execution_options(populate_existing=True)
+    )
+    cancel_host_role(db, host, host, "host", payload.reason)
+    return Response(status_code=204)
+
+
 @router.post("/auth/logout", status_code=204)
 def logout(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     request.state.auth_session.revoked = True
@@ -192,7 +206,7 @@ def apply_host(
         .with_for_update()
         .execution_options(populate_existing=True)
     )
-    if application and application.status != "rejected":
+    if application and application.status not in ("rejected", "approved"):
         raise HTTPException(409, "Bạn đã có đơn đăng ký host.")
     if user.role != "user":
         raise HTTPException(403, "Chỉ khách hàng có thể gửi đơn đăng ký host.")

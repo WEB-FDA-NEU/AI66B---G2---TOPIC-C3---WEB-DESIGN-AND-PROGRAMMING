@@ -268,5 +268,5 @@ def test_destructive_downgrade_is_refused(empty_engine):
     with empty_engine.connect() as connection:
         assert (
             connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-            == "0005_pay_events"
+            == "0006_host_cancellations"
         )
