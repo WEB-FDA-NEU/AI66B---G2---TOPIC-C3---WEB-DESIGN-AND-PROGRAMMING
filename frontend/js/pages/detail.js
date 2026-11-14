@@ -292,6 +292,8 @@ function setupBooking(item, types) {
   $('book-btn').addEventListener('click', () => {
     if ($('book-btn').disabled) return;
     if (!isLoggedIn()) return requireLogin();     // đăng nhập xong quay lại đúng URL này, phòng đã chọn vẫn còn
+    if (getUser()?.role !== 'user')
+      return toast('Chỉ tài khoản khách hàng mới đặt phòng được. Hãy đăng nhập bằng tài khoản khách.', 'error');
     location.href = accountHref(`booking-page.html?${stayToParams(current(), { id: item.id, rooms: stringifyRooms(rooms), ...(ACCOUNT_API_MODE ? {intent:crypto.randomUUID()} : {}) })}`);
   });
 

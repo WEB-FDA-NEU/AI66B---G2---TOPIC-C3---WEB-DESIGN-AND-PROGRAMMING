@@ -18,7 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from backend.config import Settings
 from backend.models import AuthSession, HostApplication, User, utcnow
 
-from .conftest import PASSWORD, migrate
+from .conftest import PASSWORD, host_application_payload, migrate
 
 
 def claims_for(setup, uid=1):
@@ -107,8 +107,8 @@ def test_profile_query_or_path_id_does_not_select_another_account(client, header
 def test_host_application_cannot_set_applicant_status_or_reviewer(client, headers):
     for forged in [{"user_id": 2}, {"status": "approved"}, {"reviewed_by": 5}]:
         assert client.post("/api/host/apply", json=forged, headers=headers()).status_code == 422
-    own = client.post("/api/host/apply", json={}, headers=headers()).json()
-    other = client.post("/api/host/apply", json={}, headers=headers(2)).json()
+    own = client.post("/api/host/apply", json=host_application_payload(), headers=headers()).json()
+    other = client.post("/api/host/apply", json=host_application_payload(), headers=headers(2)).json()
     assert own["id"] != other["id"]
     response = client.get("/api/me/host-application?user_id=2", headers=headers())
     assert response.status_code == 200 and response.json()["user"]["id"] == 1
@@ -117,8 +117,20 @@ def test_host_application_cannot_set_applicant_status_or_reviewer(client, header
     assert client.post(url, headers=headers(3)).status_code == 403
 
 
+@pytest.mark.parametrize("changes", [{"accept_terms": False}, {"phone": "123"}, {"room_count": 0}])
+def test_host_application_requires_valid_contact_terms_and_room_count(client, headers, changes):
+    assert (
+        client.post(
+            "/api/host/apply",
+            json=host_application_payload(**changes),
+            headers=headers(),
+        ).status_code
+        == 422
+    )
+
+
 def test_rejected_application_does_not_grant_host_role(setup, client, headers):
-    application = client.post("/api/host/apply", json={}, headers=headers()).json()
+    application = client.post("/api/host/apply", json=host_application_payload(), headers=headers()).json()
     response = client.post(
         f"/api/admin/host-applications/{application['id']}/reject",
         json={"reason": "Missing documents"},
@@ -133,7 +145,7 @@ def test_rejected_application_does_not_grant_host_role(setup, client, headers):
 
 
 def test_disabled_applicant_cannot_be_approved(client, headers):
-    application = client.post("/api/host/apply", json={}, headers=headers()).json()
+    application = client.post("/api/host/apply", json=host_application_payload(), headers=headers()).json()
     assert (
         client.patch("/api/admin/users/1", json={"is_active": False}, headers=headers(5)).status_code == 200
     )
@@ -143,7 +155,7 @@ def test_disabled_applicant_cannot_be_approved(client, headers):
         ).status_code
         == 409
     )
-    assert client.post("/api/host/apply", json={}, headers=headers()).status_code == 401
+    assert client.post("/api/host/apply", json=host_application_payload(), headers=headers()).status_code == 401
 
 
 def test_reactivation_does_not_restore_revoked_tokens(client, headers):
@@ -218,7 +230,7 @@ def test_database_enforces_user_role_session_fk_and_application_uniqueness(setup
         with pytest.raises(IntegrityError):
             db.flush()
         db.rollback()
-    assert client.post("/api/host/apply", json={}, headers=headers()).status_code == 201
+    assert client.post("/api/host/apply", json=host_application_payload(), headers=headers()).status_code == 201
     with setup["factory"]() as db:
         db.add(HostApplication(user_id=1))
         with pytest.raises(IntegrityError):
@@ -282,7 +294,7 @@ def test_invalid_legacy_role_refuses_upgrade_and_rolls_back_added_columns(empty_
 def test_concurrent_host_apply_and_approval_must_not_deadlock(setup, client, headers):
     if setup["engine"].dialect.name != "postgresql":
         pytest.skip("Row-lock deadlock is PostgreSQL-specific; SQLite serializes transactions")
-    application = client.post("/api/host/apply", json={}, headers=headers()).json()
+    application = client.post("/api/host/apply", json=host_application_payload(), headers=headers()).json()
     ready = Barrier(2)
 
     def synchronize_locks(connection, cursor, statement, parameters, context, executemany):
@@ -293,7 +305,9 @@ def test_concurrent_host_apply_and_approval_must_not_deadlock(setup, client, hea
     event.listen(setup["engine"], "before_cursor_execute", synchronize_locks)
     try:
         with ThreadPoolExecutor(max_workers=2) as pool:
-            apply = pool.submit(client.post, "/api/host/apply", json={}, headers=headers())
+            apply = pool.submit(
+                client.post, "/api/host/apply", json=host_application_payload(), headers=headers()
+            )
             approve = pool.submit(
                 client.post,
                 f"/api/admin/host-applications/{application['id']}/approve",
@@ -354,7 +368,7 @@ def test_invalid_unicode_rejected_across_password_inputs(client, headers, endpoi
 def test_concurrent_admin_decisions_are_serialized(setup, client, headers, decisions):
     if setup["engine"].dialect.name != "postgresql":
         pytest.skip("PostgreSQL row-lock concurrency")
-    application = client.post("/api/host/apply", json={}, headers=headers()).json()
+    application = client.post("/api/host/apply", json=host_application_payload(), headers=headers()).json()
     ready = Barrier(2)
 
     def synchronize(connection, cursor, statement, parameters, context, executemany):

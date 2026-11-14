@@ -5,10 +5,12 @@
 //   • Tỉnh/thành: phần cuối của location (sau dấu phẩy cuối) của homestay mà đơn đặt.
 //   • "Đơn chờ duyệt" đếm trực tiếp từ danh sách đơn xin làm host trên trang → duyệt/từ chối là số tự giảm.
 // ============================================================
-import { getAdminOverview } from '../api.js';
+import { getAdminOverview, getAdminApplications, decideHostApplication } from '../api.js';
 import '../guard.js';
 import { periodTabs, getWindow, inWindow, bucketIndex, dayNum, fmtFullDate, fmtInt, fmtPct,
          countUp, drawChart, axisOptions, theme, palette } from '../charts.js';
+import { safeImageURL } from '../config.js';
+import { confirmAction, toast } from '../ui.js';
 
 import { ACCOUNT_API_MODE } from '../config.js';
 if (ACCOUNT_API_MODE) {
@@ -31,6 +33,7 @@ async function load() {
     countUp($('kpi-homestays'), homestays.length);
     countUp($('kpi-bookings-total'), bookings.length);
     watchPending();
+    await loadApplications();
 
     tabs = periodTabs($('period-tabs'), { initial: 'year', onChange: render });
     render(tabs.value);
@@ -47,8 +50,142 @@ function watchPending() {
   const count = () => list.querySelectorAll('[data-status="pending"]').length;
   countUp($('kpi-pending'), count());
   new MutationObserver(() => countUp($('kpi-pending'), count()))
-    .observe(list, { subtree: true, attributes: true, attributeFilter: ['data-status'] });
+    .observe(list, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-status'] });
 }
+
+async function loadApplications() {
+  const list = $('application-list');
+  const empty = $('application-empty');
+  try {
+    const applications = await getAdminApplications({ status: 'pending', page: 1, page_size: 100 });
+    list.replaceChildren(...applications.map(renderApplication));
+    list.hidden = applications.length === 0;
+    empty.hidden = applications.length > 0;
+    countUp($('kpi-pending'), applications.length);
+  } catch (error) {
+    console.error(error);
+    list.replaceChildren(Object.assign(document.createElement('p'), {
+      className: 'text-danger',
+      textContent: error.detail || 'Không tải được danh sách đơn đăng ký Host.',
+    }));
+    list.hidden = false;
+    empty.hidden = true;
+  }
+}
+
+function renderApplication(application) {
+  const row = document.createElement('article');
+  row.className = 'row';
+  row.dataset.status = application.status;
+  const image = document.createElement('img');
+  image.className = 'row__img';
+  image.src = safeImageURL(application.user.avatar || 'img/placeholder.svg');
+  image.alt = '';
+  image.onerror = () => { image.onerror = null; image.src = 'img/placeholder.svg'; };
+
+  const info = document.createElement('div');
+  const addMeta = (label, value) => {
+    const meta = document.createElement('p');
+    meta.className = 'row__meta';
+    meta.textContent = `${label}: ${value}`;
+    info.append(meta);
+  };
+  const title = document.createElement('p');
+  title.className = 'row__title';
+  title.textContent = application.user.display_name;
+  info.append(title);
+  addMeta('Email', application.user.email);
+  const createdAt = new Date(application.createdAt);
+  addMeta('Nộp đơn', Number.isNaN(createdAt.getTime()) ? application.createdAt : createdAt.toLocaleString('vi-VN'));
+
+  const labels = {
+    homestay_name: 'Tên homestay dự kiến',
+    address: 'Địa chỉ',
+    province: 'Tỉnh/thành phố',
+    room_count: 'Số phòng',
+    description: 'Mô tả',
+    experience: 'Kinh nghiệm / tin đăng',
+    phone: 'Số điện thoại',
+  };
+  for (const [key, value] of Object.entries(application.application_data)) {
+    if (key !== 'accept_terms') addMeta(labels[key] || key, value);
+  }
+  if (application.application_data.accept_terms) addMeta('Điều khoản', 'Đã đồng ý');
+
+  const actions = document.createElement('div');
+  actions.className = 'row__actions';
+  const badge = document.createElement('span');
+  badge.className = 'badge badge--warning';
+  badge.textContent = 'Chờ duyệt';
+  const approve = document.createElement('button');
+  approve.className = 'btn btn--primary';
+  approve.type = 'button';
+  approve.textContent = 'Duyệt';
+  const reject = document.createElement('button');
+  reject.className = 'btn btn--danger';
+  reject.type = 'button';
+  reject.textContent = 'Từ chối';
+
+  let processing = false;
+  const decide = async (action, reason = '') => {
+    if (processing) return;
+    processing = true;
+    approve.disabled = reject.disabled = true;
+    try {
+      await decideHostApplication(application.id, action, reason);
+      toast(action === 'approve' ? `Đã duyệt đơn của ${application.user.display_name}.` : `Đã từ chối đơn của ${application.user.display_name}.`);
+      await loadApplications();
+    } catch (error) {
+      toast(error.detail || 'Không thể cập nhật đơn đăng ký Host.', 'error');
+    } finally {
+      processing = false;
+      approve.disabled = reject.disabled = false;
+    }
+  };
+
+  approve.onclick = async () => {
+    if (processing || !await confirmAction({
+      title: 'Duyệt đơn xin làm host?',
+      message: `Đồng ý cho "${application.user.display_name}" trở thành host?`,
+      confirmText: 'Duyệt',
+    })) return;
+    await decide('approve');
+  };
+  reject.onclick = () => {
+    if (processing) return;
+    $('rejectReason').value = '';
+    $('rejectErr').textContent = '';
+    $('rejectReason').removeAttribute('aria-invalid');
+    $('reject-dialog').dataset.applicationId = application.id;
+    $('reject-dialog').showModal();
+  };
+  actions.append(badge, approve, reject);
+  row.append(image, info, actions);
+  return row;
+}
+
+const rejectDialog = $('reject-dialog');
+$('rejectCancel').onclick = () => rejectDialog.close();
+$('rejectConfirm').onclick = async () => {
+  const applicationId = rejectDialog.dataset.applicationId;
+  const reason = $('rejectReason').value.trim();
+  if (reason.length < 3 || reason.length > 1000) {
+    $('rejectErr').textContent = 'Lý do từ chối phải có từ 3 đến 1000 ký tự.';
+    $('rejectReason').setAttribute('aria-invalid', 'true');
+    return;
+  }
+  $('rejectConfirm').disabled = true;
+  try {
+    await decideHostApplication(applicationId, 'reject', reason);
+    rejectDialog.close();
+    toast('Đã từ chối đơn đăng ký Host.');
+    await loadApplications();
+  } catch (error) {
+    $('rejectErr').textContent = error.detail || 'Không thể cập nhật đơn đăng ký Host.';
+  } finally {
+    $('rejectConfirm').disabled = false;
+  }
+};
 
 // ---------- Theo kỳ ----------
 function render(key) {

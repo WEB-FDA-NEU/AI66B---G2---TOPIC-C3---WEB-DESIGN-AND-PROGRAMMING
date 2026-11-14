@@ -24,14 +24,14 @@ Prefix `/api`, JSON, `Authorization: Bearer <access_token>`. Role frontend: `use
 | detail chọn ngày/phòng | GET /items/{id}/availability | checkin/checkout, adults/children; inventory còn thật |
 | pricing quote / checkout | POST /bookings/quote | Public; không tin giá client, cùng cấu trúc quote hiện tại |
 | getReviews/addReview | GET/POST /items/{id}/reviews | POST user có booking completed; bookingId tùy chọn, nếu thiếu chọn completed chưa review; name client không có quyền giả tác giả |
-| register | POST /auth/register | Customer mặc định; role host chỉ tạo application pending; role admin bị từ chối |
+| register | POST /auth/register | Chỉ tạo tài khoản customer; `role` chỉ nhận `user`; đăng ký Host phải gửi đơn bằng tài khoản đang đăng nhập |
 | login/saveSession | POST /auth/login | {access_token,token_type,user}; user không có hash |
 | getUser/getProfile | GET /me, GET /me/profile | JWT/session active; profile gồm id,display_name,email,phone,role,avatar,createdAt |
 | updateProfile | PUT/PATCH /me/profile | PUT đầy đủ, PATCH các field được gửi; display_name,email,phone,avatar; không nhận role/is_active |
 | changePassword | POST /me/password | current_password,new_password; thu hồi mọi phiên sau thành công |
 | deleteAccount | DELETE /me/account | Customer/host; chặn nếu booking của khách hoặc homestay đang pending/confirmed/checked_in; vô hiệu hóa và ẩn thông tin hồ sơ, dừng homestay, thu hồi mọi phiên; giữ lịch sử giao dịch |
 | logout | POST /auth/logout | Thu hồi phiên hiện tại; frontend chưa gọi, FE-001 |
-| host-register / profile become-host | POST /host/apply; GET /me/host-application | Auth user; pending, không tự cấp host |
+| profile become-host | POST /host/apply; GET /me/host-application | Đơn gồm homestay_name,address,province,room_count,description,experience,phone,accept_terms; chỉ nộp lại sau khi bị từ chối; approve nâng cấp cùng tài khoản thành host, reject kèm lý do |
 | createBooking | POST /me/bookings | User; homestayId,checkIn,checkOut,adults,children,guestName,guestEmail,rooms:[{key,qty}]; optional Idempotency-Key; bỏ qua giá/snapshot client |
 | booking-list/detail | GET /me/bookings; GET /me/bookings/{id} | Chỉ booking của mình; array mặc định, optional page/page_size/status; view camelCase tương thích |
 | cancelBooking | POST /me/bookings/{id}/cancel | pending/confirmed, idempotent cancel; ledger/history/refund |

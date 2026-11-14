@@ -32,7 +32,7 @@ function showDenied(user) {
     className: 'btn btn--primary', href: accountHref('index.html'), textContent: 'Về trang chủ' }));
   if (required === 'host' && user.role === 'user') {
     actions.append(Object.assign(document.createElement('a'), {
-      className: 'btn btn--outline', href: accountHref('host-register.html'), textContent: 'Đăng ký làm host' }));
+      className: 'btn btn--outline', href: accountHref('profile.html#become-host'), textContent: 'Đăng ký làm host' }));
   }
   box.append(title, hint, actions);
   document.querySelector('main')?.replaceChildren(box);

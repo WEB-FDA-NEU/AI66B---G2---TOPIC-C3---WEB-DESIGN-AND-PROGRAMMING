@@ -10,6 +10,7 @@ import { formatVND } from '../render.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
+import '../guard.js';
 
 if (!isLoggedIn()) requireLogin(); // Booking History chỉ dành cho user đã đăng nhập
 

@@ -1,6 +1,6 @@
 import pytest
 
-from .conftest import PASSWORD
+from .conftest import PASSWORD, host_application_payload
 
 
 def room_payload(**changes):
@@ -169,11 +169,13 @@ def test_room_capacity_cannot_shrink_with_active_bookings(client, headers, booki
 def test_application_review_and_role_refresh(client, headers):
     assert (
         client.post(
-            "/api/host/apply", json={"application_data": {"reason": "I own a homestay"}}, headers=headers()
+            "/api/host/apply",
+            json=host_application_payload(experience="I own a homestay"),
+            headers=headers(),
         ).status_code
         == 201
     )
-    assert client.post("/api/host/apply", json={}, headers=headers()).status_code == 409
+    assert client.post("/api/host/apply", json=host_application_payload(), headers=headers()).status_code == 409
     applications = client.get("/api/admin/host-applications", headers=headers(5)).json()
     application_id = applications[0]["id"]
     assert (
@@ -200,7 +202,7 @@ def test_application_review_and_role_refresh(client, headers):
 
 
 def test_reject_application_and_resubmit(client, headers):
-    app_id = client.post("/api/host/apply", json={}, headers=headers()).json()["id"]
+    app_id = client.post("/api/host/apply", json=host_application_payload(), headers=headers()).json()["id"]
     assert (
         client.post(
             f"/api/admin/host-applications/{app_id}/reject", json={"reason": " "}, headers=headers(5)
@@ -215,7 +217,7 @@ def test_reject_application_and_resubmit(client, headers):
         ).json()["status"]
         == "rejected"
     )
-    assert client.post("/api/host/apply", json={}, headers=headers()).json()["status"] == "pending"
+    assert client.post("/api/host/apply", json=host_application_payload(), headers=headers()).json()["status"] == "pending"
 
 
 def test_moderation_hides_catalog_and_blocks_new_bookings(client, headers, booking_payload):

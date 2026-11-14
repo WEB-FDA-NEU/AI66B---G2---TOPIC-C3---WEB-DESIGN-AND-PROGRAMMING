@@ -12,6 +12,7 @@ import { isLoggedIn, requireLogin, getUser } from '../auth.js';
 import { stayFromParams, parseRooms, quote, fmtDate, guestText, todayISO } from '../pricing.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
+import '../guard.js';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);

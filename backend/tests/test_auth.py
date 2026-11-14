@@ -8,7 +8,7 @@ from sqlalchemy import select
 from backend.models import AuthSession, Homestay, User, utcnow
 from backend.security import verify_password
 
-from .conftest import PASSWORD
+from .conftest import PASSWORD, host_application_payload
 
 
 def test_registration_login_profile_and_logout(client):
@@ -65,8 +65,8 @@ def test_duplicate_email_case_insensitive(client):
     )
 
 
-def test_host_registration_is_pending_not_privilege_escalation(client):
-    result = client.post(
+def test_host_registration_requires_existing_user_application(client):
+    rejected = client.post(
         "/api/auth/register",
         json={
             "display_name": "Applicant",
@@ -75,10 +75,20 @@ def test_host_registration_is_pending_not_privilege_escalation(client):
             "role": "host",
         },
     )
+    assert rejected.status_code == 422
+    result = client.post(
+        "/api/auth/register",
+        json={"display_name": "Applicant", "email": "applicant@example.com", "password": PASSWORD},
+    )
     assert result.status_code == 201 and result.json()["user"]["role"] == "user"
     header = {"Authorization": "Bearer " + result.json()["access_token"]}
     assert client.get("/api/host/homestays", headers=header).status_code == 403
-    assert client.get("/api/me/host-application", headers=header).json()["status"] == "pending"
+    assert client.get("/api/me/host-application", headers=header).status_code == 404
+    application = client.post(
+        "/api/host/apply", json=host_application_payload(), headers=header
+    )
+    assert application.status_code == 201
+    assert application.json()["application_data"]["accept_terms"] is True
 
 
 @pytest.mark.parametrize("uid", [1, 2, 3, 4])

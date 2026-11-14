@@ -7,6 +7,8 @@ from sqlalchemy import event, select
 
 from backend.models import Booking, HostApplicationHistory, Payment, Room
 
+from .conftest import host_application_payload
+
 
 def book(client, headers, payload):
     response = client.post("/api/me/bookings", json=payload, headers=headers())
@@ -44,7 +46,7 @@ def test_host_cash_is_not_booking_value_and_lines_not_duplicated(setup, client, 
 
 def test_admin_overview_kpis_and_pagination(client, headers, booking_payload):
     book(client, headers, booking_payload)
-    client.post("/api/host/apply", json={}, headers=headers())
+    client.post("/api/host/apply", json=host_application_payload(), headers=headers())
     kpi = client.get("/api/admin/overview", headers=headers(5)).json()["kpis"]
     assert kpi["users"] == 5 and kpi["roles"] == {"user": 2, "host": 2, "admin": 1}
     assert kpi["applications"]["pending"] == 1 and kpi["bookingCount"] == 1
@@ -80,7 +82,9 @@ def test_phase6_invalid_queries(client, headers, path, params):
 
 def test_application_review_history_survives_resubmission(setup, client, headers):
     a = client.post(
-        "/api/host/apply", json={"application_data": {"reason": "First proposal"}}, headers=headers()
+        "/api/host/apply",
+        json=host_application_payload(experience="First proposal"),
+        headers=headers(),
     ).json()
     assert (
         client.post(
@@ -92,14 +96,16 @@ def test_application_review_history_survives_resubmission(setup, client, headers
     )
     assert (
         client.post(
-            "/api/host/apply", json={"application_data": {"reason": "Second proposal"}}, headers=headers()
+            "/api/host/apply",
+            json=host_application_payload(experience="Second proposal"),
+            headers=headers(),
         ).status_code
         == 201
     )
     pending = client.get(
         "/api/admin/host-applications", params={"status": "pending"}, headers=headers(5)
     ).json()[0]
-    assert pending["history"][0]["application_data"] == {"reason": "First proposal"}
+    assert pending["history"][0]["application_data"] == host_application_payload(experience="First proposal")["application_data"]
     assert pending["history"][0]["rejectReason"] == "Missing documents"
     assert (
         client.post(f"/api/admin/host-applications/{a['id']}/approve", headers=headers(5)).status_code == 200
@@ -107,7 +113,7 @@ def test_application_review_history_survives_resubmission(setup, client, headers
     with setup["factory"]() as db:
         entries = list(db.scalars(select(HostApplicationHistory).order_by(HostApplicationHistory.id)))
         assert [h.status for h in entries] == ["rejected", "approved"]
-        assert entries[1].application_data == {"reason": "Second proposal"}
+        assert entries[1].application_data == host_application_payload(experience="Second proposal")["application_data"]
 
 
 def test_local_timezone_bucket_and_cohort(setup, client, headers, booking_payload):

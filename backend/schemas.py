@@ -72,7 +72,7 @@ class ProfileIn(Input):
 
 class RegisterIn(ProfileIn):
     password: SecretStr = Field(min_length=8, max_length=128)
-    role: Literal["user", "host"] = "user"
+    role: Literal["user"] = "user"
 
 
 class ProfilePatch(ProfileIn):
@@ -103,15 +103,31 @@ class PasswordIn(Input):
     new_password: SecretStr = Field(min_length=8, max_length=128)
 
 
-class ApplicationIn(Input):
-    application_data: dict[str, str] = Field(default_factory=dict, max_length=20)
+class HostApplicationData(Input):
+    homestay_name: str = Field(min_length=2, max_length=160)
+    address: str = Field(min_length=5, max_length=300)
+    province: str = Field(min_length=2, max_length=120)
+    room_count: int = Field(ge=1, le=100)
+    description: str = Field(min_length=10, max_length=1000)
+    experience: str = Field(default="", max_length=1000)
+    phone: str = Field(max_length=20)
+    accept_terms: Literal[True]
 
-    @field_validator("application_data")
+    @field_validator("homestay_name", "address", "province", "description", "experience", "phone", mode="before")
     @classmethod
-    def bounded(cls, value):
-        if any(len(key) > 80 or len(text) > 2000 for key, text in value.items()):
-            raise ValueError("Application data too large")
+    def trim_application_text(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("phone")
+    @classmethod
+    def valid_application_phone(cls, value):
+        if not re.fullmatch(r"(?:0|\+84)[35789][0-9]{8}", value):
+            raise ValueError("Invalid Vietnamese phone number")
         return value
+
+
+class ApplicationIn(Input):
+    application_data: HostApplicationData
 
 
 class ReasonIn(Input):

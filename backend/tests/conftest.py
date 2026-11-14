@@ -20,6 +20,21 @@ ROOT = Path(__file__).resolve().parents[2]
 PASSWORD = "Test-Password-123!"
 
 
+def host_application_payload(**changes):
+    application_data = {
+        "homestay_name": "Test Homestay",
+        "address": "123 Test Street",
+        "province": "Lam Dong",
+        "room_count": 3,
+        "description": "A comfortable place for a short test stay.",
+        "experience": "I have managed guest stays before.",
+        "phone": "0912345678",
+        "accept_terms": True,
+    }
+    application_data.update(changes)
+    return {"application_data": application_data}
+
+
 def pytest_configure(config):
     if config.option.basetemp is None:
         parent = ROOT / "backend/.test-tmp"

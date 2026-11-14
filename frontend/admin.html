@@ -86,51 +86,7 @@
       </div>
     </div>
 
-    <div class="stack" id="application-list">
-
-      <article class="row" data-status="pending">
-        <img class="row__img" src="img/placeholder.svg" alt="Trần Văn An">
-        <div>
-          <a class="row__title" href="#">Trần Văn An</a>
-          <p class="row__meta">Homestay: Pine Cottage · Đà Lạt, Lâm Đồng</p>
-          <p class="row__meta">Nộp đơn: 20/09/2026</p>
-        </div>
-        <div class="row__actions">
-          <span class="badge badge--warning">Chờ duyệt</span>
-          <button class="btn btn--primary" type="button" data-action="approve" data-app-id="1">Duyệt</button>
-          <button class="btn btn--danger" type="button" data-action="reject" data-app-id="1">Từ chối</button>
-        </div>
-      </article>
-
-      <article class="row" data-status="pending">
-        <img class="row__img" src="img/placeholder.svg" alt="Lê Thị Hoa">
-        <div>
-          <a class="row__title" href="#">Lê Thị Hoa</a>
-          <p class="row__meta">Homestay: Sea Breeze Homestay · Đà Nẵng</p>
-          <p class="row__meta">Nộp đơn: 21/09/2026</p>
-        </div>
-        <div class="row__actions">
-          <span class="badge badge--warning">Chờ duyệt</span>
-          <button class="btn btn--primary" type="button" data-action="approve" data-app-id="2">Duyệt</button>
-          <button class="btn btn--danger" type="button" data-action="reject" data-app-id="2">Từ chối</button>
-        </div>
-      </article>
-
-      <article class="row" data-status="pending">
-        <img class="row__img" src="img/placeholder.svg" alt="Phạm Minh Khang">
-        <div>
-          <a class="row__title" href="#">Phạm Minh Khang</a>
-          <p class="row__meta">Homestay: Sapa Misty Hills · Sapa, Lào Cai</p>
-          <p class="row__meta">Nộp đơn: 22/09/2026</p>
-        </div>
-        <div class="row__actions">
-          <span class="badge badge--warning">Chờ duyệt</span>
-          <button class="btn btn--primary" type="button" data-action="approve" data-app-id="3">Duyệt</button>
-          <button class="btn btn--danger" type="button" data-action="reject" data-app-id="3">Từ chối</button>
-        </div>
-      </article>
-
-    </div>
+    <div class="stack" id="application-list"></div>
 
     <!-- Ẩn sẵn, chỉ hiện khi không còn đơn nào chờ duyệt -->
     <div class="empty" id="application-empty" hidden>
@@ -195,73 +151,6 @@
 <script type="module">
   import './js/components/site-header.js';
   import './js/components/site-footer.js';
-  import './js/guard.js';
-  import { confirmAction, toast } from './js/ui.js';
-
-  import { ACCOUNT_API_MODE } from './js/config.js';
-  if (!ACCOUNT_API_MODE) {
-  // Giai đoạn mock: xử lý đơn ngay trên DOM.
-  // TODO khi có API thật: fetch danh sách đơn, gọi API duyệt/từ chối (kèm lý do),
-  // chỉ cho vào trang khi getUser().role === 'admin'.
-  const list = document.getElementById('application-list');
-  const empty = document.getElementById('application-empty');
-  const rejectDlg = document.getElementById('reject-dialog');
-  const rejectReason = document.getElementById('rejectReason');
-  const rejectErr = document.getElementById('rejectErr');
-  let currentArticle = null;
-
-  function markDone(article, badgeClass, badgeText) {
-    article.dataset.status = 'done';
-    const badge = article.querySelector('.badge');
-    badge.className = `badge ${badgeClass}`;
-    badge.textContent = badgeText;
-    article.querySelectorAll('button').forEach(b => b.remove());
-    if (!list.querySelector('[data-status="pending"]')) {
-      list.hidden = true;
-      empty.hidden = false;
-    }
-  }
-
-  list.addEventListener('click', async e => {
-    const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
-    const article = btn.closest('article');
-    const name = article.querySelector('.row__title').textContent;
-
-    if (btn.dataset.action === 'approve') {
-      const ok = await confirmAction({
-        title: 'Duyệt đơn xin làm host?',
-        message: `Đồng ý cho "${name}" trở thành host?`,
-        confirmText: 'Duyệt',
-      });
-      if (!ok) return;
-      markDone(article, 'badge--success', 'Đã duyệt');
-      toast(`Đã duyệt đơn của ${name}.`);
-    }
-
-    if (btn.dataset.action === 'reject') {
-      currentArticle = article;
-      rejectReason.value = '';
-      rejectErr.textContent = '';
-      rejectReason.removeAttribute('aria-invalid');
-      rejectDlg.showModal();   // có <textarea> nhập lý do, không dùng confirm-dialog chung
-    }
-  });
-
-  rejectDlg.querySelector('#rejectCancel').onclick = () => rejectDlg.close();
-  rejectDlg.querySelector('#rejectConfirm').onclick = () => {
-    const reason = rejectReason.value.trim();
-    if (!reason) {
-      rejectErr.textContent = 'Vui lòng nhập lý do từ chối.';
-      rejectReason.setAttribute('aria-invalid', 'true');
-      return;
-    }
-    const name = currentArticle.querySelector('.row__title').textContent;
-    rejectDlg.close();
-    markDone(currentArticle, 'badge--danger', 'Đã từ chối');
-    toast(`Đã từ chối đơn của ${name}.`, 'error');
-  };
-  }
 </script>
 <script type="module" src="js/pages/admin-dashboard.js"></script>
 <script type="module" src="js/pages/admin-hosts.js"></script>

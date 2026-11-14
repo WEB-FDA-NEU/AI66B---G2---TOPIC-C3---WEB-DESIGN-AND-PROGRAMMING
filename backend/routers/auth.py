@@ -42,12 +42,6 @@ def register(payload: schemas.RegisterIn, request: Request, db: Session = Depend
     )
     db.add(user)
     db.flush()
-    if payload.role == "host":
-        db.add(
-            HostApplication(
-                user_id=user.id, application_data={"display_name": user.display_name, "phone": user.phone}
-            )
-        )
     return session_response(db, user, request.app.state.settings)
 
 
@@ -207,9 +201,9 @@ def apply_host(
         application.reject_reason = ""
         application.reviewed_by = None
         application.reviewed_at = None
-        application.application_data = payload.application_data
+        application.application_data = payload.application_data.model_dump()
     else:
-        application = HostApplication(user_id=user.id, application_data=payload.application_data)
+        application = HostApplication(user_id=user.id, application_data=payload.application_data.model_dump())
         db.add(application)
     db.commit()
     return application_out(db, application)

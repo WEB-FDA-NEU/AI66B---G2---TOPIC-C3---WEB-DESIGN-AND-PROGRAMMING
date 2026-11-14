@@ -91,7 +91,15 @@ export async function initAdmin() {
       const info = el('div'), actions = el('div', 'row__actions');
       info.append(el('p', 'row__title', application.user.display_name), el('p', 'row__meta', application.user.email),
         el('p', 'row__meta', `Nộp đơn: ${application.createdAt}`));
-      for (const [key, value] of Object.entries(application.application_data)) info.append(el('p', 'row__meta', `${key}: ${value}`));
+      const applicationFieldLabels = {
+        homestay_name: 'Tên homestay dự kiến', address: 'Địa chỉ', province: 'Tỉnh/thành phố',
+        room_count: 'Số phòng', description: 'Mô tả', experience: 'Kinh nghiệm / tin đăng',
+        phone: 'Số điện thoại', accept_terms: 'Đồng ý điều khoản',
+      };
+      for (const [key, value] of Object.entries(application.application_data)) {
+        if (key !== 'accept_terms') info.append(el('p', 'row__meta', `${applicationFieldLabels[key] ?? key}: ${value}`));
+      }
+      if (application.application_data.accept_terms) info.append(el('p', 'row__meta', 'Đã đồng ý điều khoản dành cho Host.'));
       if (application.rejectReason) info.append(el('p', 'row__meta text-danger', application.rejectReason));
       actions.append(el('span', `badge ${application.status === 'pending' ? 'badge--warning' : application.status === 'approved' ? 'badge--success' : 'badge--danger'}`,
         { pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Bị từ chối' }[application.status]));

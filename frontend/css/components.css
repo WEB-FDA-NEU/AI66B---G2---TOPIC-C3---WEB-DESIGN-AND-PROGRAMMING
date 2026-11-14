@@ -528,6 +528,12 @@ dialog::backdrop {
   border-radius: var(--radius-s);
 }
 
+#application-list .row__img {
+  align-self: start;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
 .row__title {
   font-weight: 700;
   text-decoration: none;

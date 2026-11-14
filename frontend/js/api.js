@@ -83,11 +83,40 @@ export async function revokeSession() {
   try { await request(`${API_BASE}/auth/logout`, { method: 'POST' }); }
   catch (error) { if (error.status !== 401) throw error; }
 }
-export function getHostApplication() {
+export async function getHostApplication() {
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const user = currentMockUser(await loadMockUsers());
+    if (!['user', 'host'].includes(user.role)) throw new ApiError(403, 'Tài khoản này không thể xem đơn đăng ký host.');
+    const applications = await loadMockApplications();
+    const application = applications.find(row => String(row.userId) === String(user.id));
+    if (!application) throw new ApiError(404, 'Bạn chưa gửi đơn đăng ký host.');
+    return application;
+  }
   if (!ACCOUNT_API_MODE) throw new ApiError(400, 'Chức năng này yêu cầu chế độ tài khoản API.');
   return request(`${API_BASE}/me/host-application`);
 }
-export function applyHost(application_data = {}) {
+export async function applyHost(application_data) {
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const user = currentMockUser(await loadMockUsers());
+    if (user.role !== 'user') throw new ApiError(403, 'Chỉ khách hàng mới có thể đăng ký làm host.');
+    const data = validateHostApplication(application_data);
+    const applications = await loadMockApplications();
+    const existing = applications.find(row => String(row.userId) === String(user.id));
+    if (existing && existing.status !== 'rejected') throw new ApiError(409, 'Bạn đã có đơn đăng ký host.');
+    const application = {
+      id: existing?.id ?? `app${Date.now()}`,
+      userId: user.id,
+      status: 'pending',
+      application_data: data,
+      rejectReason: '',
+      createdAt: new Date().toISOString(),
+      history: existing?.history ?? [],
+    };
+    if (existing) applications[applications.indexOf(existing)] = application;
+    else applications.push(application);
+    saveMockApplications(applications);
+    return application;
+  }
   if (!ACCOUNT_API_MODE) throw new ApiError(400, 'Chức năng này yêu cầu chế độ tài khoản API.');
   return request(`${API_BASE}/host/apply`, { method: 'POST', body: { application_data } });
 }
@@ -173,6 +202,7 @@ export async function addReview(itemId, review) {
 // Chỉ mô phỏng trên thiết bị này. Người dùng có thể sửa localStorage để giả phiên/quyền.
 // Chỉ lưu hồ sơ + PBKDF2 verifier có salt; không lưu mật khẩu thô hay verifier vào app_user.
 const MOCK_USERS_KEY = 'luxstay_mock_users_v1';
+const MOCK_HOST_APPLICATIONS_KEY = 'luxstay_mock_host_applications_v1';
 const PASSWORD_ITERATIONS = 600000;
 const publicUser = u => Object.fromEntries(
   ['id', 'display_name', 'email', 'phone', 'role', 'avatar', 'createdAt'].map(k => [k, u[k]])
@@ -183,6 +213,45 @@ const normalizeEmail = email => String(email ?? '').trim().toLowerCase();
 function writeMockUsers(users) {
   try { localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users)); }
   catch { throw new ApiError(0, 'Không lưu được tài khoản mock. Bộ nhớ trình duyệt có thể đã đầy hoặc bị chặn.'); }
+}
+
+async function loadMockApplications() {
+  const cached = localStorage.getItem(MOCK_HOST_APPLICATIONS_KEY);
+  if (cached === null) return [];
+  try {
+    const applications = JSON.parse(cached);
+    if (!Array.isArray(applications)) throw new Error();
+    return applications;
+  } catch {
+    throw new ApiError(0, 'Dữ liệu đơn đăng ký host mock bị hỏng.');
+  }
+}
+
+function saveMockApplications(applications) {
+  try { localStorage.setItem(MOCK_HOST_APPLICATIONS_KEY, JSON.stringify(applications)); }
+  catch { throw new ApiError(0, 'Không lưu được đơn đăng ký host mock. Bộ nhớ trình duyệt có thể đã đầy hoặc bị chặn.'); }
+}
+
+function validateHostApplication(data) {
+  const value = {
+    homestay_name: String(data?.homestay_name ?? '').trim(),
+    address: String(data?.address ?? '').trim(),
+    province: String(data?.province ?? '').trim(),
+    room_count: Number(data?.room_count),
+    description: String(data?.description ?? '').trim(),
+    experience: String(data?.experience ?? '').trim(),
+    phone: String(data?.phone ?? '').trim(),
+    accept_terms: data?.accept_terms,
+  };
+  if (value.homestay_name.length < 2 || value.homestay_name.length > 160) throw new ApiError(422, 'Tên homestay phải có từ 2 đến 160 ký tự.');
+  if (value.address.length < 5 || value.address.length > 300) throw new ApiError(422, 'Địa chỉ phải có từ 5 đến 300 ký tự.');
+  if (value.province.length < 2 || value.province.length > 120) throw new ApiError(422, 'Tỉnh/thành phố không hợp lệ.');
+  if (!Number.isInteger(value.room_count) || value.room_count < 1 || value.room_count > 100) throw new ApiError(422, 'Số phòng phải từ 1 đến 100.');
+  if (value.description.length < 10 || value.description.length > 1000) throw new ApiError(422, 'Mô tả phải có từ 10 đến 1000 ký tự.');
+  if (value.experience.length > 1000) throw new ApiError(422, 'Kinh nghiệm không được vượt quá 1000 ký tự.');
+  if (!/^(0|\+84)[35789][0-9]{8}$/.test(value.phone)) throw new ApiError(422, 'Số điện thoại không hợp lệ.');
+  if (value.accept_terms !== true) throw new ApiError(422, 'Bạn cần đồng ý với điều khoản dành cho Host.');
+  return value;
 }
 
 async function loadMockUsers() {
@@ -260,6 +329,7 @@ export async function login(email, password) {
 
 export async function register(payload) {
   if (USE_MOCK && !ACCOUNT_API_MODE) {
+    if (payload.role && payload.role !== 'user') throw new ApiError(422, 'Chỉ được tạo tài khoản khách hàng. Đăng ký làm Host từ hồ sơ cá nhân.');
     const profile = validateProfile(payload);
     const credential = await makeCredential(payload.password);
     const users = await loadMockUsers();
@@ -269,7 +339,7 @@ export async function register(payload) {
     const user = {
       id: Math.max(0, ...users.map(u => Number(u.id) || 0)) + 1,
       ...profile,
-      role: payload.role === 'host' ? 'host' : 'user',
+      role: 'user',
       avatar: 'img/placeholder.svg',
       createdAt: new Date().toISOString(),
       credential,
@@ -678,11 +748,59 @@ export async function getHostDashboard(params = {}) {
 }
 
 export async function getAdminApplications(params = {}) {
-  blockUnintegratedBusiness('admin'); return request(`${API_BASE}/admin/host-applications?${new URLSearchParams(params)}`);
+  blockUnintegratedBusiness('admin');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const users = await loadMockUsers();
+    const admin = currentMockUser(users);
+    if (admin.role !== 'admin') throw new ApiError(403, 'Chỉ quản trị viên mới được xem đơn đăng ký Host.');
+    const applications = await loadMockApplications();
+    const usersById = new Map(users.map(user => [String(user.id), user]));
+    const page = Math.max(1, Number(params.page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(params.page_size) || 100));
+    return applications
+      .filter(application => !params.status || application.status === params.status)
+      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+      .slice((page - 1) * pageSize, page * pageSize)
+      .map(application => {
+        const owner = usersById.get(String(application.userId));
+        if (!owner) throw new ApiError(409, 'Không tìm thấy tài khoản của người nộp đơn.');
+        return { ...application, user: publicUser(owner), history: application.history ?? [] };
+      });
+  }
+  return request(`${API_BASE}/admin/host-applications?${new URLSearchParams(params)}`);
 }
 export async function decideHostApplication(id, action, reason = '') {
   blockUnintegratedBusiness('admin');
   if (!['approve','reject'].includes(action)) throw new ApiError(422, 'Invalid decision');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const users = await loadMockUsers();
+    const admin = currentMockUser(users);
+    if (admin.role !== 'admin') throw new ApiError(403, 'Chỉ quản trị viên mới được xét duyệt đơn Host.');
+    if (action === 'reject' && (reason.trim().length < 3 || reason.trim().length > 1000))
+      throw new ApiError(422, 'Lý do từ chối phải có từ 3 đến 1000 ký tự.');
+    const applications = await loadMockApplications();
+    const application = applications.find(row => String(row.id) === String(id));
+    if (!application) throw new ApiError(404, 'Không tìm thấy đơn đăng ký Host.');
+    if (application.status !== 'pending') throw new ApiError(409, 'Đơn đã được xử lý.');
+    const owner = users.find(user => String(user.id) === String(application.userId));
+    if (!owner || owner.role !== 'user') throw new ApiError(409, 'Tài khoản không đủ điều kiện xét duyệt.');
+    if (action === 'approve') owner.role = 'host';
+    const reviewedAt = new Date().toISOString();
+    application.status = action === 'approve' ? 'approved' : 'rejected';
+    application.rejectReason = action === 'reject' ? reason.trim() : '';
+    application.reviewedBy = admin.id;
+    application.reviewedAt = reviewedAt;
+    application.history = [...(application.history ?? []), {
+      status: application.status,
+      application_data: { ...application.application_data },
+      rejectReason: application.rejectReason,
+      reviewedBy: admin.id,
+      reviewedAt,
+    }];
+    writeMockUsers(users);
+    saveMockApplications(applications);
+    return application;
+  }
   return request(`${API_BASE}/admin/host-applications/${encodeURIComponent(id)}/${action}`, { method: 'POST', ...(action === 'reject' ? { body: { reason } } : {}) });
 }
 export async function getAdminUsers(params = {}) {

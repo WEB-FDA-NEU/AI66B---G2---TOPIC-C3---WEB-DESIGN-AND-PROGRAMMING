@@ -7,7 +7,7 @@ Global USE_MOCK=true được giữ. Chuyển theo route/module, không đổi n
 | login/register | login/register/saveSession | users.json + local verifier | POST auth/login, auth/register → token/user | NEEDS ADAPTER: API branch có, session/local role chưa xác minh |
 | profile | get/updateProfile, changePassword | local users/verifier | GET/PATCH me/profile; POST me/password; POST uploads | NEEDS ADAPTER |
 | header/guard | logout/current user/role | app_token/app_user localStorage | POST auth/logout, GET me/profile; server role | SECURITY BLOCKED: cached role/token |
-| host-register/profile | register/apply/status | cấp host ngay | POST host/apply; GET me/host-application, pending | NEEDS ADAPTER |
+| profile host application | register/apply/status | tạo tài khoản riêng hoặc cấp host ngay | POST host/apply; GET me/host-application; một user account, form hồ sơ, duyệt mới cấp host | INTEGRATED (API; mock submits only) |
 | home/carousel/list/shop | getItems | items.json, local filter | GET items → items/total/page; cards giữ shape | NEEDS ADAPTER: list branch có, home aggregates cần mapping |
 | detail/gallery | getItem/reviews | items/mock review | GET items/id, reviews | NEEDS ADAPTER |
 | detail/checkout | roomTypesFor/quote | Superior/Deluxe tự sinh | GET items/id/availability, POST bookings/quote | NEEDS ADAPTER |

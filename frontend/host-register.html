@@ -1,210 +1,26 @@
-
 <!doctype html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Đăng ký Host — Homestay Booking</title>
-
-<link rel="stylesheet" href="css/reset.css">
-<link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/layout.css">
-<link rel="stylesheet" href="css/components.css">
-<link rel="stylesheet" href="css/motion.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng ký Host — Homestay Booking</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/motion.css">
 </head>
-
 <body>
-
-<site-header></site-header>
-
-<main class="container page host-register-page">
-
-  <div class="form-card host-register-card">
-
-    <a class="text-muted underline" href="index.html">
-      ← Quay lại trang chủ
-    </a>
-
-    <p class="field__hint mt-3">
-      TRỞ THÀNH HOST
-    </p>
-
-    <h1>Đăng ký tài khoản Host</h1>
-
-    <p class="field__hint">
-      Tạo tài khoản để quản lý homestay, phòng và các đặt phòng của khách.
-    </p>
-
-    <form
-      id="host-register-form"
-      method="post"
-      onsubmit="event.preventDefault()"
-      class="stack mt-4 host-register-form"
-      novalidate
-    >
-
-      <!-- HỌ VÀ TÊN -->
-      <div class="field">
-        <label class="field__label" for="host-display-name">
-          Họ và tên
-        </label>
-
-        <input
-          class="input"
-          id="host-display-name"
-          name="display_name"
-          type="text"
-          placeholder="Nhập họ và tên"
-          autocomplete="name"
-          required
-        >
-
-        <p class="field__error"></p>
-      </div>
-
-      <!-- EMAIL -->
-      <div class="field">
-        <label class="field__label" for="host-email">
-          Email
-        </label>
-
-        <input
-          class="input"
-          id="host-email"
-          name="email"
-          type="email"
-          placeholder="example@email.com"
-          autocomplete="email"
-          required
-        >
-
-        <p class="field__error"></p>
-      </div>
-
-      <!-- SỐ ĐIỆN THOẠI -->
-      <div class="field">
-        <label class="field__label" for="host-phone">
-          Số điện thoại
-        </label>
-
-        <input
-          class="input"
-          id="host-phone"
-          name="phone"
-          type="tel"
-          placeholder="Ví dụ: 0912345678"
-          autocomplete="tel"
-          inputmode="numeric"
-          maxlength="12"
-          required
-        >
-
-        <p class="field__hint">
-          Sử dụng số điện thoại hợp lệ để khách có thể liên hệ với bạn.
-        </p>
-
-        <p class="field__error"></p>
-      </div>
-
-      <!-- MẬT KHẨU -->
-      <div class="field">
-        <label class="field__label" for="host-password">
-          Mật khẩu
-        </label>
-
-        <div class="field__input-wrapper">
-          <input
-            class="input"
-            id="host-password"
-            name="password"
-            type="password"
-            placeholder="Tối thiểu 8 ký tự"
-            autocomplete="new-password"
-            minlength="8"
-            required
-          >
-
-          <button
-            type="button"
-            class="field__toggle-password"
-            data-target="host-password"
-            aria-label="Hiện mật khẩu"
-          >
-            👁
-          </button>
-        </div>
-
-        <p class="field__error"></p>
-      </div>
-
-      <!-- XÁC NHẬN MẬT KHẨU -->
-      <div class="field">
-        <label class="field__label" for="host-confirm">
-          Nhập lại mật khẩu
-        </label>
-
-        <div class="field__input-wrapper">
-          <input
-            class="input"
-            id="host-confirm"
-            name="confirm"
-            type="password"
-            placeholder="Nhập lại mật khẩu"
-            autocomplete="new-password"
-            required
-          >
-
-          <button
-            type="button"
-            class="field__toggle-password"
-            data-target="host-confirm"
-            aria-label="Hiện mật khẩu"
-          >
-            👁
-          </button>
-        </div>
-
-        <p class="field__error"></p>
-      </div>
-
-      <!-- THÔNG TIN -->
-      <p class="field__hint host-register-note">
-        Tài khoản mô phỏng chỉ lưu trên trình duyệt này. Không dùng mật khẩu thật.
-        <strong>Lưu ý:</strong>
-        Sau khi tạo tài khoản, bạn có thể sử dụng chức năng quản lý
-        homestay và phòng.
-      </p>
-
-      <!-- SUBMIT -->
-      <button
-        class="btn btn--primary btn--block"
-        type="submit"
-        disabled
-      >
-        Đăng ký Host
-      </button>
-
-      <!-- LOGIN -->
-      <p class="field__hint host-register-login">
-        Đã có tài khoản?
-        <a class="text-primary" href="login.html">
-          Đăng nhập
-        </a>
-      </p>
-
-    </form>
-
-  </div>
-
-</main>
-
-<site-footer></site-footer>
-
-<div id="toast" role="status"></div>
-
-<script type="module" src="js/components/site-header.js"></script>
-<script type="module" src="js/components/site-footer.js"></script>
-<script type="module" src="js/pages/host-register.js"></script>
-
+  <main class="container page">
+    <section class="form-card">
+      <h1>Đăng ký làm Host</h1>
+      <p class="mt-3 text-muted">Đơn đăng ký Host được gửi từ hồ sơ của tài khoản bạn đang sử dụng.</p>
+      <a class="btn btn--primary mt-3" href="profile.html#become-host">Mở hồ sơ để đăng ký</a>
+    </section>
+  </main>
+  <script type="module">
+    import { accountHref } from './js/config.js';
+    location.replace(accountHref('profile.html#become-host'));
+  </script>
 </body>
 </html>
