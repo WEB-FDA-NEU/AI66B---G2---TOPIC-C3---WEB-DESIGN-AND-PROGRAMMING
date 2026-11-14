@@ -115,16 +115,18 @@
 </main>
 
 <site-footer></site-footer>
-<div id="toast" role="status">
-  <template id="tpl-empty-state"><div class="empty"><p class="empty__title"></p><p class="empty__hint"></p><a class="btn btn--primary empty__action"></a></div></template>
-<dialog id="host-dialog" aria-labelledby="hd-name">
-  <h3 class="dialog__title" id="hd-name"></h3>
+<div id="toast" role="status"></div>
+<template id="tpl-empty-state"><div class="empty"><p class="empty__title"></p><p class="empty__hint"></p><a class="btn btn--primary empty__action"></a></div></template>
+<dialog id="host-dialog" class="host-dialog" aria-labelledby="hd-name">
+  <div class="host-dialog__header">
+    <h3 class="dialog__title" id="hd-name"></h3>
+    <button class="host-dialog__close" type="button" id="hd-close-top" aria-label="Đóng" title="Đóng">×</button>
+  </div>
   <dl class="host-detail" id="hd-info"></dl>
   <h4 class="host-detail__sub">Homestay (<span id="hd-count">0</span>)</h4>
   <ul class="host-detail__list" id="hd-homestays"></ul>
   <div class="dialog__actions"><button class="btn" type="button" id="hd-close">Đóng</button></div>
 </dialog>
-</div>
 
 <!-- Hộp xác nhận Duyệt / Từ chối -->
 <dialog id="confirm-dialog">

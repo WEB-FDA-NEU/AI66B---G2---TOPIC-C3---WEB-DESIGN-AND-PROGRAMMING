@@ -78,7 +78,9 @@ function openDetail(h) {
   dialog.showModal();
 }
 
-$('hd-close').addEventListener('click', () => dialog.close());
+for (const id of ['hd-close', 'hd-close-top']) {
+  $(id).addEventListener('click', () => dialog.close());
+}
 dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });   // bấm ra ngoài để đóng
 $('host-search').addEventListener('input', render);
 

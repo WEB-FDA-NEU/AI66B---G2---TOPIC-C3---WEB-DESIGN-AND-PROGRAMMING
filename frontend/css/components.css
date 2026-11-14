@@ -1964,7 +1964,50 @@ input[type="file"]::file-selector-button {
 .host-detail__sub { font-size: var(--fs-md); margin-bottom: var(--sp-2); }
 .host-detail__list { list-style: none; padding: 0; display: grid; gap: var(--sp-2); margin-bottom: var(--sp-4); }
 .host-detail__list a { font-weight: 600; color: var(--c-primary); }
-#host-dialog { width: min(560px, calc(100% - 2 * var(--sp-3))); }
+#host-dialog {
+  width: min(560px, calc(100% - 2 * var(--sp-3)));
+  scrollbar-color: var(--c-border-strong) transparent;
+  scrollbar-width: thin;
+}
+#host-dialog::-webkit-scrollbar { width: 8px; }
+#host-dialog::-webkit-scrollbar-track { background: transparent; margin-block: var(--sp-2); }
+#host-dialog::-webkit-scrollbar-thumb {
+  background: var(--c-border-strong);
+  border: 2px solid var(--c-bg);
+  border-radius: var(--radius-pill);
+}
+#host-dialog::-webkit-scrollbar-thumb:hover { background: var(--c-muted); }
+.host-dialog__header {
+  position: sticky;
+  top: calc(-1 * var(--sp-4));
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin: calc(-1 * var(--sp-4)) calc(-1 * var(--sp-4)) var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-bg);
+}
+.host-dialog__header .dialog__title { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.host-dialog__close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: var(--fs-xl);
+  line-height: 1;
+  cursor: pointer;
+}
+.host-dialog__close:hover { background: var(--c-primary-soft); color: var(--c-primary); }
+.host-dialog__close:focus-visible { outline: 2px solid var(--c-primary-l); outline-offset: 2px; }
 
 /* Trang có chặn role: ẩn nội dung cho tới khi guard.js xác nhận. */
 body[data-require-role]:not([data-guard-ok]) main { visibility: hidden; }

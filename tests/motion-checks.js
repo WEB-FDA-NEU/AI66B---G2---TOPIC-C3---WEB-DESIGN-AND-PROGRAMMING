@@ -62,6 +62,18 @@
     check(Math.abs(height - dialog.getBoundingClientRect().height) < 1, 'gallery keeps stable height');
     document.getElementById('lb-close').click();
   }
+  if (location.pathname.endsWith('/admin.html')) {
+    await until(() => document.querySelector('#host-list .row__actions .btn'));
+    document.querySelector('#host-list .row__actions .btn').click();
+    const dialog = document.getElementById('host-dialog');
+    const close = document.getElementById('hd-close-top');
+    check(dialog.open, 'host detail dialog opens');
+    const rect = close.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    check(hit === close || close.contains(hit), 'top close control receives pointer input');
+    close.click();
+    check(!dialog.open, 'top close control closes host detail dialog');
+  }
   await wait(700);
   check(document.getAnimations().every(a => a.effect.getTiming().iterations !== Infinity), 'no infinite animation');
   if (reduced) check(document.getAnimations().length === 0, 'reduced motion has no running animation');
