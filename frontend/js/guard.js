@@ -14,6 +14,8 @@
 //  ở backend (xem deps.py: get_admin; cần thêm get_host tương tự khi làm router của host).
 // ============================================================
 import { getUser, isLoggedIn, requireLogin } from './auth.js';
+import { ACCOUNT_API_MODE, accountHref } from './config.js';
+import { getProfile } from './api.js';
 
 const required = document.body.dataset.requireRole;
 const LABEL = { admin: 'quản trị viên', host: 'host' };
@@ -27,17 +29,30 @@ function showDenied(user) {
     className: 'empty__hint', textContent: `Bạn đang đăng nhập với tài khoản ${user.display_name ?? ''}.` });
   const actions = Object.assign(document.createElement('div'), { className: 'empty__actions' });
   actions.append(Object.assign(document.createElement('a'), {
-    className: 'btn btn--primary', href: 'index.html', textContent: 'Về trang chủ' }));
+    className: 'btn btn--primary', href: accountHref('index.html'), textContent: 'Về trang chủ' }));
   if (required === 'host' && user.role === 'user') {
     actions.append(Object.assign(document.createElement('a'), {
-      className: 'btn btn--outline', href: 'host-register.html', textContent: 'Đăng ký làm host' }));
+      className: 'btn btn--outline', href: accountHref('host-register.html'), textContent: 'Đăng ký làm host' }));
   }
   box.append(title, hint, actions);
   document.querySelector('main')?.replaceChildren(box);
 }
 
 if (required) {
-  const user = getUser();
+  let user = getUser();
+  if (ACCOUNT_API_MODE && isLoggedIn()) {
+    try { user = await getProfile(); }
+    catch (error) {
+      if (error.status === 401) requireLogin();
+      else {
+        const message = document.createElement('p'); message.className = 'empty';
+        message.textContent = error.detail || 'Không xác minh được phiên đăng nhập. Vui lòng tải lại.';
+        document.querySelector('main')?.replaceChildren(message);
+        document.body.dataset.guardOk = '';
+      }
+      await new Promise(() => {});
+    }
+  }
   if (!isLoggedIn()) {
     requireLogin();
     await new Promise(() => {});

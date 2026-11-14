@@ -1,0 +1,9 @@
+[run]
+omit =
+    */backend/tests/*
+    */backend/.venv/*
+    */backend/.test-tmp/*
+
+[report]
+show_missing = True
+skip_covered = True

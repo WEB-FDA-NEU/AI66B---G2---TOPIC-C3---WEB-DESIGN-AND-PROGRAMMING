@@ -1,6 +1,7 @@
 
-import { register } from '../api.js';
-import { saveSession } from '../auth.js';
+import { register, getProfile, applyHost, getHostApplication } from '../api.js';
+import { saveSession, isLoggedIn, requireLogin } from '../auth.js';
+import { ACCOUNT_API_MODE, accountHref } from '../config.js';
 import {
   setFieldError,
   clearFieldErrors,
@@ -16,6 +17,28 @@ if (!form) {
   throw new Error('Không tìm thấy #host-register-form');
 }
 form.querySelector('[type="submit"]').disabled = false;
+const existingAccount = ACCOUNT_API_MODE && isLoggedIn();
+if (existingAccount) {
+  form.querySelector('[type="submit"]').disabled = true;
+  try {
+    const current = await getProfile();
+    if (current.role !== 'user') {
+      form.hidden = true;
+      const message = document.createElement('p'); message.textContent = 'Tài khoản hiện tại không cần đăng ký host mới.';
+      form.after(message);
+    } else {
+      for (const key of ['display_name','email','phone']) form.elements.namedItem(key).value = current[key] || '';
+      form.elements.namedItem('email').readOnly = true;
+      for (const key of ['password','confirm']) {
+        const field = form.elements.namedItem(key); field.required = false; field.closest('.field').hidden = true;
+      }
+      const currentApplication = await getHostApplication().catch(error => { if (error.status !== 404) throw error; return null; });
+      const pending = currentApplication?.status === 'pending';
+      form.querySelector('[type="submit"]').textContent = pending ? 'Đang chờ xét duyệt' : 'Gửi đơn đăng ký host';
+      form.querySelector('[type="submit"]').disabled = pending;
+    }
+  } catch (error) { if (error.status === 401) requireLogin(); else toast(error.detail || 'Không tải được tài khoản.', 'error'); }
+}
 
 // ============================================================
 // VALIDATE SỐ ĐIỆN THOẠI VIỆT NAM
@@ -93,7 +116,7 @@ form.addEventListener('submit', async event => {
   }
 
   // VALIDATE MẬT KHẨU
-  if (password.length < 8) {
+  if (!existingAccount && password.length < 8) {
     setFieldError(
       passwordInput,
       'Mật khẩu phải có ít nhất 8 ký tự.'
@@ -103,7 +126,7 @@ form.addEventListener('submit', async event => {
   }
 
   // XÁC NHẬN MẬT KHẨU
-  if (password !== confirmPassword) {
+  if (!existingAccount && password !== confirmPassword) {
     setFieldError(
       confirmInput,
       'Hai mật khẩu không khớp.'
@@ -123,6 +146,10 @@ form.addEventListener('submit', async event => {
 
   // GỌI AUTH API
   try {
+    if (existingAccount) {
+      await applyHost({ display_name: displayName, phone });
+      location.href = accountHref('profile.html'); return;
+    }
     const session = await register({
       display_name: displayName,
       email: email,
@@ -135,10 +162,10 @@ form.addEventListener('submit', async event => {
     saveSession(session);
 
     // THÔNG BÁO THÀNH CÔNG
-    toast('Tạo tài khoản Host thành công!');
+    toast(ACCOUNT_API_MODE ? 'Đã tạo tài khoản khách hàng và gửi đơn chờ duyệt host.' : 'Tạo tài khoản Host thành công!');
 
     // CHUYỂN SANG HOST DASHBOARD
-    location.href = 'host-dashboard.html';
+    location.href = accountHref(ACCOUNT_API_MODE ? 'profile.html' : 'host-dashboard.html');
 
   } catch (err) {
     if (err.status === 409) {

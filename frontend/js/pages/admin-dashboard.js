@@ -10,6 +10,11 @@ import '../guard.js';
 import { periodTabs, getWindow, inWindow, bucketIndex, dayNum, fmtFullDate, fmtInt, fmtPct,
          countUp, drawChart, axisOptions, theme, palette } from '../charts.js';
 
+import { ACCOUNT_API_MODE } from '../config.js';
+if (ACCOUNT_API_MODE) {
+  const { initAdmin } = await import('./api-admin.js');
+  await initAdmin();
+} else {
 const $ = id => document.getElementById(id);
 
 let users = [], bookings = [], homestays = [], provinceOf = {};
@@ -106,3 +111,4 @@ function renderProvince(newBookings) {
 }
 
 load();
+}

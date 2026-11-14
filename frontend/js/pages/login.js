@@ -1,4 +1,5 @@
 import { login, ApiError } from '../api.js';
+import { ACCOUNT_API_MODE } from '../config.js';
 import { saveSession, returnAfterLogin } from '../auth.js';
 import { setFieldError, clearFieldErrors, toast } from '../ui.js';
 import '../components/site-header.js';
@@ -15,7 +16,7 @@ form.addEventListener('submit', async e => {
   // 1. Validate phía trình duyệt — để phản hồi nhanh
   let ok = true;
   if (!form.email.validity.valid)      { setFieldError(form.email, 'Email không hợp lệ.'); ok = false; }
-  if (form.password.value.length < 8)  { setFieldError(form.password, 'Mật khẩu tối thiểu 8 ký tự.'); ok = false; }
+  if (form.password.value.length < (ACCOUNT_API_MODE ? 1 : 8)) { setFieldError(form.password, ACCOUNT_API_MODE ? 'Nhập mật khẩu.' : 'Mật khẩu tối thiểu 8 ký tự.'); ok = false; }
   if (!ok) return;
 
   // 2. Server mới là thẩm quyền — validate lần hai ở backend

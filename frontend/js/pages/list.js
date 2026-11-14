@@ -1,3 +1,4 @@
+import { ACCOUNT_API_MODE, accountHref } from '../config.js';
 // ============================================================
 //  Trang tìm homestay — viết theo đúng MẪU của js/pages/shop.js
 //  (đọc bộ lọc từ URL, showSkeleton/showEmpty/showError, phân trang).
@@ -70,7 +71,7 @@ function apply(patch = {}) {
     if (Array.isArray(v)) { v.forEach(val => val && qs.append(k, val)); continue; }
     if (v !== '' && v != null) qs.set(k, v);
   }
-  history.pushState({}, '', qs.toString() ? `?${qs}` : location.pathname);
+  history.pushState({}, '', accountHref(qs.toString() ? `?${qs}` : location.pathname));
   load();
 }
 
@@ -145,7 +146,7 @@ form.addEventListener('submit', e => {
 
 sortSel.addEventListener('change', () => apply({ sort: sortSel.value }));
 
-document.getElementById('clear-filters')?.addEventListener('click', () => { location.href = 'search.html'; });
+document.getElementById('clear-filters')?.addEventListener('click', () => { location.href = accountHref('search.html'); });
 
 window.addEventListener('popstate', load);
 

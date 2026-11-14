@@ -1,3 +1,5 @@
+import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
+import { uploadImage } from '../api.js';
 
 import {
   getHostHomestay,
@@ -19,7 +21,17 @@ import '../guard.js';
 const $ = id => document.getElementById(id);
 
 const id = new URLSearchParams(location.search).get('id');
+if (ACCOUNT_API_MODE) {
+  $('images').accept = 'image/jpeg,image/png,image/webp';
+  $('images').closest('.uploader').querySelector('.field__hint').textContent = 'Tối đa 12 ảnh JPEG, PNG hoặc WebP, mỗi ảnh không quá 5 MB. Ảnh được tải lên máy chủ; lưu homestay để gắn ảnh vào hồ sơ.';
+}
 
+let uploading = false;
+let saving = false;
+let loaded = !id;
+let original = null;
+const submitButton = $('form').querySelector('[type=submit]');
+submitButton.disabled = !loaded;
 let images = []; // Data URLs dùng để xem trước ảnh
 
 // ============================================================
@@ -27,31 +39,17 @@ let images = []; // Data URLs dùng để xem trước ảnh
 // ============================================================
 
 function renderPreview() {
-  $('preview').innerHTML = images.map((src, i) => `
-    <div class="thumb">
-      <img
-        class="thumb__img"
-        src="${src}"
-        alt="Ảnh ${i + 1}"
-      >
-
-      <button
-        class="thumb__remove"
-        type="button"
-        data-i="${i}"
-        aria-label="Xóa ảnh ${i + 1}"
-      >×</button>
-    </div>
-  `).join('');
-
-  $('preview').querySelectorAll('[data-i]').forEach(button => {
-    button.addEventListener('click', () => {
-      images.splice(Number(button.dataset.i), 1);
-
-      $('imagesErr').textContent = '';
-      renderPreview();
-    });
+  const fragment = document.createDocumentFragment();
+  images.forEach((src, i) => {
+    const wrapper = document.createElement('div'); wrapper.className = 'thumb';
+    const image = document.createElement('img'); image.className = 'thumb__img'; image.src = safeImageURL(src); image.alt = `\u1ea2nh ${i + 1}`;
+    image.onerror = () => { image.onerror = null; image.src = 'img/placeholder.svg'; };
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'thumb__remove'; remove.textContent = '\u00d7'; remove.dataset.i = i;
+    remove.setAttribute('aria-label', `X\u00f3a \u1ea3nh ${i + 1}`);
+    remove.addEventListener('click', () => { if (uploading || saving) return; images.splice(i, 1); $('imagesErr').textContent = ''; renderPreview(); });
+    wrapper.append(image, remove); fragment.append(wrapper);
   });
+  $('preview').replaceChildren(fragment);
 }
 
 // ============================================================
@@ -59,6 +57,7 @@ function renderPreview() {
 // ============================================================
 
 $('images').addEventListener('change', async e => {
+  if (uploading || saving) return;
   const selectedFiles = [...e.target.files];
 
   const remaining = 12 - images.length;
@@ -78,8 +77,14 @@ $('images').addEventListener('change', async e => {
     $('imagesErr').textContent = '';
   }
 
+  uploading = true; submitButton.disabled = true;
   for (const file of files) {
-    if (!file.type.startsWith('image/')) continue;
+    if (ACCOUNT_API_MODE) {
+      try { const result = await uploadImage(file); images.push(result.url); }
+      catch (error) { $('imagesErr').textContent = error.detail || error.message; }
+      continue;
+    }
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) { $('imagesErr').textContent = 'JPEG, PNG, WebP; maximum 5 MB.'; continue; }
 
     const dataUrl = await new Promise(resolve => {
       const reader = new FileReader();
@@ -95,6 +100,7 @@ $('images').addEventListener('change', async e => {
     }
   }
 
+  uploading = false; submitButton.disabled = !loaded;
   e.target.value = '';
 
   if (images.length >= 12) {
@@ -118,7 +124,7 @@ async function loadForEdit() {
   $('deleteBtn').hidden = false;
 
   try {
-    const h = await getHostHomestay(id);
+    const h = await getHostHomestay(id); original = h;
 
     $('name').value = h.name ?? '';
     $('address').value = h.address ?? '';
@@ -128,16 +134,8 @@ async function loadForEdit() {
 
     renderPreview();
 
-    // Đánh dấu các tiện ích đã lưu
-    (h.amenities || []).forEach(amenity => {
-      const checkbox = $('amenities').querySelector(
-        `input[value="${amenity}"]`
-      );
-
-      if (checkbox) {
-        checkbox.checked = true;
-      }
-    });
+    for (const checkbox of $('amenities').querySelectorAll('input')) checkbox.checked = (h.amenities || []).includes(checkbox.value);
+    loaded = true; submitButton.disabled = false;
 
   } catch (e) {
     toast(
@@ -153,6 +151,7 @@ async function loadForEdit() {
 
 $('form').addEventListener('submit', async e => {
   e.preventDefault();
+  if (uploading || saving || !loaded) return;
 
   clearFieldErrors($('form'));
 
@@ -196,16 +195,18 @@ $('form').addEventListener('submit', async e => {
   ].map(input => input.value);
 
   const payload = {
+    ...(ACCOUNT_API_MODE && original && $('address').value.trim() === original.address ? { city: original.city, location: original.location } : {}),
     id: id || undefined,
     name: $('name').value.trim(),
     address: $('address').value.trim(),
     description: $('description').value.trim(),
-    amenities,
+    amenities: [...new Set([...amenities, ...(ACCOUNT_API_MODE && original ? original.amenities.filter(value => ![...$('amenities').querySelectorAll('input')].some(input => input.value === value)) : [])])],
     images: images.length
       ? images
       : ['img/placeholder.svg']
   };
 
+  saving = true; submitButton.disabled = true;
   try {
     await saveHostHomestay(payload);
 
@@ -215,7 +216,7 @@ $('form').addEventListener('submit', async e => {
         : 'Đã thêm homestay mới.'
     );
 
-    location.href = 'host-homestays.html';
+    location.href = accountHref('host-homestays.html');
 
   } catch (e2) {
     $('formMsg').hidden = false;
@@ -225,7 +226,7 @@ $('form').addEventListener('submit', async e => {
 
     $('formMsg').textContent =
       e2.detail ?? 'Không lưu được, thử lại.';
-  }
+  } finally { saving = false; submitButton.disabled = false; }
 });
 
 // ============================================================
@@ -233,27 +234,28 @@ $('form').addEventListener('submit', async e => {
 // ============================================================
 
 $('deleteBtn').addEventListener('click', async () => {
+  if (saving || uploading || !loaded) return;
   const ok = await confirmAction({
     title: 'Xóa homestay?',
     message: 'Homestay sẽ bị ẩn khỏi kết quả tìm kiếm.',
     confirmText: 'Xóa'
   });
 
-  if (!ok) return;
-
+  if (!ok || saving) return;
+  saving = true; $('deleteBtn').disabled = true;
   try {
     await deleteHostHomestay(id);
 
     toast('Đã xóa homestay.');
 
-    location.href = 'host-homestays.html';
+    location.href = accountHref('host-homestays.html');
 
   } catch (e3) {
     toast(
       e3.detail ?? 'Không xóa được.',
       'error'
     );
-  }
+  } finally { saving = false; $('deleteBtn').disabled = false; }
 });
 
 // ============================================================

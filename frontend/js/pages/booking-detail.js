@@ -2,7 +2,9 @@
 //  Booking Detail — đọc ?id= trên URL, lấy đúng booking qua
 //  getBooking(id) rồi đổ dữ liệu vào các phần tử #bd-*.
 // ============================================================
-import { getBooking, cancelBooking, ApiError } from '../api.js';
+import { getBooking, getPayment, cancelBooking, ApiError } from '../api.js';
+import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
+import { paymentText } from '../pricing.js';
 import { toast, confirmAction } from '../ui.js';
 import { formatVND } from '../render.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
@@ -29,7 +31,7 @@ const fmtDate = iso => new Date(iso).toLocaleDateString('vi-VN');
 function render(b) {
   document.title = `${b.homestayName} — Chi tiết đặt phòng`;
   $('bd-title').textContent = b.homestayName;
-  $('bd-code').textContent  = '#BK' + String(b.id).padStart(6, '0');
+  $('bd-code').textContent  = b.code || '#BK' + String(b.id).padStart(6, '0');
 
   // Badge trạng thái
   const badge = $('bd-status');
@@ -44,7 +46,7 @@ function render(b) {
 
   // Homestay
   const img = $('bd-img');
-  img.src = b.homestayImage || 'img/placeholder.svg';
+  img.src = safeImageURL(b.homestayImage || 'img/placeholder.svg');
   img.alt = b.homestayName;
   img.onerror = () => { img.onerror = null; img.src = 'img/placeholder.svg'; };
   $('bd-name').textContent = b.homestayName;
@@ -63,7 +65,7 @@ function render(b) {
 
   // Thanh toán
   $('bd-rate-label').textContent = `${formatVND(b.pricePerNight)} × ${b.nights} đêm`;
-  $('bd-rate-total').textContent = formatVND(b.pricePerNight * b.nights);
+  $('bd-rate-total').textContent = formatVND(b.roomSubtotal ?? b.pricePerNight * b.nights);
   $('bd-fee').textContent        = formatVND(b.serviceFee);
   $('bd-total').textContent      = formatVND(b.totalPrice);
 
@@ -74,43 +76,50 @@ function render(b) {
 
   // Đánh giá chỉ khi đã hoàn thành
   $('review-section').hidden = b.status !== 'completed';
-  $('review-section').querySelector('a').href = `detail.html?id=${encodeURIComponent(b.homestayId)}&review=1#reviews-section`;
+  $('review-section').querySelector('a').href = accountHref(`detail.html?id=${encodeURIComponent(b.homestayId)}&review=1&bookingId=${b.id}#reviews-section`);
 }
 
 function showNotFound(err) {
-  document.querySelector('main').innerHTML = `
-    <section class="not-found">
-      <h1 class="not-found__title">Không tìm thấy đặt phòng</h1>
-      <p class="not-found__text">${err instanceof ApiError ? err.detail : 'Không tải được dữ liệu đặt phòng.'}</p>
-      <div class="not-found__actions">
-        <a class="btn btn--primary" href="booking-list.html">Về lịch sử đặt phòng</a>
-      </div>
-    </section>`;
+  if (ACCOUNT_API_MODE && err.status === 401) { requireLogin(); return; }
+  const section = document.createElement('section'); section.className = 'not-found';
+  const title = document.createElement('h1'); title.className = 'not-found__title'; title.textContent = 'Kh\u00f4ng t\u00ecm th\u1ea5y \u0111\u1eb7t ph\u00f2ng';
+  const text = document.createElement('p'); text.className = 'not-found__text'; text.textContent = err.detail || 'Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c d\u1eef li\u1ec7u \u0111\u1eb7t ph\u00f2ng.';
+  const actions = document.createElement('div'); actions.className = 'not-found__actions';
+  const link = document.createElement('a'); link.href = accountHref('booking-list.html'); link.className = 'btn btn--primary'; link.textContent = 'V\u1ec1 l\u1ecbch s\u1eed \u0111\u1eb7t ph\u00f2ng';
+  actions.append(link); section.append(title,text,actions); document.querySelector('main').replaceChildren(section);
 }
 
 async function load() {
   if (!bookingId) return showNotFound(new ApiError(404, 'Thiếu mã đặt phòng trên đường dẫn.'));
   try {
     render(await getBooking(bookingId));
+    if (ACCOUNT_API_MODE) {
+      const payment=await getPayment(bookingId);
+      let state=document.getElementById('booking-payment-state');if(!state){state=document.createElement('p');state.id='booking-payment-state';state.className='field__hint';$('bd-total').parentElement.after(state);}
+      state.textContent=paymentText(payment);
+    }
   } catch (err) {
     showNotFound(err);
   }
 }
 
 $('bd-cancel').addEventListener('click', async () => {
+  const button = $('bd-cancel');
+  if (button.disabled) return;
   const ok = await confirmAction({
     title: 'Huỷ đặt phòng?',
     message: 'Bạn có chắc muốn huỷ đặt phòng này không?',
     confirmText: 'Huỷ đặt phòng',
   });
-  if (!ok) return;
+  if (!ok || button.disabled) return;
+  button.disabled = true;
   try {
     await cancelBooking(bookingId);
     toast('Đã huỷ đặt phòng.');
     await load();
   } catch (err) {
     toast(err instanceof ApiError ? err.detail : 'Không thể huỷ đặt phòng.', 'error');
-  }
+  } finally { button.disabled = false; }
 });
 
 load();

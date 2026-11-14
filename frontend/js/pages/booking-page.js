@@ -4,6 +4,8 @@
 //  rồi tạo booking, lưu vào sessionStorage('lastBooking') và chuyển sang booking-confirmed.html
 // ============================================================
 import { getItem, createBooking, ApiError } from '../api.js';
+import { ACCOUNT_API_MODE } from '../config.js';
+import { startApiCheckout } from './api-checkout.js';
 import { setFieldError, clearFieldErrors, toast } from '../ui.js';
 import { formatVND } from '../render.js';
 import { isLoggedIn, requireLogin, getUser } from '../auth.js';
@@ -15,7 +17,8 @@ const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const itemId = params.get('id');
 
-if (!itemId) location.replace('search.html');
+if (ACCOUNT_API_MODE) startApiCheckout(params);
+else if (!itemId) location.replace('search.html');
 else if (!isLoggedIn()) requireLogin();
 else init();
 
@@ -74,15 +77,15 @@ async function init() {
   // ---------- Form ----------
   const form = $('checkoutForm'), errorAlert = $('errorAlert'), formMsg = $('formMsg');
 
-  $('cardNum').addEventListener('input', e => {
+  $('cardNum')?.addEventListener('input', e => {
     const v = e.target.value.replace(/\D/g, '').slice(0, 16);
     e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
   });
-  $('cardExp').addEventListener('input', e => {
+  $('cardExp')?.addEventListener('input', e => {
     const v = e.target.value.replace(/\D/g, '').slice(0, 4);
     e.target.value = v.length >= 3 ? v.slice(0, 2) + '/' + v.slice(2) : v;
   });
-  $('cardCvv').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3); });
+  $('cardCvv')?.addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3); });
 
   const RULES = {
     lastname:  v => v.trim() ? '' : 'Vui lòng nhập họ của bạn.',
@@ -105,6 +108,7 @@ async function init() {
 
     let ok = true;
     for (const [id, check] of Object.entries(RULES)) {
+      if (!$(id)) continue;
       const msg = check($(id).value);
       if (msg) { setFieldError($(id), msg); ok = false; }
     }
@@ -145,4 +149,5 @@ async function init() {
       btn.innerHTML = `Xác nhận &amp; Thanh toán (<span id="btnPayAmount">${formatVND(q.total)}</span>)`;
     }
   });
+  $('btnSubmit').disabled = false;
 }

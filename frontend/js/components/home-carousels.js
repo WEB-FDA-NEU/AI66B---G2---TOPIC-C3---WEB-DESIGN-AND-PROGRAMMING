@@ -1,4 +1,5 @@
 import { formatVND } from '../render.js';
+import { accountHref } from '../config.js';
 import { prefersReducedMotion } from '../motion.js';
 
 const controllers = new WeakMap();
@@ -33,7 +34,7 @@ export function initHero(root, items) {
     const article = node.querySelector('article');
     article.setAttribute('aria-label', `${i + 1} / ${items.length}`);
     article.dataset.id = item.id;
-    const href = `detail.html?id=${encodeURIComponent(item.id)}`;
+    const href = accountHref(`detail.html?id=${encodeURIComponent(item.id)}`);
     node.querySelectorAll('a').forEach(a => a.href = href);
     node.querySelector('.hero-cta').setAttribute('aria-label', `Khám phá ${item.title}`);
     const image = node.querySelector('img');

@@ -1,0 +1,12 @@
+backend/.venv/
+backend/.env
+backend/.local-secret
+backend/*.db
+backend/*.db-*
+backend/uploads/
+backend/.test-tmp/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/

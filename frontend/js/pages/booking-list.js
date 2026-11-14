@@ -4,6 +4,7 @@
 //  huỷ booking qua confirmAction() + cancelBooking().
 // ============================================================
 import { getBookings, cancelBooking, ApiError } from '../api.js';
+import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
 import { toast, confirmAction } from '../ui.js';
 import { formatVND } from '../render.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
@@ -27,6 +28,17 @@ const tplRow  = document.getElementById('tpl-booking-row');
 
 let bookings = [];
 let currentFilter = 'all';
+let page = 1;
+const pager = document.createElement('div'); pager.className='row__actions'; pager.id='booking-pages';
+if(ACCOUNT_API_MODE) listEl.after(pager);
+function renderPages() {
+  if(!ACCOUNT_API_MODE)return;
+  pager.replaceChildren();
+  for(const [label,delta,disabled] of [['Trước',-1,page===1],['Sau',1,bookings.length<20]]) {
+    const button=document.createElement('button');button.type='button';button.className='btn';button.textContent=label;button.disabled=disabled;
+    button.addEventListener('click',()=>{page+=delta;load();});pager.append(button);
+  }
+}
 
 function fmtDate(iso) {
   return new Date(iso).toLocaleDateString('vi-VN');
@@ -36,12 +48,12 @@ function renderRow(b) {
   const node = tplRow.content.cloneNode(true);
 
   node.querySelector('.row').dataset.status = b.status;
-  node.querySelector('.row__img').src = b.homestayImage;
+  node.querySelector('.row__img').src = safeImageURL(b.homestayImage);
   node.querySelector('.row__img').alt = b.homestayName;
 
   const titleEl = node.querySelector('.row__title');
   titleEl.textContent = b.homestayName;
-  titleEl.href = `booking-detail.html?id=${b.id}`;
+  titleEl.href = accountHref(`booking-detail.html?id=${b.id}`);
 
   node.querySelector('.row__meta').textContent =
     `${b.roomName} · ${fmtDate(b.checkIn)} → ${fmtDate(b.checkOut)} (${b.nights} đêm)`;
@@ -51,7 +63,7 @@ function renderRow(b) {
   badge.textContent = STATUS_LABEL[b.status] ?? b.status;
   if (STATUS_BADGE[b.status]) badge.classList.add(STATUS_BADGE[b.status]);
 
-  node.querySelector('.btn--outline').href = `booking-detail.html?id=${b.id}`;
+  node.querySelector('.btn--outline').href = accountHref(`booking-detail.html?id=${b.id}`);
 
   const cancelBtn = node.querySelector('[data-action="cancel"]');
   if (b.status === 'pending' || b.status === 'confirmed') {
@@ -63,7 +75,7 @@ function renderRow(b) {
   if (b.status === 'completed') {
     reviewLink.hidden = false;
     reviewLink.textContent = 'Viết đánh giá';
-    reviewLink.href = `booking-detail.html?id=${b.id}#review-section`;
+    reviewLink.href = accountHref(`booking-detail.html?id=${b.id}#review-section`);
   }
 
   return node;
@@ -74,13 +86,13 @@ function updateTabCounts() {
     const filter = btn.dataset.filter;
     const count = filter === 'all' ? bookings.length : bookings.filter(b => b.status === filter).length;
     const countEl = btn.querySelector('.tab-count');
-    if (countEl) countEl.textContent = count > 0 ? count : '';
+    if (countEl) countEl.textContent = !ACCOUNT_API_MODE && count > 0 ? count : '';
   });
 }
 
 function renderList() {
   listEl.innerHTML = '';
-  const filtered = currentFilter === 'all'
+  const filtered = ACCOUNT_API_MODE || currentFilter === 'all'
     ? bookings
     : bookings.filter(b => b.status === currentFilter);
 
@@ -111,26 +123,29 @@ document.querySelectorAll('.tabs .btn').forEach(btn => {
     document.querySelector('.tabs .btn.is-active')?.classList.remove('is-active');
     btn.classList.add('is-active');
     currentFilter = btn.dataset.filter;
-    renderList();
+    if(ACCOUNT_API_MODE){page=1;load();}else renderList();
   });
 });
 
 listEl.addEventListener('click', async e => {
   const btn = e.target.closest('[data-action="cancel"]');
   if (!btn) return;
+  if(btn.disabled)return;
 
   const ok = await confirmAction({
     title: 'Huỷ đặt phòng?',
     message: 'Bạn có chắc muốn huỷ đặt phòng này không?',
     confirmText: 'Huỷ đặt phòng',
   });
-  if (!ok) return;
+  if (!ok || btn.disabled) return;
+  btn.disabled = true;
 
   try {
     await cancelBooking(btn.dataset.bookingId);
     toast('Đã huỷ đặt phòng.');
     await load();
   } catch (err) {
+    btn.disabled = false;
     toast(err instanceof ApiError ? err.detail : 'Không thể huỷ đặt phòng.', 'error');
   }
 });
@@ -138,9 +153,11 @@ listEl.addEventListener('click', async e => {
 async function load() {
   showLoadingSkeleton();
   try {
-    bookings = await getBookings();
+    bookings = await getBookings(ACCOUNT_API_MODE ? {page,page_size:20,...(currentFilter==='all'?{}:{status:currentFilter})} : {});
     renderList();
+    renderPages();
   } catch (err) {
+    if(ACCOUNT_API_MODE && err.status===401){requireLogin();return;}
     toast(err instanceof ApiError ? err.detail : 'Không tải được danh sách đặt phòng.', 'error');
   }
 }

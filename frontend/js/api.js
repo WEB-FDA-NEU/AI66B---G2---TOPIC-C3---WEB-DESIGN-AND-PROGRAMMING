@@ -5,15 +5,15 @@
 //  CHIA VÙNG THEO NGƯỜI để tránh conflict Git — mỗi người chỉ
 //  thêm hàm vào vùng của mình.
 // ============================================================
-import { USE_MOCK, API_BASE, MOCK_BASE } from './config.js';
-import { getToken, getUser, saveSession } from './auth.js';
+import { USE_MOCK, API_BASE, MOCK_BASE, ACCOUNT_API_MODE, apiModuleEnabled, safeImageURL } from './config.js';
+import { getToken, getUser, saveSession, clearSession, updateSessionUser } from './auth.js';
 
 // ---- Phiên bản dữ liệu mock ----
 // Dữ liệu mock được copy vào localStorage lần đầu đọc, nên khi ai đó sửa mock/*.json mà máy các bạn
 // vẫn giữ bản cũ thì sẽ thấy dữ liệu "không đổi". TĂNG số này mỗi khi sửa mock/*.json:
 // lần mở trang kế tiếp, mọi máy tự xóa cache mock cũ (không đụng tới phiên đăng nhập).
 const MOCK_DATA_VERSION = '2026-11-13-b';
-if (USE_MOCK && localStorage.getItem('mock_version') !== MOCK_DATA_VERSION) {
+if (USE_MOCK && !ACCOUNT_API_MODE && localStorage.getItem('mock_version') !== MOCK_DATA_VERSION) {
   ['customerBookings', 'homestays', 'rooms', 'bookings'].forEach(k => localStorage.removeItem(k));
   Object.keys(localStorage).filter(k => k.startsWith('reviews_')).forEach(k => localStorage.removeItem(k));
   localStorage.setItem('mock_version', MOCK_DATA_VERSION);
@@ -28,26 +28,68 @@ export class ApiError extends Error {
 }
 
 async function request(url, options = {}) {
-  const headers = { ...(options.headers || {}) };
+  const target = new URL(url, location.href), base = new URL(API_BASE);
+  const backend = target.origin === base.origin && target.pathname.startsWith(base.pathname + '/');
+  const { timeoutMs = 15000, ...init } = options;
+  const headers = new Headers(init.headers || {});
   const token = getToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  if (options.body && !(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-    options.body = JSON.stringify(options.body);
+  if (backend && token && token !== 'mock-token') headers.set('Authorization', `Bearer ${token}`);
+  else headers.delete('Authorization');
+  if (init.body && !(init.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+    init.body = JSON.stringify(init.body);
   }
-
-  let res;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    res = await fetch(url, { ...options, headers });
-  } catch {
+    const res = await fetch(target.href, { ...init, headers, signal: controller.signal, credentials: 'omit' });
+    if (res.status === 401 && backend && !/\/auth\/(login|register)$/.test(target.pathname)) clearSession();
+    if (res.status === 204) return null;
+    let data = null;
+    try { data = await res.json(); } catch (error) { if (controller.signal.aborted) throw error; }
+    if (!res.ok) {
+      const error = new ApiError(res.status, normalizeDetail(data?.detail));
+      error.code = data?.code; error.errors = data?.errors; error.retryAfter = res.headers.get('Retry-After');
+      throw error;
+    }
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    if (controller.signal.aborted) throw new ApiError(408, 'Yêu cầu quá thời gian chờ. Chưa xác định kết quả; không gửi lại thao tác đặt phòng bằng key mới.');
     throw new ApiError(0, 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.');
-  }
+  } finally { clearTimeout(timer); }
+}
 
-  if (res.status === 204) return null;
-  let data = null;
-  try { data = await res.json(); } catch { /* body rỗng */ }
-  if (!res.ok) throw new ApiError(res.status, normalizeDetail(data?.detail));
-  return data;
+function blockUnintegratedBusiness(module = 'unavailable') {
+  if (ACCOUNT_API_MODE && !apiModuleEnabled(module)) throw new ApiError(503, 'Nhóm nghiệp vụ này chưa được kết nối máy chủ. Không ghi dữ liệu mock trong chế độ tài khoản API.');
+}
+
+const mediaItem = item => ({ ...item, cover_url: safeImageURL(item.cover_url), images: (item.images || []).map(safeImageURL),
+  roomTypes: (item.roomTypes || []).map(r => ({ ...r, image: safeImageURL(r.image), images: (r.images || []).map(safeImageURL) })) });
+export function getAvailability(id, stay) {
+  blockUnintegratedBusiness('catalog');
+  return request(`${API_BASE}/items/${encodeURIComponent(id)}/availability?${new URLSearchParams(stay)}`);
+}
+export function getQuote(payload) {
+  blockUnintegratedBusiness('catalog');
+  return request(`${API_BASE}/bookings/quote`, { method: 'POST', body: payload });
+}
+export function getPayment(id) {
+  blockUnintegratedBusiness('bookings');
+  return request(`${API_BASE}/me/bookings/${encodeURIComponent(id)}/payments`).then(rows => rows[0] || null);
+}
+
+export async function revokeSession() {
+  try { await request(`${API_BASE}/auth/logout`, { method: 'POST' }); }
+  catch (error) { if (error.status !== 401) throw error; }
+}
+export function getHostApplication() {
+  if (!ACCOUNT_API_MODE) throw new ApiError(400, 'Chức năng này yêu cầu chế độ tài khoản API.');
+  return request(`${API_BASE}/me/host-application`);
+}
+export function applyHost(application_data = {}) {
+  if (!ACCOUNT_API_MODE) throw new ApiError(400, 'Chức năng này yêu cầu chế độ tài khoản API.');
+  return request(`${API_BASE}/host/apply`, { method: 'POST', body: { application_data } });
 }
 
 /** FastAPI trả 422 dạng MẢNG, các mã khác trả CHUỖI.
@@ -63,7 +105,8 @@ function normalizeDetail(detail) {
 //       (getListings / getConcerts / getHomestays / getRecipes …)
 
 export function getItems(params = {}) {
-  if (USE_MOCK) return request(`${MOCK_BASE}/items.json`).then(d => filterMock(d, params));
+  blockUnintegratedBusiness('catalog');
+  if (USE_MOCK && !ACCOUNT_API_MODE) return request(`${MOCK_BASE}/items.json`).then(d => filterMock(d, params));
   // Một số bộ lọc (room_type, amenity) có thể là MẢNG — mỗi giá trị cần 1 cặp
   // key=value riêng trên querystring, nên không thể đưa thẳng cho URLSearchParams(object).
   const qs = new URLSearchParams();
@@ -72,11 +115,12 @@ export function getItems(params = {}) {
     if (Array.isArray(v)) v.forEach(val => val !== '' && qs.append(k, val));
     else qs.set(k, v);
   }
-  return request(`${API_BASE}/items?${qs}`);
+  return request(`${API_BASE}/items?${qs}`).then(data => ({...data, items:data.items.map(mediaItem)}));
 }
 
 export async function getItem(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('catalog');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const data = await request(`${MOCK_BASE}/items.json`);
 
     const item = data.items.find(
@@ -93,15 +137,16 @@ export async function getItem(id) {
     return item;
   }
 
-  return request(`${API_BASE}/items/${id}`);
+  return request(`${API_BASE}/items/${encodeURIComponent(id)}`).then(mediaItem);
 }
 
 // ---------- Đánh giá (reviews) của trang chi tiết ----------
 // Mock: đọc/ghi vào localStorage, seed lần đầu từ mảng "reviews" có sẵn trong mock/item-<id>.json.
 const reviewsKey = id => `reviews_${id}`;
 
-export async function getReviews(itemId) {
-  if (USE_MOCK) {
+export async function getReviews(itemId, params = {}) {
+  blockUnintegratedBusiness('catalog');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const cached = localStorage.getItem(reviewsKey(itemId));
     if (cached) return JSON.parse(cached);
     const item = await getItem(itemId);
@@ -109,11 +154,12 @@ export async function getReviews(itemId) {
     localStorage.setItem(reviewsKey(itemId), JSON.stringify(seed));
     return seed;
   }
-  return request(`${API_BASE}/items/${itemId}/reviews`);
+  return request(`${API_BASE}/items/${encodeURIComponent(itemId)}/reviews?${new URLSearchParams({page:1,page_size:20,...params})}`);
 }
 
 export async function addReview(itemId, review) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('catalog');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await getReviews(itemId);
     const entry = { id: `rv${Date.now()}`, created_at: new Date().toISOString(), ...review };
     list.unshift(entry);
@@ -201,7 +247,7 @@ function currentMockUser(users) {
 }
 
 export async function login(email, password) {
-  if (USE_MOCK) {
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const users = await loadMockUsers();
     const found = users.find(u => normalizeEmail(u.email) === normalizeEmail(email));
     validatePassword(password);
@@ -213,7 +259,7 @@ export async function login(email, password) {
 }
 
 export async function register(payload) {
-  if (USE_MOCK) {
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const profile = validateProfile(payload);
     const credential = await makeCredential(payload.password);
     const users = await loadMockUsers();
@@ -236,14 +282,20 @@ export async function register(payload) {
 }
 
 export async function getProfile() {
-  if (!USE_MOCK) throw new ApiError(400, 'Hồ sơ hiện chỉ hỗ trợ chế độ mock.');
+  if (ACCOUNT_API_MODE || !USE_MOCK) {
+    const user = await request(`${API_BASE}/me/profile`);
+    updateSessionUser(user); return user;
+  }
   const user = currentMockUser(await loadMockUsers());
   saveSession(mockSession(user));
   return publicUser(user);
 }
 
 export async function updateProfile(payload) {
-  if (!USE_MOCK) throw new ApiError(400, 'Hồ sơ hiện chỉ hỗ trợ chế độ mock.');
+  if (ACCOUNT_API_MODE || !USE_MOCK) {
+    const user = await request(`${API_BASE}/me/profile`, { method: 'PATCH', body: payload });
+    updateSessionUser(user); return user;
+  }
   const profile = validateProfile(payload);
   const users = await loadMockUsers();
   const user = currentMockUser(users);
@@ -259,7 +311,10 @@ export async function updateProfile(payload) {
 }
 
 export async function changePassword(currentPassword, newPassword) {
-  if (!USE_MOCK) throw new ApiError(400, 'Đổi mật khẩu hiện chỉ hỗ trợ chế độ mock.');
+  if (ACCOUNT_API_MODE || !USE_MOCK) {
+    await request(`${API_BASE}/me/password`, { method: 'POST', body: { current_password: currentPassword, new_password: newPassword } });
+    clearSession(); return;
+  }
   validatePassword(newPassword);
   const user = currentMockUser(await loadMockUsers());
   if (!(await verifyCredential(currentPassword, user.credential))) throw new ApiError(400, 'Mật khẩu hiện tại không đúng.');
@@ -276,17 +331,19 @@ export async function changePassword(currentPassword, newPassword) {
 
 // ══════════ NGƯỜI 3 — TODO: thêm vùng của em ở đây ══════════
 
-export async function getBookings() {
-  if (USE_MOCK) {
+export async function getBookings(params = {}) {
+  blockUnintegratedBusiness('bookings');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('customerBookings', 'bookings.json');
     const me = getUser();
     return me ? list.filter(b => String(b.userId) === String(me.id)) : list;
   }
-  return request(`${API_BASE}/me/bookings`);
+  return request(`${API_BASE}/me/bookings?${new URLSearchParams(params)}`);
 }
 
 export async function getBooking(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('bookings');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const b = (await getBookings()).find(x => String(x.id) === String(id));
     if (!b) throw new ApiError(404, 'Không tìm thấy đặt phòng này.');
     return b;
@@ -294,8 +351,9 @@ export async function getBooking(id) {
   return request(`${API_BASE}/me/bookings/${id}`);
 }
 
-export async function createBooking(payload) {
-  if (USE_MOCK) {
+export async function createBooking(payload, key) {
+  blockUnintegratedBusiness('bookings');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const me = getUser();
     if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để đặt phòng.');
     const list = await readTable('customerBookings', 'bookings.json');
@@ -309,11 +367,13 @@ export async function createBooking(payload) {
     writeTable('customerBookings', list);
     return booking;
   }
-  return request(`${API_BASE}/me/bookings`, { method: 'POST', body: payload });
+  if (!key) throw new ApiError(400, 'Stable Idempotency-Key required');
+  return request(`${API_BASE}/me/bookings`, { method: 'POST', body: payload, headers:{'Idempotency-Key':key} });
 }
 
 export async function cancelBooking(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('bookings');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('customerBookings', 'bookings.json');
     const idx = list.findIndex(b => String(b.id) === String(id));
     if (idx === -1) throw new ApiError(404, 'Không tìm thấy booking.');
@@ -343,16 +403,18 @@ function writeTable(key, list) { localStorage.setItem(key, JSON.stringify(list))
 const newId = prefix => `${prefix}${Date.now()}${Math.floor(Math.random() * 100)}`;
 
 // ---------- Homestay ----------
-export async function getHostHomestays() {
-  if (USE_MOCK) {
+export async function getHostHomestays(params = {}) {
+  blockUnintegratedBusiness('host-properties');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('homestays', 'host-homestays.json');
     return list.filter(h => h.hostId === HOST_ID && h.status !== 'deleted');
   }
-  return request(`${API_BASE}/host/homestays`);
+  return request(`${API_BASE}/host/homestays?${new URLSearchParams(params)}`);
 }
 
 export async function getHostHomestay(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-properties');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('homestays', 'host-homestays.json');
     const found = list.find(h => h.id === id);
     if (!found) throw new ApiError(404, 'Không tìm thấy homestay.');
@@ -363,7 +425,8 @@ export async function getHostHomestay(id) {
 
 /** Tạo mới (không có id) hoặc cập nhật (có id). */
 export async function saveHostHomestay(data) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-properties');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('homestays', 'host-homestays.json');
     if (data.id) {
       const i = list.findIndex(h => h.id === data.id);
@@ -386,7 +449,8 @@ export async function saveHostHomestay(data) {
 
 /** Xóa mềm: chỉ đổi status, không xóa khỏi mảng (giữ lịch sử booking liên kết). */
 export async function deleteHostHomestay(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-properties');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('homestays', 'host-homestays.json');
     const i = list.findIndex(h => h.id === id);
     if (i === -1) throw new ApiError(404, 'Không tìm thấy homestay.');
@@ -398,17 +462,18 @@ export async function deleteHostHomestay(id) {
 }
 
 // ---------- Phòng ----------
-export async function getHostRooms(homestayId) {
-  if (USE_MOCK) {
+export async function getHostRooms(homestayId, params = {}) {
+  blockUnintegratedBusiness('host-rooms');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('rooms', 'host-rooms.json');
     return homestayId ? list.filter(r => r.homestayId === homestayId) : list;
   }
-  const qs = homestayId ? `?homestay_id=${homestayId}` : '';
-  return request(`${API_BASE}/host/rooms${qs}`);
+  return request(`${API_BASE}/host/rooms?${new URLSearchParams({ ...params, ...(homestayId ? { homestay_id: homestayId } : {}) })}`);
 }
 
 export async function getHostRoom(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-rooms');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('rooms', 'host-rooms.json');
     const found = list.find(r => r.id === id);
     if (!found) throw new ApiError(404, 'Không tìm thấy phòng.');
@@ -418,7 +483,8 @@ export async function getHostRoom(id) {
 }
 
 export async function saveHostRoom(data) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-rooms');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('rooms', 'host-rooms.json');
     if (data.id) {
       const i = list.findIndex(r => r.id === data.id);
@@ -432,13 +498,15 @@ export async function saveHostRoom(data) {
     writeTable('rooms', list);
     return data;
   }
+  const { blockedDates: _legacyDates, ...payload } = data;
   return data.id
-    ? request(`${API_BASE}/host/rooms/${data.id}`, { method: 'PUT', body: data })
-    : request(`${API_BASE}/host/rooms`, { method: 'POST', body: data });
+    ? request(`${API_BASE}/host/rooms/${data.id}`, { method: 'PUT', body: payload })
+    : request(`${API_BASE}/host/rooms`, { method: 'POST', body: payload });
 }
 
 export async function deleteHostRoom(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-rooms');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('rooms', 'host-rooms.json');
     const next = list.filter(r => r.id !== id);
     writeTable('rooms', next);
@@ -448,16 +516,18 @@ export async function deleteHostRoom(id) {
 }
 
 // ---------- Đặt phòng (duyệt / từ chối) ----------
-export async function getHostBookings() {
-  if (USE_MOCK) return readTable('bookings', 'host-bookings.json');
-  return request(`${API_BASE}/host/bookings`);
+export async function getHostBookings(params = {}) {
+  blockUnintegratedBusiness('host-bookings');
+  if (USE_MOCK && !ACCOUNT_API_MODE) return readTable('bookings', 'host-bookings.json');
+  return request(`${API_BASE}/host/bookings?${new URLSearchParams(params)}`);
 }
 
 /** reason bắt buộc khi status = 'rejected' — xem docs/api-contract.md */
 export async function updateBookingStatus(id, status, reason = '') {
+  blockUnintegratedBusiness('host-bookings');
   if (!BOOKING_STATUSES.includes(status)) throw new ApiError(400, 'Trạng thái không hợp lệ.');
   if (status === 'rejected' && !reason.trim()) throw new ApiError(400, 'Vui lòng nhập lý do từ chối.');
-  if (USE_MOCK) {
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('bookings', 'host-bookings.json');
     const i = list.findIndex(b => b.id === id);
     if (i === -1) throw new ApiError(404, 'Không tìm thấy đặt phòng.');
@@ -474,8 +544,9 @@ export async function updateBookingStatus(id, status, reason = '') {
 //  - bookings:  [{ id, itemId, createdAt, status, totalPrice }]
 //  - homestays: [{ id, title, location }]
 // Mock: mock/admin-overview.json + mock/items.json. Backend thật: GET /admin/overview (cùng dạng).
-export async function getAdminOverview() {
-  if (USE_MOCK) {
+export async function getAdminOverview(params = {}) {
+  blockUnintegratedBusiness('admin');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const [ov, items] = await Promise.all([
       request(`${MOCK_BASE}/admin-overview.json`),
       request(`${MOCK_BASE}/items.json`),
@@ -486,7 +557,7 @@ export async function getAdminOverview() {
       homestays: items.items.map(i => ({ id: i.id, title: i.title, location: i.location })),
     };
   }
-  return request(`${API_BASE}/admin/overview`);
+  return request(`${API_BASE}/admin/overview?${new URLSearchParams(params)}`);
 }
 
 // ---------- Admin: danh sách host ----------
@@ -494,34 +565,28 @@ export async function getAdminOverview() {
 //            bookingCount, revenue }]   (revenue = tổng tiền các đơn đã hoàn thành)
 // Mock: mock/admin-hosts.json + admin-overview.json + items.json, cộng thêm host đăng ký mới trên máy này
 // (role "host" trong localStorage). Backend thật: GET /admin/hosts (cùng dạng).
-export async function getAdminHosts() {
-  if (USE_MOCK) {
-    const [file, ov, items] = await Promise.all([
-      request(`${MOCK_BASE}/admin-hosts.json`),
-      request(`${MOCK_BASE}/admin-overview.json`),
-      request(`${MOCK_BASE}/items.json`),
+export async function getAdminHosts(params = {}) {
+  blockUnintegratedBusiness('admin');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    // Use the actual mock ownership tables; there is no admin-hosts.json fixture.
+    const [users, homestays, rooms, bookings] = await Promise.all([
+      loadMockUsers(), readTable('homestays', 'host-homestays.json'),
+      readTable('rooms', 'host-rooms.json'), readTable('bookings', 'host-bookings.json')
     ]);
-    let registered = [];
-    try {
-      const known = new Set(file.hosts.map(h => String(h.id)));
-      registered = (await loadMockUsers())
-        .filter(u => u.role === 'host' && !known.has(String(u.id)))
-        .map(u => ({ id: u.id, display_name: u.display_name, email: u.email, phone: u.phone,
-                     avatar: u.avatar, createdAt: u.createdAt, itemIds: [] }));
-    } catch { /* dữ liệu tài khoản mock hỏng: chỉ hiện host có sẵn trong file */ }
-    const itemById = Object.fromEntries(items.items.map(i => [i.id, i]));
-    return [...file.hosts, ...registered].map(({ itemIds, ...h }) => {
-      const mine = ov.bookings.filter(b => itemIds.includes(b.itemId));
+    return users.filter(user => user.role === 'host').map(user => {
+      const owned = homestays.filter(h => String(h.hostId) === String(user.id) && h.status !== 'deleted');
+      const roomIds = new Set(rooms.filter(r => owned.some(h => String(h.id) === String(r.homestayId))).map(r => String(r.id)));
+      const mine = bookings.filter(b => roomIds.has(String(b.roomId)));
       return {
-        ...h,
-        homestays: itemIds.map(id => itemById[id]).filter(Boolean)
-          .map(i => ({ id: i.id, title: i.title, location: i.location, rating: i.rating, price: i.price })),
+        id: user.id, display_name: user.display_name, email: user.email, phone: user.phone,
+        avatar: user.avatar, createdAt: user.createdAt,
+        homestays: owned.map(h => ({ id: h.id, title: h.name, location: h.address, rating: h.rating ?? null, price: h.price ?? null })),
         bookingCount: mine.length,
-        revenue: mine.filter(b => b.status === 'completed').reduce((sum, b) => sum + b.totalPrice, 0),
+        revenue: mine.filter(b => b.status === 'completed').reduce((sum, b) => sum + Number(b.totalPrice || 0), 0)
       };
     });
   }
-  return request(`${API_BASE}/admin/hosts`);
+  return request(`${API_BASE}/admin/hosts?${new URLSearchParams(params)}`);
 }
 
 // ══════════ NGƯỜI 5 — TODO: thêm vùng của em ở đây ══════════
@@ -555,4 +620,51 @@ function filterMock(data, { q = '', sort = 'newest', category = '',
   const size  = Number(page_size) || data.page_size || 20;
   const start = (Number(page) - 1) * size;
   return { items: items.slice(start, start + size), total, page: Number(page), page_size: size };
+}
+
+export async function uploadImage(file) {
+  if (!ACCOUNT_API_MODE) throw new ApiError(503, 'Upload requires API mode.');
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) throw new ApiError(422, 'JPEG, PNG, WebP; maximum 5 MB.');
+  const body = new FormData(); body.append('file', file);
+  return request(`${API_BASE}/uploads`, { method: 'POST', body });
+}
+
+export async function getRoomBlocks(roomId) {
+  blockUnintegratedBusiness('host-rooms');
+  return request(`${API_BASE}/host/rooms/${encodeURIComponent(roomId)}/blocks`);
+}
+export async function saveRoomBlock(roomId, block) {
+  blockUnintegratedBusiness('host-rooms');
+  const { id, ...body } = block;
+  return request(`${API_BASE}/host/rooms/${encodeURIComponent(roomId)}/blocks${id ? '/' + encodeURIComponent(id) : ''}`, { method: id ? 'PUT' : 'POST', body });
+}
+export async function deleteRoomBlock(roomId, blockId) {
+  blockUnintegratedBusiness('host-rooms');
+  return request(`${API_BASE}/host/rooms/${encodeURIComponent(roomId)}/blocks/${encodeURIComponent(blockId)}`, { method: 'DELETE' });
+}
+
+export async function getHostDashboard(params = {}) {
+  blockUnintegratedBusiness('host-dashboard');
+  return request(`${API_BASE}/host/dashboard?${new URLSearchParams(params)}`);
+}
+
+export async function getAdminApplications(params = {}) {
+  blockUnintegratedBusiness('admin'); return request(`${API_BASE}/admin/host-applications?${new URLSearchParams(params)}`);
+}
+export async function decideHostApplication(id, action, reason = '') {
+  blockUnintegratedBusiness('admin');
+  if (!['approve','reject'].includes(action)) throw new ApiError(422, 'Invalid decision');
+  return request(`${API_BASE}/admin/host-applications/${encodeURIComponent(id)}/${action}`, { method: 'POST', ...(action === 'reject' ? { body: { reason } } : {}) });
+}
+export async function getAdminUsers(params = {}) {
+  blockUnintegratedBusiness('admin'); return request(`${API_BASE}/admin/users?${new URLSearchParams(params)}`);
+}
+export async function updateAdminUser(id, body) {
+  blockUnintegratedBusiness('admin'); return request(`${API_BASE}/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body });
+}
+export async function getAdminHomestays(params = {}) {
+  blockUnintegratedBusiness('admin'); return request(`${API_BASE}/admin/homestays?${new URLSearchParams(params)}`);
+}
+export async function moderateHomestay(id, body) {
+  blockUnintegratedBusiness('admin'); return request(`${API_BASE}/admin/homestays/${encodeURIComponent(id)}/status`, { method: 'PATCH', body });
 }

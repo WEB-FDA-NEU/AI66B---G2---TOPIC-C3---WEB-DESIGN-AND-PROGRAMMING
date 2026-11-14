@@ -1,6 +1,7 @@
 import { animateList, animateStatus } from '../motion.js';
 
 import { getHostBookings, getHostRooms, getHostHomestays, updateBookingStatus } from '../api.js';
+import { ACCOUNT_API_MODE } from '../config.js';
 import { formatVND } from '../render.js';
 import { toast } from '../ui.js';
 import '../components/site-header.js';
@@ -44,17 +45,42 @@ let bookings = [];
 let rooms = [];
 let homestays = [];
 let filter = '';
+let page = 1;
+let loading = false;
+let generation = 0;
+const pager = document.createElement('div'); pager.className = 'row__actions';
+$('list').after(pager);
 let hasRendered = false;
 
 async function loadData() {
-  [bookings, rooms, homestays] = await Promise.all([
-    getHostBookings(),
-    getHostRooms(),
-    getHostHomestays()
-  ]);
+  const current = ++generation;
+  loading = true;
+  try {
+    const result = ACCOUNT_API_MODE
+      ? [await getHostBookings({ page, page_size: 20, ...(filter ? { status: filter } : {}) }), [], []]
+      : await Promise.all([getHostBookings(), getHostRooms(), getHostHomestays()]);
+    if (current !== generation) return;
+    [bookings, rooms, homestays] = result;
+  } finally { if (current === generation) loading = false; }
+}
+
+function renderPager() {
+  pager.replaceChildren();
+  if (!ACCOUNT_API_MODE) return;
+  for (const [label, delta, disabled] of [['\u0054r\u01b0\u1edbc', -1, page === 1], ['Sau', 1, bookings.length < 20]]) {
+    const button = document.createElement('button'); button.type = 'button';
+    button.className = 'btn'; button.textContent = label; button.disabled = disabled;
+    button.addEventListener('click', async () => {
+      if (loading) return;
+      const previous = page; page += delta;
+      try { await loadData(); render(); } catch (error) { page = previous; toast(error.detail, 'error'); }
+    });
+    pager.append(button);
+  }
 }
 
 function render({ changedId = null } = {}) {
+  renderPager();
   const roomsById = Object.fromEntries(rooms.map(r => [r.id, r]));
   const hsById = Object.fromEntries(homestays.map(h => [h.id, h]));
 
@@ -82,62 +108,75 @@ function render({ changedId = null } = {}) {
     return;
   }
 
-  $('list').innerHTML = sorted.map(b => {
+  const fragment = document.createDocumentFragment();
+  for (const b of sorted) {
     const room = roomsById[b.roomId];
     const hs = room ? hsById[room.homestayId] : null;
-    const next = NEXT_STEP[b.status];
-
-    return `
+    const template = document.createElement('template');
+    // Constant layout only; API/user values never enter the HTML parser.
+    template.innerHTML = `
       <article class="row host-booking-card">
 
         <div class="host-booking-info">
           <p class="row__title">
-            ${b.customerName}
-            <span class="text-muted">— ${b.customerPhone || ''}</span>
+
+            <span class="text-muted">— </span>
           </p>
 
           <p class="row__meta">
-            ${hs ? hs.name : ''} · ${room ? room.name : ''}
+             ·
           </p>
 
           <p class="row__meta">
-            📅 ${b.checkIn} → ${b.checkOut} · ${b.guests} khách
+            📅  →  ·  khách
           </p>
 
-          ${b.status === 'rejected' && b.rejectReason
-            ? `<p class="row__meta text-danger host-booking-reject-reason">
-                Lý do từ chối: ${b.rejectReason}
-              </p>`
-            : ''}
+          <p class="row__meta text-danger host-booking-reject-reason" hidden></p>
         </div>
 
         <div class="host-booking-summary">
-          <span class="badge ${STATUS_BADGE[b.status]}">
-            ${STATUS_LABEL[b.status]}
+          <span class="badge ">
+
           </span>
 
           <p class="row__price host-booking-price">
-            ${formatVND(b.totalPrice)}
+
           </p>
 
-          <div class="row__actions host-booking-actions">
-            ${next
-              ? `<button class="btn btn--primary" data-act="${b.id}:${next}">
-                  ${NEXT_LABEL[next]}
-                </button>`
-              : ''}
-
-            ${b.status === 'pending'
-              ? `<button class="btn btn--danger" data-reject="${b.id}">
-                  Từ chối
-                </button>`
-              : ''}
-          </div>
+          <div class="row__actions host-booking-actions"></div>
         </div>
 
       </article>
-    `;
-  }).join('');
+`;
+    const card = template.content.firstElementChild;
+    const title = card.querySelector('.row__title');
+    title.firstChild.textContent = String(b.customerName || '');
+    title.querySelector('span').textContent = ` \u2014 ${b.customerPhone || ''}`;
+    const meta = card.querySelectorAll('.host-booking-info > .row__meta');
+    meta[0].textContent = `${ACCOUNT_API_MODE ? b.homestayName || '' : hs?.name || ''} \u00b7 ${ACCOUNT_API_MODE ? b.roomName || '' : room?.name || ''}`;
+    meta[1].textContent = `\ud83d\udcc5 ${b.checkIn} \u2192 ${b.checkOut} \u00b7 ${b.guests} kh\u00e1ch`;
+    const reason = card.querySelector('.host-booking-reject-reason');
+    reason.hidden = b.status !== 'rejected' || !b.rejectReason;
+    reason.textContent = `L\u00fd do t\u1eeb ch\u1ed1i: ${b.rejectReason || ''}`;
+    const badge = card.querySelector('.badge');
+    badge.className = `badge ${STATUS_BADGE[b.status] || ''}`;
+    badge.textContent = STATUS_LABEL[b.status] || b.status;
+    card.querySelector('.host-booking-price').textContent = formatVND(b.totalPrice);
+    const actions = card.querySelector('.host-booking-actions');
+    const next = NEXT_STEP[b.status];
+    if (next) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.className = 'btn btn--primary'; button.dataset.act = `${b.id}:${next}`;
+      button.textContent = NEXT_LABEL[next]; actions.append(button);
+    }
+    if (b.status === 'pending') {
+      const button = document.createElement('button'); button.type = 'button';
+      button.className = 'btn btn--danger'; button.dataset.reject = b.id;
+      button.textContent = 'T\u1eeb ch\u1ed1i'; actions.append(button);
+    }
+    fragment.append(card);
+  }
+  $('list').replaceChildren(fragment);
 
   $('list').querySelectorAll('[data-act]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -163,7 +202,7 @@ function render({ changedId = null } = {}) {
   });
 
   if (changedId) {
-    const index = sorted.findIndex(booking => booking.id === changedId);
+    const index = sorted.findIndex(booking => String(booking.id) === String(changedId));
     if (index >= 0) animateStatus($('list').children[index].querySelector('.badge'));
     else animateList($('list'));
   } else animateList($('list'), { initial: !hasRendered });
@@ -209,18 +248,18 @@ $('rejectConfirm').addEventListener('click', async () => {
   }
 });
 
-$('tabs').addEventListener('click', e => {
+$('tabs').addEventListener('click', async e => {
   const btn = e.target.closest('button[data-status]');
-  if (!btn) return;
+  if (!btn || loading) return;
 
   $('tabs').querySelectorAll('button').forEach(b => {
     b.classList.remove('is-active');
   });
 
   btn.classList.add('is-active');
-  filter = btn.dataset.status;
-
-  render();
+  filter = btn.dataset.status; page = 1;
+  try { if (ACCOUNT_API_MODE) await loadData(); render(); }
+  catch (error) { $('list').replaceChildren(); pager.replaceChildren(); toast(error.detail, 'error'); }
 });
 
 loadData()

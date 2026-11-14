@@ -8,6 +8,8 @@ import { fmtVND, fmtInt } from '../charts.js';
 import { showSkeleton, showError } from '../ui.js';
 import '../guard.js';
 
+import { ACCOUNT_API_MODE, safeImageURL } from '../config.js';
+if (!ACCOUNT_API_MODE) {
 const $ = id => document.getElementById(id);
 const list = $('host-list'), empty = $('host-empty'), dialog = $('host-dialog');
 
@@ -25,7 +27,7 @@ function el(tag, className, text) {
 
 function hostRow(h) {
   const row = el('article', 'row');
-  const img = el('img', 'row__img'); img.src = h.avatar || 'img/placeholder.svg'; img.alt = '';
+  const img = el('img', 'row__img'); img.src = safeImageURL(h.avatar || 'img/placeholder.svg'); img.alt = '';
   img.onerror = () => { img.onerror = null; img.src = 'img/placeholder.svg'; };
 
   const info = el('div');
@@ -91,3 +93,4 @@ async function load() {
   }
 }
 load();
+}

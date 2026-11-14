@@ -1,3 +1,4 @@
+import { ACCOUNT_API_MODE, accountHref } from '../config.js';
 // ============================================================
 //  Trang cửa hàng — layout đầy đủ: header · breadcrumb · sidebar
 //  · toolbar · lưới sản phẩm · phân trang · footer.
@@ -57,7 +58,7 @@ function apply(patch = {}) {
     if (k === 'page_size') continue;
     if (v !== '' && v != null && !(k === 'page' && v === 1)) qs.set(k, v);
   }
-  history.pushState({}, '', qs.toString() ? `?${qs}` : location.pathname);
+  history.pushState({}, '', accountHref(qs.toString() ? `?${qs}` : location.pathname));
   load();
 }
 

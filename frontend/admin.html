@@ -198,6 +198,8 @@
   import './js/guard.js';
   import { confirmAction, toast } from './js/ui.js';
 
+  import { ACCOUNT_API_MODE } from './js/config.js';
+  if (!ACCOUNT_API_MODE) {
   // Giai đoạn mock: xử lý đơn ngay trên DOM.
   // TODO khi có API thật: fetch danh sách đơn, gọi API duyệt/từ chối (kèm lý do),
   // chỉ cho vào trang khi getUser().role === 'admin'.
@@ -259,6 +261,7 @@
     markDone(currentArticle, 'badge--danger', 'Đã từ chối');
     toast(`Đã từ chối đơn của ${name}.`, 'error');
   };
+  }
 </script>
 <script type="module" src="js/pages/admin-dashboard.js"></script>
 <script type="module" src="js/pages/admin-hosts.js"></script>

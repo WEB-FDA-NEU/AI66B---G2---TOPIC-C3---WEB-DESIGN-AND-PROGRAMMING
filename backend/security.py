@@ -1,47 +1,87 @@
-"""Băm mật khẩu và cấp JWT.
+"""Argon2id passwords and revocable JWT sessions. No raw token storage/logging."""
 
-Chú ý về bcrypt: thuật toán chỉ nhận tối đa 72 byte. Mật khẩu tiếng Việt có dấu
-tốn 2-3 byte mỗi ký tự, nên phải cắt trước khi băm, nếu không sẽ ném ValueError.
-(Không dùng passlib vì passlib 1.7.4 xung đột với bcrypt >= 4.1.)
-"""
-import os
-from datetime import datetime, timedelta, timezone
+import hashlib
+import secrets
+from datetime import timedelta
 
 import bcrypt
-from jose import jwt, JWTError
+import jwt
+from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHashError, VerificationError
 
-SECRET = os.getenv("JWT_SECRET", "dev-secret-doi-truoc-khi-deploy")
-ALGO = "HS256"
-EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
+from .models import AuthSession, utcnow
 
-BCRYPT_MAX_BYTES = 72
-
-
-def _to_bytes(password: str) -> bytes:
-    return password.encode("utf-8")[:BCRYPT_MAX_BYTES]
+hasher = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=2)
+DUMMY_HASH = hasher.hash(secrets.token_urlsafe(32))
 
 
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(_to_bytes(password), bcrypt.gensalt()).decode()
-
-
-def verify_password(password: str, hashed: str) -> bool:
+def hash_password(password):
+    if not isinstance(password, str) or not 8 <= len(password) <= 128:
+        raise ValueError("Password must contain 8-128 characters")
     try:
-        return bcrypt.checkpw(_to_bytes(password), hashed.encode())
-    except ValueError:
+        password.encode("utf-8")
+    except UnicodeEncodeError:
+        raise ValueError("Password must be valid UTF-8") from None
+    return hasher.hash(password)
+
+
+def verify_password(password, hashed):
+    if not isinstance(password, str) or not 1 <= len(password) <= 128:
+        return False
+    try:
+        if hashed.startswith(("$2a$", "$2b$", "$2y$")):
+            # Legacy hashes were truncated by the old template. Never repeat that behavior.
+            raw = password.encode("utf-8")
+            return len(raw) <= 72 and bcrypt.checkpw(raw, hashed.encode("ascii"))
+        return hasher.verify(hashed, password)
+    except (VerificationError, InvalidHashError, ValueError, TypeError):
         return False
 
 
-def create_token(user_id: int) -> str:
-    payload = {
-        "sub": str(user_id),
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_MINUTES),
-    }
-    return jwt.encode(payload, SECRET, algorithm=ALGO)
+def session_id(jti):
+    return hashlib.sha256(jti.encode()).hexdigest()
 
 
-def decode_token(token: str) -> int | None:
+def issue_token(db, user, settings):
+    now = utcnow()
+    expiry = now + timedelta(minutes=settings.jwt_expire_minutes)
+    jti = secrets.token_urlsafe(32)
+    db.add(AuthSession(id=session_id(jti), user_id=user.id, expires_at=expiry))
+    token = jwt.encode(
+        {
+            "sub": str(user.id),
+            "ver": user.token_version,
+            "jti": jti,
+            "iat": now,
+            "nbf": now,
+            "exp": expiry,
+            "iss": "luxstay",
+            "aud": "luxstay-api",
+        },
+        settings.jwt_secret,
+        algorithm="HS256",
+    )
+    return token
+
+
+def decode_token(token, settings):
     try:
-        return int(jwt.decode(token, SECRET, algorithms=[ALGO])["sub"])
-    except (JWTError, KeyError, ValueError):
+        claims = jwt.decode(
+            token,
+            settings.jwt_secret,
+            algorithms=["HS256"],
+            issuer="luxstay",
+            audience="luxstay-api",
+            options={"require": ["sub", "ver", "jti", "exp", "iat", "nbf", "iss", "aud"]},
+            leeway=2,
+        )
+        if (
+            not isinstance(claims["sub"], str)
+            or not claims["sub"].isdigit()
+            or not isinstance(claims["ver"], int)
+            or not isinstance(claims["jti"], str)
+        ):
+            return None
+        return claims
+    except jwt.PyJWTError:
         return None

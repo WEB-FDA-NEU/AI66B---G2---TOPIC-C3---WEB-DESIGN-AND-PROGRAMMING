@@ -95,31 +95,13 @@
             <span class="field__error"></span>
           </label>
 
-          <h4 class="booking-form-section">Thông tin thanh toán giả lập</h4>
-
-          <label class="field">
-            <span class="field__label">Số thẻ Visa/Mastercard *</span>
-            <input class="input" id="cardNum" type="text" inputmode="numeric" placeholder="4532 •••• •••• 8899" maxlength="19" required>
-            <span class="field__error"></span>
-          </label>
-
-          <div class="booking-form-grid">
-            <label class="field">
-              <span class="field__label">Hạn thẻ (MM/YY) *</span>
-              <input class="input" id="cardExp" type="text" inputmode="numeric" placeholder="12/28" maxlength="5" required>
-              <span class="field__error"></span>
-            </label>
-            <label class="field">
-              <span class="field__label">Mã CVC/CVV *</span>
-              <input class="input" id="cardCvv" type="password" inputmode="numeric" placeholder="123" maxlength="3" required>
-              <span class="field__error"></span>
-            </label>
-          </div>
+          <h4 class="booking-form-section">Thanh toán tại chỗ</h4>
+          <p class="field__hint">Không thu thập thông tin thẻ. Giá trị đặt phòng không phải xác nhận đã thu tiền.</p>
 
           <div class="msg msg--error booking-form-message" id="formMsg" hidden></div>
 
           <div>
-            <button type="submit" class="btn btn--primary btn--block booking-submit-button" id="btnSubmit">
+            <button type="submit" class="btn btn--primary btn--block booking-submit-button" id="btnSubmit" disabled>
               Xác nhận &amp; Thanh toán (<span id="btnPayAmount">—</span>)
             </button>
             <p class="field__hint booking-secure-note">🔒 Thanh toán giả lập — không trừ tiền thật.</p>

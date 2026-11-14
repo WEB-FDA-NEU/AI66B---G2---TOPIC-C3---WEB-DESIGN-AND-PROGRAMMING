@@ -1,4 +1,5 @@
-import { getProfile, updateProfile, changePassword } from '../api.js';
+import { getProfile, updateProfile, changePassword, getHostApplication } from '../api.js';
+import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { toast, clearFieldErrors, setFieldError } from '../ui.js';
 import '../components/site-header.js';
@@ -17,11 +18,32 @@ const passwordButton = passwordForm.querySelector('[type="submit"]');
 function syncButton() { profileButton.disabled = !user || imageBusy || saving; }
 function fillProfile() {
   for (const key of ['display_name', 'email', 'phone']) input(profileForm, key).value = user[key] ?? '';
-  preview.src = user.avatar || 'img/avatar_default.jpg';
+  preview.src = safeImageURL(user.avatar || 'img/avatar_default.jpg');
   document.getElementById('profile-summary-name').textContent = user.display_name ?? '';
   document.getElementById('profile-summary-email').textContent = user.email ?? '';
   document.getElementById('profile-summary-role').textContent = { user: 'Khách hàng', host: 'Chủ nhà', admin: 'Quản trị viên' }[user.role] ?? '';
   if (['host', 'admin'].includes(user.role)) document.getElementById('become-host-section')?.remove();
+}
+preview.addEventListener('error', () => {
+  if (!preview.src.endsWith('/img/placeholder.svg')) preview.src = 'img/placeholder.svg';
+});
+async function fillHostApplication() {
+  if (!ACCOUNT_API_MODE || user.role !== 'user') return;
+  const section = document.getElementById('become-host-section');
+  if (!section) return;
+  const message = document.createElement('p'); message.id = 'host-application-status'; message.role = 'status';
+  section.append(message);
+  try {
+    const application = await getHostApplication();
+    message.textContent = { pending: 'Đơn đăng ký host đang chờ quản trị viên xét duyệt.', rejected: 'Đơn đã bị từ chối. Bạn có thể bổ sung thông tin và gửi lại.', approved: 'Đơn đã được duyệt. Vui lòng đăng nhập lại để cập nhật quyền.' }[application.status] || '';
+    if (application.rejectReason) message.append(document.createTextNode(` ${application.rejectReason}`));
+    if (application.status === 'pending') {
+      const link = section.querySelector('a'); link?.removeAttribute('href'); link?.setAttribute('aria-disabled', 'true');
+    }
+  } catch (error) {
+    if (error.status === 401) requireLogin();
+    else if (error.status !== 404) message.textContent = error.detail || 'Chưa tải được trạng thái đăng ký host.';
+  }
 }
 
 // Decode ảnh thật, thu nhỏ và mã hóa lại để không lưu file gốc lớn vào localStorage.
@@ -68,7 +90,7 @@ avatarInput.addEventListener('change', async () => {
     if (version !== imageVersion) return;
     avatarError.textContent = err.message;
     avatarInput.setAttribute('aria-invalid', 'true');
-    avatar = undefined; preview.src = user.avatar || 'img/avatar_default.jpg';
+    avatar = undefined; preview.src = safeImageURL(user.avatar || 'img/avatar_default.jpg');
   } finally {
     if (version === imageVersion) { imageBusy = false; avatarInput.value = ''; syncButton(); }
   }
@@ -87,8 +109,9 @@ profileForm.addEventListener('submit', async event => {
   saving = true; avatarInput.disabled = true; syncButton();
   try {
     user = await updateProfile({ display_name: name.value, email: email.value, phone: phone.value, avatar });
-    avatar = undefined; fillProfile(); toast('Đã lưu hồ sơ mock trên trình duyệt này.');
+    avatar = undefined; fillProfile(); toast(ACCOUNT_API_MODE ? 'Đã lưu hồ sơ trên máy chủ.' : 'Đã lưu hồ sơ mock trên trình duyệt này.');
   } catch (err) {
+    if (err.status === 401) { requireLogin(); return; }
     if (err.status === 409) setFieldError(email, err.detail);
     else toast(err.detail ?? 'Không lưu được hồ sơ.', 'error');
   } finally { saving = false; avatarInput.disabled = false; syncButton(); }
@@ -108,7 +131,8 @@ passwordForm.addEventListener('submit', async event => {
   passwordButton.disabled = true;
   try {
     await changePassword(current.value, next.value);
-    toast('Đã đổi mật khẩu mock trên trình duyệt này.');
+    toast(ACCOUNT_API_MODE ? 'Đã đổi mật khẩu và thu hồi các phiên. Vui lòng đăng nhập lại.' : 'Đã đổi mật khẩu mock trên trình duyệt này.');
+    if (ACCOUNT_API_MODE) location.href = accountHref('login.html');
   } catch (err) { toast(err.detail ?? 'Không đổi được mật khẩu.', 'error'); }
   finally { passwordForm.reset(); passwordButton.disabled = false; }
 });
@@ -117,6 +141,7 @@ if (!isLoggedIn()) requireLogin();
 else {
   getProfile().then(profile => {
     user = profile; fillProfile(); syncButton();
+    fillHostApplication();
     avatarInput.disabled = false; passwordButton.disabled = false;
-  }).catch(err => { toast(err.detail ?? 'Không tải được hồ sơ.', 'error'); });
+  }).catch(err => { if (err.status === 401) requireLogin(); else toast(err.detail ?? 'Không tải được hồ sơ.', 'error'); });
 }

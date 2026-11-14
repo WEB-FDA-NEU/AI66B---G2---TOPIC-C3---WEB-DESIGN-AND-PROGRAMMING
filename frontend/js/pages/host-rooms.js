@@ -6,6 +6,12 @@ import '../components/site-header.js';
 import '../components/site-footer.js';
 import '../guard.js';
 
+import { ACCOUNT_API_MODE, safeImageURL } from '../config.js';
+
+if (ACCOUNT_API_MODE) {
+  const { initHostRooms } = await import('./api-host-rooms.js');
+  await initHostRooms();
+} else {
 const $ = id => document.getElementById(id);
 
 const q = new URLSearchParams(location.search);
@@ -17,27 +23,13 @@ let roomImages = []; // data URL xem trước, tối đa 6 ảnh/phòng
 // ==================== ẢNH PHÒNG ====================
 
 function renderRoomPreview() {
-  $('rPreview').innerHTML = roomImages.map((src, i) => `
-    <div class="thumb">
-      <img class="thumb__img" src="${src}" alt="Ảnh phòng ${i + 1}">
-
-      <button
-        class="thumb__remove"
-        type="button"
-        data-ri="${i}"
-        aria-label="Xóa ảnh"
-      >
-        ×
-      </button>
-    </div>
-  `).join('');
-
-  $('rPreview').querySelectorAll('[data-ri]').forEach(b =>
-    b.addEventListener('click', () => {
-      roomImages.splice(+b.dataset.ri, 1);
-      renderRoomPreview();
-    })
-  );
+  $('rPreview').replaceChildren(...roomImages.map((src, i) => {
+    const wrapper = document.createElement('div'); wrapper.className = 'thumb';
+    const image = document.createElement('img'); image.className = 'thumb__img'; image.src = safeImageURL(src); image.alt = `\u1ea2nh ph\u00f2ng ${i + 1}`;
+    const remove = document.createElement('button'); remove.className = 'thumb__remove'; remove.type = 'button'; remove.dataset.ri = i; remove.textContent = '\u00d7'; remove.setAttribute('aria-label', 'X\u00f3a \u1ea3nh');
+    remove.onclick = () => { roomImages.splice(i, 1); renderRoomPreview(); };
+    wrapper.append(image, remove); return wrapper;
+  }));
 }
 
 $('rImages').addEventListener('change', async e => {
@@ -62,25 +54,12 @@ $('rImages').addEventListener('change', async e => {
 // ==================== NGÀY BỊ CHẶN ====================
 
 function renderBlockList() {
-  $('blockList').innerHTML = blockedDates.map(d => `
-    <span class="tag">
-      ${d}
-      <button
-        type="button"
-        data-d="${d}"
-        aria-label="Xóa ngày ${d}"
-      >
-        ×
-      </button>
-    </span>
-  `).join('');
-
-  $('blockList').querySelectorAll('[data-d]').forEach(b =>
-    b.addEventListener('click', () => {
-      blockedDates = blockedDates.filter(x => x !== b.dataset.d);
-      renderBlockList();
-    })
-  );
+  $('blockList').replaceChildren(...blockedDates.map(date => {
+    const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = date;
+    const remove = document.createElement('button'); remove.type = 'button'; remove.dataset.d = date; remove.textContent = '\u00d7'; remove.setAttribute('aria-label', `X\u00f3a ng\u00e0y ${date}`);
+    remove.onclick = () => { blockedDates = blockedDates.filter(value => value !== date); renderBlockList(); };
+    tag.append(remove); return tag;
+  }));
 }
 
 $('addBlockDate').addEventListener('click', () => {
@@ -206,21 +185,13 @@ async function render() {
       return;
     }
 
-    $('homestayName').innerHTML = homestays.length > 1
-      ? `
-        <span>Homestay:</span>
-        <select id="hsSwitch" class="input host-room-homestay-select">
-          ${homestays.map(h => `
-            <option
-              value="${h.id}"
-              ${h.id === homestayId ? 'selected' : ''}
-            >
-              ${h.name}
-            </option>
-          `).join('')}
-        </select>
-      `
-      : homestay.name;
+    $('homestayName').replaceChildren();
+    if (homestays.length > 1) {
+      const label = document.createElement('span'); label.textContent = 'Homestay:';
+      const select = document.createElement('select'); select.id = 'hsSwitch'; select.className = 'input host-room-homestay-select';
+      for (const h of homestays) select.add(new Option(h.name, h.id)); select.value = homestayId;
+      $('homestayName').append(label, select);
+    } else $('homestayName').textContent = homestay.name;
 
     document.getElementById('hsSwitch')?.addEventListener('change', e => {
       homestayId = e.target.value;
@@ -229,71 +200,25 @@ async function render() {
 
     const rooms = await getHostRooms(homestayId);
 
-    $('list').innerHTML = rooms.length
-      ? rooms.map(r => `
-        <article class="host-room-card">
-
-          <img
-            class="row__img host-room-card__img"
-            src="${r.images?.[0] || 'img/placeholder.svg'}"
-            alt="${r.name}"
-          >
-
-          <div class="host-room-card__info">
-
-            <p class="row__title">${r.name}</p>
-
-            <p class="row__meta host-room-card__description">
-              ${r.description}
-            </p>
-
-            <p class="row__meta">
-              Tối đa ${r.capacity} khách
-              ${r.blockedDates?.length
-                ? ` · ${r.blockedDates.length} ngày bị chặn`
-                : ''}
-            </p>
-
-            <p class="row__price">
-              ${formatVND(r.pricePerNight)} / đêm
-            </p>
-
-          </div>
-
-          <div class="row__actions host-room-card__actions">
-
-            <button
-              class="btn"
-              data-edit="${r.id}"
-              type="button"
-            >
-              Sửa
-            </button>
-
-            <button
-              class="btn btn--danger"
-              data-del="${r.id}"
-              data-name="${r.name}"
-              type="button"
-            >
-              Xóa
-            </button>
-
-          </div>
-
-        </article>
-      `).join('')
-      : `
-        <div class="empty host-rooms-empty">
-          <p class="empty__title">
-            Homestay này chưa có phòng nào
-          </p>
-
-          <p class="empty__hint">
-            Thêm phòng để khách có thể đặt.
-          </p>
-        </div>
-      `;
+    const make = (tag, cls, text) => { const el = document.createElement(tag); el.className = cls; if (text !== undefined) el.textContent = text; return el; };
+    $('list').replaceChildren(...rooms.map(room => {
+      const card = make('article', 'host-room-card');
+      const image = make('img', 'row__img host-room-card__img'); image.src = safeImageURL(room.images?.[0] || 'img/placeholder.svg'); image.alt = room.name;
+      image.onerror = () => { image.onerror = null; image.src = 'img/placeholder.svg'; };
+      const info = make('div', 'host-room-card__info');
+      info.append(make('p','row__title',room.name),make('p','row__meta host-room-card__description',room.description),
+        make('p','row__meta',`T\u1ed1i \u0111a ${room.capacity} kh\u00e1ch${room.blockedDates?.length ? ` \u00b7 ${room.blockedDates.length} ng\u00e0y b\u1ecb ch\u1eb7n` : ''}`),
+        make('p','row__price',`${formatVND(room.pricePerNight)} / \u0111\u00eam`));
+      const actions = make('div','row__actions host-room-card__actions');
+      const edit = make('button','btn','S\u1eeda'); edit.type = 'button'; edit.dataset.edit = room.id;
+      const remove = make('button','btn btn--danger','X\u00f3a'); remove.type = 'button'; remove.dataset.del = room.id; remove.dataset.name = room.name;
+      actions.append(edit,remove); card.append(image,info,actions); return card;
+    }));
+    if (!rooms.length) {
+      const empty = make('div', 'empty host-rooms-empty');
+      empty.append(make('p','empty__title','Homestay n\u00e0y ch\u01b0a c\u00f3 ph\u00f2ng n\u00e0o'), make('p','empty__hint','Th\u00eam ph\u00f2ng \u0111\u1ec3 kh\u00e1ch c\u00f3 th\u1ec3 \u0111\u1eb7t.'));
+      $('list').append(empty);
+    }
 
     // Xử lý nút sửa
     $('list').querySelectorAll('[data-edit]').forEach(b =>
@@ -339,3 +264,5 @@ async function render() {
 }
 
 render();
+
+}
