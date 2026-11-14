@@ -21,7 +21,7 @@
 
 ---
 
-## 3.1. Project Overview
+## 1. Project Overview
 
 LuxStay là nền tảng đặt homestay trực tuyến, kết nối du khách với chủ nhà (host) trên khắp Việt Nam.
 
@@ -33,7 +33,7 @@ Không có cờ URL: giao diện dùng mock. Mở `http://127.0.0.1:8000/index.h
 
 ---
 
-## 3.2. Implemented Screens and Features
+## 2. Implemented Screens and Features
 
 Tất cả file giao diện nằm trong `frontend/`.
 
@@ -72,7 +72,7 @@ Tất cả file giao diện nằm trong `frontend/`.
 
 ---
 
-## 3.3. Instructions to Open/Run the Project
+## 3. Instructions to Open/Run the Project
 
 > Không mở `index.html` bằng cách nhấp đúp. Trang dùng ES module và đọc file mock bằng `fetch`, mà trình duyệt chặn cả hai khi mở qua `file://`. Cần chạy qua một máy chủ cục bộ.
 
@@ -199,7 +199,7 @@ Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (
 
 ---
 
-## 3.4. Team Members and Individual Contributions
+## 4. Team Members and Individual Contributions
 
 | No. | Student ID | Full Name | Assigned Screens/Pages | Main Contributions | Status |
 |-----|-----------|-----------|--------------------------|----------------------|--------|
@@ -212,7 +212,7 @@ Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (
 
 ---
 
-## 3.5. Incomplete Features and Screens
+## 5. Incomplete Features and Screens
 
 **Giao diện:** tất cả màn hình đã hoàn thành trên dữ liệu mock.
 
