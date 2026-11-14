@@ -29,6 +29,7 @@ Prefix `/api`, JSON, `Authorization: Bearer <access_token>`. Role frontend: `use
 | getUser/getProfile | GET /me, GET /me/profile | JWT/session active; profile gồm id,display_name,email,phone,role,avatar,createdAt |
 | updateProfile | PUT/PATCH /me/profile | PUT đầy đủ, PATCH các field được gửi; display_name,email,phone,avatar; không nhận role/is_active |
 | changePassword | POST /me/password | current_password,new_password; thu hồi mọi phiên sau thành công |
+| deleteAccount | DELETE /me/account | Customer/host; chặn nếu booking của khách hoặc homestay đang pending/confirmed/checked_in; vô hiệu hóa và ẩn thông tin hồ sơ, dừng homestay, thu hồi mọi phiên; giữ lịch sử giao dịch |
 | logout | POST /auth/logout | Thu hồi phiên hiện tại; frontend chưa gọi, FE-001 |
 | host-register / profile become-host | POST /host/apply; GET /me/host-application | Auth user; pending, không tự cấp host |
 | createBooking | POST /me/bookings | User; homestayId,checkIn,checkOut,adults,children,guestName,guestEmail,rooms:[{key,qty}]; optional Idempotency-Key; bỏ qua giá/snapshot client |

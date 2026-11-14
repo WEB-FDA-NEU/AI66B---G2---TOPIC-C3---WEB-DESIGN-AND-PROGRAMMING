@@ -329,6 +329,35 @@ export async function changePassword(currentPassword, newPassword) {
   writeMockUsers(users);
 }
 
+export async function deleteAccount() {
+  if (ACCOUNT_API_MODE || !USE_MOCK) {
+    await request(`${API_BASE}/me/account`, { method: 'DELETE' });
+    clearSession();
+    return;
+  }
+
+  const users = await loadMockUsers();
+  const user = currentMockUser(users);
+  if (user.role === 'admin') throw new ApiError(403, 'Quản trị viên không thể xóa tài khoản tại đây.');
+
+  const activeStatuses = new Set(['pending', 'confirmed', 'checked_in']);
+  const customerBookings = await readTable('customerBookings', 'bookings.json');
+  if (customerBookings.some(booking =>
+    String(booking.userId) === String(user.id) && activeStatuses.has(booking.status)
+  )) {
+    throw new ApiError(409, 'Không thể xóa tài khoản khi bạn còn đặt phòng đang chờ, đã xác nhận hoặc đang lưu trú.');
+  }
+  if (user.role === 'host') {
+    const hostBookings = await readTable('bookings', 'host-bookings.json');
+    if (hostBookings.some(booking => activeStatuses.has(booking.status))) {
+      throw new ApiError(409, 'Không thể xóa tài khoản khi homestay của bạn còn khách đang thuê.');
+    }
+  }
+
+  writeMockUsers(users.filter(candidate => String(candidate.id) !== String(user.id)));
+  clearSession();
+}
+
 // ══════════ NGƯỜI 3 — TODO: thêm vùng của em ở đây ══════════
 
 export async function getBookings(params = {}) {

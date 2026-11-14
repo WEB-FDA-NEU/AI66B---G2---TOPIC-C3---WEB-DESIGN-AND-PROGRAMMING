@@ -1,12 +1,14 @@
+import secrets
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..database import get_db
 from ..deps import get_current_user
 from ..media import normalize_image
-from ..models import HostApplication, User, utcnow
+from ..models import AuthSession, Booking, Homestay, HostApplication, User, utcnow
 from ..rate_limit import check_auth_limit
 from ..security import DUMMY_HASH, hash_password, issue_token, verify_password
 from ..serializers import application_out, user_out
@@ -124,6 +126,52 @@ def change_password(
     user.password_hash = hash_password(new)
     user.token_version += 1
     user.updated_at = utcnow()
+    db.commit()
+    return Response(status_code=204)
+
+
+@router.delete("/me/account", status_code=204)
+def delete_account(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    account = db.scalar(
+        select(User).where(User.id == user.id).with_for_update().execution_options(populate_existing=True)
+    )
+    if account.role == "admin":
+        raise HTTPException(403, "Quản trị viên không thể xóa tài khoản tại đây.")
+
+    homestays = db.scalars(
+        select(Homestay).where(Homestay.host_id == account.id).with_for_update()
+    ).all()
+    active_statuses = ("pending", "confirmed", "checked_in")
+    active_booking = db.scalar(
+        select(Booking.id)
+        .where(Booking.customer_id == account.id, Booking.status.in_(active_statuses))
+        .limit(1)
+    )
+    if not active_booking and homestays:
+        active_booking = db.scalar(
+            select(Booking.id)
+            .where(
+                Booking.homestay_id.in_([homestay.id for homestay in homestays]),
+                Booking.status.in_(active_statuses),
+            )
+            .limit(1)
+        )
+    if active_booking:
+        raise HTTPException(
+            409,
+            "Không thể xóa tài khoản khi bạn còn đặt phòng đang chờ, đã xác nhận hoặc đang lưu trú.",
+        )
+
+    account.is_active = False
+    account.token_version += 1
+    account.email = f"deleted-{account.id}-{secrets.token_hex(8)}@deleted.invalid"
+    account.display_name = "Tài khoản đã xóa"
+    account.phone = ""
+    account.avatar = "img/placeholder.svg"
+    for homestay in homestays:
+        if homestay.status == "active":
+            homestay.status = "inactive"
+    db.execute(update(AuthSession).where(AuthSession.user_id == account.id).values(revoked=True))
     db.commit()
     return Response(status_code=204)
 

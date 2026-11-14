@@ -107,6 +107,12 @@
         <p class="mt-3 text-muted">Đăng ký làm host để bắt đầu quản lý homestay của riêng bạn.</p>
         <a class="btn btn--outline mt-3" href="host-register.html">Trở thành Host</a>
       </section>
+
+      <section class="form-card" id="delete-account-section" hidden>
+        <h3>Xóa tài khoản</h3>
+        <p class="mt-3 text-muted">Bạn chỉ có thể xóa tài khoản khi không còn đặt phòng hoặc khách đang lưu trú tại homestay của bạn.</p>
+        <button class="btn btn--danger mt-3" id="delete-account" type="button">Xóa tài khoản</button>
+      </section>
     </div>
   </div>
  
@@ -114,6 +120,15 @@
  
 <site-footer></site-footer>
 <div id="toast" role="status"></div>
+<dialog id="delete-account-dialog" aria-labelledby="delete-account-title">
+  <h3 class="dialog__title" id="delete-account-title">Bạn có chắc chắn muốn xóa tài khoản không?</h3>
+  <p class="dialog__message">Tài khoản của bạn sẽ bị vô hiệu hóa và thông tin hồ sơ sẽ được ẩn. Homestay của bạn sẽ ngừng nhận đặt phòng. Lịch sử giao dịch có thể được lưu để đối soát. Bạn không thể hoàn tác thao tác này.</p>
+  <p class="field__error" id="delete-account-error" role="status" hidden></p>
+  <div class="dialog__actions">
+    <button class="btn" type="button" data-cancel>Không</button>
+    <button class="btn btn--danger" type="button" data-confirm>Có, tôi chắc chắn</button>
+  </div>
+</dialog>
  
 <noscript><p class="container msg msg--error">Cần bật JavaScript để quản lý hồ sơ. Các form đang bị khóa.</p></noscript>
 <script type="module" src="js/pages/profile.js"></script>

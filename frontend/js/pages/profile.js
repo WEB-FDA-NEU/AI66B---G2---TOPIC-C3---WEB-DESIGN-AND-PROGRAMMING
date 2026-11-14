@@ -1,4 +1,4 @@
-import { getProfile, updateProfile, changePassword, getHostApplication } from '../api.js';
+import { getProfile, updateProfile, changePassword, getHostApplication, deleteAccount } from '../api.js';
 import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { toast, clearFieldErrors, setFieldError } from '../ui.js';
@@ -23,6 +23,7 @@ function fillProfile() {
   document.getElementById('profile-summary-email').textContent = user.email ?? '';
   document.getElementById('profile-summary-role').textContent = { user: 'Khách hàng', host: 'Chủ nhà', admin: 'Quản trị viên' }[user.role] ?? '';
   if (['host', 'admin'].includes(user.role)) document.getElementById('become-host-section')?.remove();
+  document.getElementById('delete-account-section').hidden = !['user', 'host'].includes(user.role);
 }
 preview.addEventListener('error', () => {
   if (!preview.src.endsWith('/img/placeholder.svg')) preview.src = 'img/placeholder.svg';
@@ -135,6 +136,41 @@ passwordForm.addEventListener('submit', async event => {
     if (ACCOUNT_API_MODE) location.href = accountHref('login.html');
   } catch (err) { toast(err.detail ?? 'Không đổi được mật khẩu.', 'error'); }
   finally { passwordForm.reset(); passwordButton.disabled = false; }
+});
+
+const deleteAccountButton = document.getElementById('delete-account');
+const deleteAccountDialog = document.getElementById('delete-account-dialog');
+const deleteAccountConfirm = deleteAccountDialog.querySelector('[data-confirm]');
+const deleteAccountError = document.getElementById('delete-account-error');
+deleteAccountButton.addEventListener('click', () => {
+  deleteAccountError.textContent = '';
+  deleteAccountError.hidden = true;
+  deleteAccountDialog.showModal();
+});
+deleteAccountDialog.querySelector('[data-cancel]').addEventListener('click', () => deleteAccountDialog.close());
+deleteAccountDialog.addEventListener('cancel', event => {
+  if (deleteAccountButton.disabled) event.preventDefault();
+});
+deleteAccountDialog.addEventListener('click', event => {
+  if (event.target === deleteAccountDialog && !deleteAccountButton.disabled) deleteAccountDialog.close();
+});
+deleteAccountConfirm.addEventListener('click', async () => {
+  if (deleteAccountButton.disabled) return;
+  deleteAccountButton.disabled = true;
+  deleteAccountConfirm.disabled = true;
+  try {
+    await deleteAccount();
+    deleteAccountDialog.close();
+    toast('Tài khoản đã được xóa.');
+    location.href = accountHref('login.html');
+  } catch (error) {
+    if (error.status === 401) { requireLogin(); return; }
+    deleteAccountError.textContent = error.detail ?? 'Không thể xóa tài khoản.';
+    deleteAccountError.hidden = false;
+  } finally {
+    deleteAccountButton.disabled = false;
+    deleteAccountConfirm.disabled = false;
+  }
 });
 
 if (!isLoggedIn()) requireLogin();

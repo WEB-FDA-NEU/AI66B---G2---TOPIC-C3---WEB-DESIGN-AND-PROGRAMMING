@@ -5,7 +5,7 @@ import jwt
 import pytest
 from sqlalchemy import select
 
-from backend.models import AuthSession, User, utcnow
+from backend.models import AuthSession, Homestay, User, utcnow
 from backend.security import verify_password
 
 from .conftest import PASSWORD
@@ -217,6 +217,53 @@ def test_sessions_store_digest_not_raw_token(setup):
         assert sessions and all(len(row.id) == 64 for row in sessions)
         assert all(setup["tokens"][1] != row.id for row in sessions)
         assert db.get(User, 1).password_hash.startswith("$argon2id$")
+
+
+def test_delete_account_anonymizes_profile_and_revokes_all_sessions(client, headers, setup):
+    another = client.post(
+        "/api/auth/login", json={"email": "account2@example.com", "password": PASSWORD}
+    ).json()["access_token"]
+
+    response = client.delete("/api/me/account", headers=headers(2))
+
+    assert response.status_code == 204
+    for token in [headers(2)["Authorization"].removeprefix("Bearer "), another]:
+        assert client.get("/api/me", headers={"Authorization": f"Bearer {token}"}).status_code == 401
+    assert (
+        client.post(
+            "/api/auth/login", json={"email": "account2@example.com", "password": PASSWORD}
+        ).status_code
+        == 401
+    )
+    with setup["factory"]() as db:
+        deleted = db.get(User, 2)
+        assert not deleted.is_active
+        assert deleted.email.endswith("@deleted.invalid")
+        assert deleted.display_name == "Tài khoản đã xóa" and deleted.phone == ""
+        assert all(session.revoked for session in db.scalars(select(AuthSession).where(AuthSession.user_id == 2)))
+
+
+def test_delete_account_rejected_with_active_customer_or_host_bookings(client, headers, booking_payload):
+    booking = client.post("/api/me/bookings", json=booking_payload, headers=headers())
+    assert booking.status_code == 201
+    assert client.delete("/api/me/account", headers=headers()).status_code == 409
+    assert client.delete("/api/me/account", headers=headers(3)).status_code == 409
+    assert client.get("/api/me", headers=headers()).status_code == 200
+    assert client.get("/api/me", headers=headers(3)).status_code == 200
+
+
+def test_delete_host_account_with_no_active_bookings_disables_homestays(client, headers, setup):
+    response = client.delete("/api/me/account", headers=headers(4))
+
+    assert response.status_code == 204
+    assert client.get("/api/me", headers=headers(4)).status_code == 401
+    with setup["factory"]() as db:
+        assert db.get(Homestay, 2).status == "inactive"
+
+
+def test_delete_account_requires_user_auth_and_rejects_admin(client, headers):
+    assert client.delete("/api/me/account").status_code == 401
+    assert client.delete("/api/me/account", headers=headers(5)).status_code == 403
 
 
 def test_invalid_credentials_have_same_message(client):
