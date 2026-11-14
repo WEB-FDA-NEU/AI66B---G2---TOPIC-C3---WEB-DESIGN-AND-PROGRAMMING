@@ -1,3 +1,4 @@
+import { prefersReducedMotion, motionDuration } from './motion.js';
 // ============================================================
 //  Tiện ích DÙNG CHUNG cho Host Dashboard và Admin Dashboard:
 //  - bộ lọc kỳ (7 ngày / 30 ngày / Năm) + chia "bucket" theo ngày hoặc tháng
@@ -57,17 +58,17 @@ export function fmtShortVND(n) {
 }
 
 // ---------- Count-up ----------
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 /** Đếm từ giá trị đang hiện tới `to`. Người dùng bật "giảm chuyển động" thì hiện luôn, không chạy hiệu ứng. */
-export function countUp(el, to, format = fmtInt, duration = 900) {
+export function countUp(el, to, format = fmtInt, duration = motionDuration('slow')) {
   if (!el) return;
   const from = el._cuValue ?? 0;
   cancelAnimationFrame(el._cuRaf);
   el._cuValue = to;
-  if (reduceMotion || from === to) { el.textContent = format(to); return; }
+  if (prefersReducedMotion() || from === to) { el.textContent = format(to); return; }
   const t0 = performance.now();
   const step = now => {
-    const p = Math.min(1, (now - t0) / duration);
+    const p = prefersReducedMotion() ? 1 : Math.min(1, (now - t0) / duration);
     const eased = 1 - Math.pow(1 - p, 3);           // chậm dần về cuối
     el.textContent = format(from + (to - from) * eased);
     if (p < 1) el._cuRaf = requestAnimationFrame(step);
@@ -117,7 +118,9 @@ export function palette() {
 // ---------- Vẽ biểu đồ ----------
 let defaultsSet = false;
 function setDefaults() {
-  if (defaultsSet || !window.Chart) return;
+  if (!window.Chart) return;
+  Chart.defaults.animation.duration = prefersReducedMotion() ? 0 : motionDuration('slow');
+  if (defaultsSet) return;
   const t = theme();
   Chart.defaults.font.family = t.font;
   Chart.defaults.font.size = 13;
@@ -127,7 +130,6 @@ function setDefaults() {
   Chart.defaults.plugins.legend.labels.boxHeight = 8;     // chấm chú thích nhỏ gọn
   Chart.defaults.plugins.tooltip.padding = 10;
   Chart.defaults.plugins.tooltip.cornerRadius = 8;
-  Chart.defaults.animation.duration = reduceMotion ? 0 : 700;
   defaultsSet = true;
 }
 

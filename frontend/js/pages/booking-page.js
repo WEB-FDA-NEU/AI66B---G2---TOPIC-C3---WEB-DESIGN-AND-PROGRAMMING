@@ -101,7 +101,7 @@ async function init() {
   form.addEventListener('submit', async e => {
     e.preventDefault();
     clearFieldErrors(form);
-    errorAlert.hidden = true; formMsg.style.display = 'none';
+    errorAlert.hidden = true; formMsg.hidden = true;
 
     let ok = true;
     for (const [id, check] of Object.entries(RULES)) {
@@ -111,7 +111,7 @@ async function init() {
     if (!ok) { errorAlert.hidden = false; errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
 
     // Đặt phòng đã quá hạn trong lúc người dùng mở trang
-    if (stay.checkin < todayISO()) { formMsg.textContent = 'Ngày nhận phòng đã qua. Vui lòng chọn lại ngày.'; formMsg.style.display = 'block'; return; }
+    if (stay.checkin < todayISO()) { formMsg.textContent = 'Ngày nhận phòng đã qua. Vui lòng chọn lại ngày.'; formMsg.hidden = false; return; }
 
     const btn = $('btnSubmit');
     btn.disabled = true;
@@ -140,7 +140,7 @@ async function init() {
       location.href = 'booking-confirmed.html';
     } catch (err) {
       formMsg.textContent = err instanceof ApiError ? err.detail : 'Thanh toán thất bại. Vui lòng thử lại.';
-      formMsg.style.display = 'block';
+      formMsg.hidden = false;
       btn.disabled = false;
       btn.innerHTML = `Xác nhận &amp; Thanh toán (<span id="btnPayAmount">${formatVND(q.total)}</span>)`;
     }

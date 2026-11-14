@@ -8,11 +8,12 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/motion.css">
 
 <!-- Chart.js 4.4.1 (UMD, ghim đúng phiên bản). Tải về window.Chart; mất mạng thì trang vẫn chạy, chỉ thiếu biểu đồ. -->
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
-<body>
+<body data-require-role="admin">
 
 <!-- active="admin" khớp với mục data-nav="admin" trong site-header.js (đang chờ patch để ẩn/hiện theo role) -->
 <site-header active="admin"></site-header>
@@ -73,6 +74,7 @@
        Admin hiện chỉ có 1 khu vực (hàng đợi đơn host) nên chỉ có 1 nút, trỏ neo xuống thẳng đó. -->
   <div class="quick-links">
     <a class="btn btn--primary" href="#application-list">Xem đơn chờ duyệt</a>
+    <a class="btn" href="#host-section">Danh sách host</a>
   </div>
 
   <!-- ==================== HÀNG ĐỢI ĐƠN XIN LÀM HOST ==================== -->
@@ -137,10 +139,36 @@
     </div>
   </section>
 
+  <section class="mt-6" id="host-section" aria-labelledby="host-title">
+    <div class="section-head">
+      <div>
+        <h2 id="host-title">Danh sách host <span id="host-count"></span></h2>
+        <p>Những người đang là host trên hệ thống và thông tin của họ.</p>
+      </div>
+      <label class="field host-search">
+        <span class="field__label sr-only">Tìm host</span>
+        <input class="input" type="search" id="host-search" placeholder="Tìm theo tên, email, số điện thoại" autocomplete="off">
+      </label>
+    </div>
+    <div class="stack" id="host-list"></div>
+    <div class="empty" id="host-empty" hidden>
+      <p class="empty__title">Không tìm thấy host nào</p>
+      <p class="empty__hint">Thử đổi từ khóa tìm kiếm.</p>
+    </div>
+  </section>
 </main>
 
 <site-footer></site-footer>
-<div id="toast" role="status"></div>
+<div id="toast" role="status">
+  <template id="tpl-empty-state"><div class="empty"><p class="empty__title"></p><p class="empty__hint"></p><a class="btn btn--primary empty__action"></a></div></template>
+<dialog id="host-dialog" aria-labelledby="hd-name">
+  <h3 class="dialog__title" id="hd-name"></h3>
+  <dl class="host-detail" id="hd-info"></dl>
+  <h4 class="host-detail__sub">Homestay (<span id="hd-count">0</span>)</h4>
+  <ul class="host-detail__list" id="hd-homestays"></ul>
+  <div class="dialog__actions"><button class="btn" type="button" id="hd-close">Đóng</button></div>
+</dialog>
+</div>
 
 <!-- Hộp xác nhận Duyệt / Từ chối -->
 <dialog id="confirm-dialog">
@@ -167,6 +195,7 @@
 <script type="module">
   import './js/components/site-header.js';
   import './js/components/site-footer.js';
+  import './js/guard.js';
   import { confirmAction, toast } from './js/ui.js';
 
   // Giai đoạn mock: xử lý đơn ngay trên DOM.
@@ -232,5 +261,6 @@
   };
 </script>
 <script type="module" src="js/pages/admin-dashboard.js"></script>
+<script type="module" src="js/pages/admin-hosts.js"></script>
 </body>
 </html>

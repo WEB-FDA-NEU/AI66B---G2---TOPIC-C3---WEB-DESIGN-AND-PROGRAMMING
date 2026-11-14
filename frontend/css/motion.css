@@ -1,42 +1,94 @@
-/* motion.css — chuyển động. Chỉ dùng cho hiệu ứng "xuất hiện" và phản hồi khi tương tác.
-   Nguyên tắc: chuyển động phải có lý do (báo hiệu nội dung mới, phản hồi thao tác).
-   KHÔNG làm thứ gì tự lặp vô hạn (nhấp nháy, nảy) vì gây xao nhãng và trông thiếu chuyên nghiệp.
-   Màu/cỡ chữ lấy từ tokens.css như mọi file khác. */
+/* Shared motion: content stays visible without JS. No persistent hidden entrance state. */
+@keyframes lux-enter {
+  from { opacity: .65; transform: translateY(var(--motion-distance)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes lux-fade { from { opacity: .35; } to { opacity: 1; } }
+@keyframes lux-dialog { from { opacity: 0; scale: .985; } to { opacity: 1; scale: 1; } }
 
-:root { --ease-out: cubic-bezier(.16, .84, .44, 1); }
+/* Brief arrivals, not an animation for every row in a large list. */
+.hero__inner > *, .page > .section-head, .host-bookings-page > .tabs,
+.stat-card, .chart-card, .profile-main > .form-card,
+.booking-property-summary, .booking-price-summary {
+  animation: lux-enter var(--motion-slow) var(--ease-out) backwards;
+}
+.hero__inner > :nth-child(2), .stat-card:nth-child(2) { animation-delay: var(--motion-stagger); }
+.hero__inner > :nth-child(3), .stat-card:nth-child(3) { animation-delay: calc(var(--motion-stagger) * 2); }
+.hero__inner > :nth-child(4), .stat-card:nth-child(4) { animation-delay: calc(var(--motion-stagger) * 3); }
+.grid > .card:nth-child(-n+6), .card-grid > .card:nth-child(-n+6) {
+  animation: lux-enter var(--motion-slow) var(--ease-out) backwards;
+}
+.grid > .card:nth-child(2), .card-grid > .card:nth-child(2) { animation-delay: var(--motion-stagger); }
+.grid > .card:nth-child(3), .card-grid > .card:nth-child(3) { animation-delay: calc(var(--motion-stagger) * 2); }
+.grid > .card:nth-child(4), .card-grid > .card:nth-child(4) { animation-delay: calc(var(--motion-stagger) * 3); }
+.grid > .card:nth-child(5), .card-grid > .card:nth-child(5) { animation-delay: calc(var(--motion-stagger) * 4); }
+.grid > .card:nth-child(6), .card-grid > .card:nth-child(6) { animation-delay: calc(var(--motion-stagger) * 5); }
 
-/* ---------- Header: đổ bóng khi trang cuộn xuống (motion.js thêm class is-scrolled) ---------- */
-.site-header { transition: box-shadow .25s ease; }
+/* Only cards with a real link or enabled action advertise interaction. */
+.card, .destination-card, .booking-list-item, .host-homestay-card,
+.host-room-card, .host-booking-card, .room-card {
+  transition: transform var(--motion-normal) var(--ease-out),
+    border-color var(--motion-fast) ease-out, box-shadow var(--motion-normal) ease-out;
+}
+@media (hover: hover) and (pointer: fine) {
+  .card:has(a[href]):hover, .destination-card:hover,
+  .booking-list-item:has(a[href], button:enabled):hover,
+  .host-homestay-card:has(a[href], button:enabled):hover,
+  .host-room-card:has(button:enabled):hover,
+  .host-booking-card:has(button:enabled):hover,
+  .room-card:has(button:enabled):hover {
+    transform: translateY(-2px); border-color: var(--c-border-strong); box-shadow: var(--shadow);
+  }
+  .card:has(a[href]):hover .card__img, .destination-card:hover img { transform: scale(1.025); }
+  :is(.nav-toggle, .stepper__btn, .thumb__remove, .field__toggle-password):not(:disabled):hover { box-shadow: var(--shadow-s); }
+}
+.card__img { transition: transform var(--motion-slow) var(--ease-out); }
+:is(.nav-toggle, .stepper__btn, .thumb__remove, .field__toggle-password, .lightbox__close, .lightbox__nav) {
+  transition: background-color var(--motion-fast) ease-out, box-shadow var(--motion-fast) ease-out, scale var(--motion-fast) ease-out;
+}
+.btn:not(:disabled):not(.btn--disabled):active, .search-box__btn:not(:disabled):active { transform: scale(.98); }
+:is(.nav-toggle, .period-tabs__btn, .stepper__btn, .thumb__remove,
+.field__toggle-password, .lightbox__close, .lightbox__nav):not(:disabled):active { scale: .98; }
+.btn:disabled, .btn--disabled { animation: none; transform: none; }
+
+/* Validation animates only when it becomes visible/non-empty. */
+.field__error:not(:empty), .msg:not([hidden]), .empty,
+.room-form.is-open, #review-form-wrapper:not([hidden]) { animation: lux-fade var(--motion-normal) ease-out; }
+@media (max-width: 1199px) {
+  .main-nav.is-open { --motion-distance: 5px; animation: lux-enter var(--motion-normal) var(--ease-out); }
+}
+.site-header { transition: box-shadow var(--motion-normal) ease-out; }
 .site-header.is-scrolled { box-shadow: var(--shadow-m); }
 
-/* ---------- Hero: chữ + ô tìm kiếm xuất hiện tuần tự 1 lần khi tải trang ---------- */
-.hero__inner.hero-init > * { opacity: 0; transform: translateY(16px); }
-.hero__inner.hero-init.is-ready > * { animation: heroIn .6s var(--ease-out) both; }
-.hero__inner.hero-init.is-ready > *:nth-child(1) { animation-delay: .05s; }
-.hero__inner.hero-init.is-ready > *:nth-child(2) { animation-delay: .16s; }
-.hero__inner.hero-init.is-ready > *:nth-child(3) { animation-delay: .27s; }
-.hero__inner.hero-init.is-ready > *:nth-child(4) { animation-delay: .38s; }
-.hero__inner.hero-init.is-ready > *:nth-child(5) { animation-delay: .49s; }
-@keyframes heroIn { to { opacity: 1; transform: none; } }
-
-/* ---------- Tiêu đề hero: từng từ tự "cuộn" lên bên trong, lồng vào hiệu ứng trên ----------
-   JS (motion.js) bọc mỗi từ trong 1 span khi trang tải; nếu JS không chạy được,
-   thẻ h1 giữ nguyên văn bản thường, không có gì bị ẩn đi. */
-.hero h1.word-reveal .word-mask { display: inline-block; overflow: hidden; vertical-align: top; }
-.hero h1.word-reveal .word {
-  display: inline-block; opacity: 0; transform: translate3d(0, 100%, 0);
-  transition: transform .7s var(--ease-out), opacity .45s var(--ease-out);
-  transition-delay: var(--wd, 0ms);
+/* Native dialog focus/Escape lifecycle stays immediate. Older engines get entry only. */
+dialog[open] { animation: lux-dialog var(--motion-slow) var(--ease-out); }
+dialog[open]::backdrop { animation: lux-fade var(--motion-slow) ease-out; }
+@supports (transition-behavior: allow-discrete) {
+  dialog {
+    opacity: 0; scale: .985;
+    transition: opacity var(--motion-slow) ease-out, scale var(--motion-slow) var(--ease-out),
+      display var(--motion-slow) allow-discrete, overlay var(--motion-slow) allow-discrete;
+  }
+  dialog[open] { opacity: 1; scale: 1; animation: none; }
+  dialog::backdrop {
+    opacity: 0;
+    transition: opacity var(--motion-slow) ease-out,
+      display var(--motion-slow) allow-discrete, overlay var(--motion-slow) allow-discrete;
+  }
+  dialog[open]::backdrop { opacity: 1; animation: none; }
+  @starting-style {
+    dialog[open] { opacity: 0; scale: .985; }
+    dialog[open]::backdrop { opacity: 0; }
+  }
 }
-.hero__inner.hero-init.is-ready h1.word-reveal .word { opacity: 1; transform: none; }
 
-/* ---------- Dòng số liệu nhỏ dưới phụ đề hero ---------- */
+/* Original home trust-row layout retained. */
 .hero-trust { display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-4); margin: var(--sp-3) 0 var(--sp-1); }
-.hero-trust span { position: relative; padding-left: var(--sp-3); font-size: var(--fs-sm); color: rgba(255, 255, 255, .8); }
+.hero-trust span { position: relative; padding-left: var(--sp-3); font-size: var(--fs-sm); color: var(--c-on-primary-muted); }
 .hero-trust span:first-child { padding-left: 0; }
 .hero-trust span:not(:first-child)::before {
   content: ''; position: absolute; left: 0; top: 50%; width: 1px; height: 12px;
-  transform: translateY(-50%); background: rgba(255, 255, 255, .3);
+  transform: translateY(-50%); background: var(--c-on-primary-soft);
 }
 .hero-trust b { color: var(--c-on-primary); font-weight: 700; }
 @media (max-width: 767px) {
@@ -45,47 +97,13 @@
   .hero-trust span::before { display: none; }
 }
 
-/* ---------- Section cuộn tới đâu, hiện tới đó ---------- */
-[data-reveal].reveal-init {
-  opacity: 0; transform: translateY(24px);
-  transition: opacity .6s var(--ease-out), transform .6s var(--ease-out);
-}
-[data-reveal].reveal-init.is-visible { opacity: 1; transform: none; }
-
-/* ---------- Thẻ homestay: lần lượt hiện vào khi vừa render xong ----------
-   Animation thuần CSS, tự chạy ngay khi thẻ được chèn vào DOM — không cần JS theo dõi,
-   nên hoạt động với MỌI danh sách render động (trang chủ, tìm kiếm...) mà không cần sửa render.js. */
-.grid > .card, .card-grid > .card { animation: cardIn .5s var(--ease-out) both; }
-.grid > .card:nth-child(1),  .card-grid > .card:nth-child(1)  { animation-delay: .02s; }
-.grid > .card:nth-child(2),  .card-grid > .card:nth-child(2)  { animation-delay: .08s; }
-.grid > .card:nth-child(3),  .card-grid > .card:nth-child(3)  { animation-delay: .14s; }
-.grid > .card:nth-child(4),  .card-grid > .card:nth-child(4)  { animation-delay: .20s; }
-.grid > .card:nth-child(5),  .card-grid > .card:nth-child(5)  { animation-delay: .26s; }
-.grid > .card:nth-child(6),  .card-grid > .card:nth-child(6)  { animation-delay: .32s; }
-.grid > .card:nth-child(n+7), .card-grid > .card:nth-child(n+7) { animation-delay: .38s; }
-@keyframes cardIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-
-/* ---------- Ảnh trong thẻ: phóng nhẹ khi rê chuột (thẻ đã có overflow:hidden nên ảnh không tràn) ---------- */
-.card__img { transition: transform .35s var(--ease-out); }
-.card:hover .card__img { transform: scale(1.04); }
-
-/* ---------- Nút: phản hồi khi bấm ----------
-   Lưu ý: transition của .btn khai báo ở components.css (đã gồm transform). KHÔNG khai báo lại ở đây,
-   vì file này tải sau và sẽ ghi đè mất transition màu / viền focus. */
-.btn:active { transform: scale(.98); }
-.btn:disabled:active, .btn--disabled:active { transform: none; }
-
-/* ---------- Tôn trọng người dùng đã bật "giảm chuyển động" ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .hero__inner.hero-init > *,
-  .hero h1.word-reveal .word,
-  [data-reveal].reveal-init,
-  .grid > .card, .card-grid > .card,
-  .card__img,
-  .btn {
-    animation: none !important;
-    transition: none !important;
-    opacity: 1 !important;
-    transform: none !important;
+  *, *::before, *::after {
+    animation: none !important; transition: none !important; scroll-behavior: auto !important;
   }
+  .card:hover, .destination-card:hover, .booking-list-item:hover,
+  .host-homestay-card:hover, .host-room-card:hover, .host-booking-card:hover,
+  .room-card:hover, .card__img, .destination-card img, .photo-grid__cell img,
+  .btn:active, .search-box__btn:active { transform: none !important; }
+  :is(button, dialog) { scale: 1 !important; }
 }

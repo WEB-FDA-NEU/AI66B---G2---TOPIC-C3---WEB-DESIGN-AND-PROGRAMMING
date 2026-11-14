@@ -12,6 +12,8 @@
 //  Chỉ 1 màn dùng thì để trong js/pages/<màn-đó>.js
 // ============================================================
 
+import { ratingLabel } from './pricing.js';
+
 export const formatVND = n =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(n);
 
@@ -32,21 +34,33 @@ export function renderCard(item) {
   const node = document.getElementById('tpl-card').content.cloneNode(true);
 
   const link = node.querySelector('.card__link');
-  link.href = `detail.html?id=${item.id}`;
+  const params = new URLSearchParams({ id: item.id });
+  const search = new URLSearchParams(location.search);
+  if (location.pathname.endsWith('/search.html')) {
+    for (const key of ['checkin', 'checkout', 'children']) if (search.get(key)) params.set(key, search.get(key));
+    const adults = search.get('adults') || search.get('guests');
+    if (adults) params.set('adults', adults);
+  }
+  link.href = `detail.html?${params}`;
 
   const img = node.querySelector('.card__img');
   img.src = item.cover_url;
   img.alt = item.title;
+  img.addEventListener('error', () => {
+    if (img.dataset.fallback) return;
+    img.dataset.fallback = 'true'; img.src = 'img/placeholder.svg';
+  });
 
   node.querySelector('.card__title').textContent = item.title;
 
-  node.querySelector('.card__meta').textContent =
-    item.location ?? item.meta ?? '';
+  const meta = node.querySelector('.card__meta');
+  meta.textContent = `⌖ ${item.location ?? item.meta ?? ''}`;
+  node.querySelector('.card__title').after(meta);
 
   const priceEl = node.querySelector('.card__price');
   priceEl.textContent = `${formatVND(item.price)} / đêm`;
 
-  if (item.rating != null) {
+  if (Number.isFinite(item.rating) && item.rating > 0 && item.rating <= 5) {
     const ratingWrap = document.createElement('div');
     ratingWrap.className = 'card__rating';
 
@@ -55,7 +69,7 @@ export function renderCard(item) {
     rating.textContent = `⭐ ${item.rating.toFixed(1)}`;
 
     const text = document.createElement('span');
-    text.textContent = ' · Đánh giá tốt';
+    text.textContent = ` · ${ratingLabel(item.rating)}`;
 
     ratingWrap.append(rating, text);
 

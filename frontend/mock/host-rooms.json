@@ -352,6 +352,342 @@
         "https://cf.bstatic.com/xdata/images/hotel/max1024x768/657587245.jpg?k=23679b753af1476d42ee32eee26c8883a872115a469c88e06df600b9c8258980&o="
       ],
       "blockedDates": []
+    },
+    {
+      "id": "rm025",
+      "homestayId": "hs011",
+      "itemRoomId": "r11-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 520000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/234268998.jpg?k=4b0e8163c3f7275e2d04ec44bc844b1f8fce012c7b89ed9e8c94f7a5962345ce&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/241791732.jpg?k=ec8345908031f9546a54acd9312848de5bc12fff9c43524c53692f8d5fffbd16&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm026",
+      "homestayId": "hs011",
+      "itemRoomId": "r11-2",
+      "name": "Deluxe Studio Hướng Núi",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 692000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/241791732.jpg?k=ec8345908031f9546a54acd9312848de5bc12fff9c43524c53692f8d5fffbd16&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/246018090.jpg?k=a6e1beb7a715e8f462a22b9078f00ebadec980842b8f7ca86a6b9c0454de00ac&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm027",
+      "homestayId": "hs012",
+      "itemRoomId": "r12-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 340000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/594178987.jpg?k=1a5482c30d884dc6a053316d67499638671cb15177e43d329aba26c1c19662ae&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/594187152.jpg?k=459453bded3bc0ea602a534e79c5f2317b526cde01819a8e9c26ca8b75d4879e&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm028",
+      "homestayId": "hs012",
+      "itemRoomId": "r12-2",
+      "name": "Deluxe Studio Hướng Núi",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 452000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/594187152.jpg?k=459453bded3bc0ea602a534e79c5f2317b526cde01819a8e9c26ca8b75d4879e&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/594178987.jpg?k=1a5482c30d884dc6a053316d67499638671cb15177e43d329aba26c1c19662ae&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm029",
+      "homestayId": "hs013",
+      "itemRoomId": "r13-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 480000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/586601369.jpg?k=ba5ab033a2a7517510d16787ac693b61d84678d6a8232631ed1bb83859e34277&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/103361914.jpg?k=df833b715f8dc3ab38170e195c1873086a90268a54f45e4159c72d6397bf05ca&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm030",
+      "homestayId": "hs013",
+      "itemRoomId": "r13-2",
+      "name": "Deluxe Studio Hướng Đẹp",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 638000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/103361914.jpg?k=df833b715f8dc3ab38170e195c1873086a90268a54f45e4159c72d6397bf05ca&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/510565396.jpg?k=3c9e475c30288bb062929876491bcfb5e2c384bb45766e4131376583a718892f&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm031",
+      "homestayId": "hs014",
+      "itemRoomId": "r14-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 430000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/881079560.jpg?k=cb2cff6db7b7c59ef6b48f11eb7094046390028043df8ccd8f6fd3e907f44790&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/881080993.jpg?k=da5b634e19e6ce56fbd2e1effb8dd3465c4c6ed6095ab8b2af760033589bdbd6&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm032",
+      "homestayId": "hs014",
+      "itemRoomId": "r14-2",
+      "name": "Deluxe Studio Hướng Đẹp",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 572000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/881080993.jpg?k=da5b634e19e6ce56fbd2e1effb8dd3465c4c6ed6095ab8b2af760033589bdbd6&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/857209248.jpg?k=74291b31d7a5ff90a41b20f6486ffd204bb1d62220783872c703abafe245434a&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm033",
+      "homestayId": "hs015",
+      "itemRoomId": "r15-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 890000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/928586976.jpg?k=7902f9299cd99fa5cc4e20e092808faf7cf0c2800c55537b320da7aaa1e4a1e2&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/928586976.jpg?k=7902f9299cd99fa5cc4e20e092808faf7cf0c2800c55537b320da7aaa1e4a1e2&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm034",
+      "homestayId": "hs015",
+      "itemRoomId": "r15-2",
+      "name": "Deluxe Studio Hướng Đẹp",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 1184000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/928586976.jpg?k=7902f9299cd99fa5cc4e20e092808faf7cf0c2800c55537b320da7aaa1e4a1e2&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/928586976.jpg?k=7902f9299cd99fa5cc4e20e092808faf7cf0c2800c55537b320da7aaa1e4a1e2&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm035",
+      "homestayId": "hs016",
+      "itemRoomId": "r16-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 410000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947942.jpg?k=018dde6cd34c34e4802f8fe3e6c43a697a2d14989bd8823a8b14f5eece2b9a14&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947936.jpg?k=92bfffc8b67f647d9deb3d97f316c69c69f69e67508dfcea72a90daaa0d2ef27&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm036",
+      "homestayId": "hs016",
+      "itemRoomId": "r16-2",
+      "name": "Deluxe Studio Hướng Đẹp",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 545000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947936.jpg?k=92bfffc8b67f647d9deb3d97f316c69c69f69e67508dfcea72a90daaa0d2ef27&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947923.jpg?k=ff4ba3ae78f59bdb1b053aca1f00d0e01018adb46ad283e218ec09267af0876c&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm037",
+      "homestayId": "hs017",
+      "itemRoomId": "r17-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 220000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480244743.jpg?k=07151f7fea1b38b25e91c95c5cbd328dbe203aaa44db6909f10eb8e03edb5ed2&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480237699.jpg?k=5e472aa1ee6f2ef38cf2817feb7a4722d20c430cec3f8642e87a11210d0e7d24&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm038",
+      "homestayId": "hs017",
+      "itemRoomId": "r17-2",
+      "name": "Deluxe Studio Hướng Núi",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 293000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480237699.jpg?k=5e472aa1ee6f2ef38cf2817feb7a4722d20c430cec3f8642e87a11210d0e7d24&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/657587245.jpg?k=23679b753af1476d42ee32eee26c8883a872115a469c88e06df600b9c8258980&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm039",
+      "homestayId": "hs018",
+      "itemRoomId": "r18-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 460000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/920608628.jpg?k=551e0fcf646bf7c881c4884a01e6b4884aa8ed6d56ab7c5dc7fd97c78b668fcf&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/921398736.jpg?k=96689d67717c76b0a2b8d0993270835cb6ab6b362ff8db49636c9647fa25922b&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm040",
+      "homestayId": "hs018",
+      "itemRoomId": "r18-2",
+      "name": "Deluxe Studio Hướng Đẹp",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 612000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/921398736.jpg?k=96689d67717c76b0a2b8d0993270835cb6ab6b362ff8db49636c9647fa25922b&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/921398934.jpg?k=60b1d543e3c6d2b15174d93a3556af1575874f3b1307bd24f6c028d399c34a9c&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm041",
+      "homestayId": "hs019",
+      "itemRoomId": "r19-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 520000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/648779684.jpg?k=16bcced7f6f6895502e86c216a2ca8da72cf6f53f3b1dffec76562b262f0cf08&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/648779684.jpg?k=16bcced7f6f6895502e86c216a2ca8da72cf6f53f3b1dffec76562b262f0cf08&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm042",
+      "homestayId": "hs019",
+      "itemRoomId": "r19-2",
+      "name": "Deluxe Studio Hướng Đẹp",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 692000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/648779684.jpg?k=16bcced7f6f6895502e86c216a2ca8da72cf6f53f3b1dffec76562b262f0cf08&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/648779684.jpg?k=16bcced7f6f6895502e86c216a2ca8da72cf6f53f3b1dffec76562b262f0cf08&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm043",
+      "homestayId": "hs020",
+      "itemRoomId": "r20-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 600000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947925.jpg?k=4fdcb366dbd5ed229da39385782b506b1615e9d395afaf70179a423f6157820f&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947942.jpg?k=018dde6cd34c34e4802f8fe3e6c43a697a2d14989bd8823a8b14f5eece2b9a14&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm044",
+      "homestayId": "hs020",
+      "itemRoomId": "r20-2",
+      "name": "Deluxe Studio Hướng Đẹp",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 798000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947942.jpg?k=018dde6cd34c34e4802f8fe3e6c43a697a2d14989bd8823a8b14f5eece2b9a14&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/914947936.jpg?k=92bfffc8b67f647d9deb3d97f316c69c69f69e67508dfcea72a90daaa0d2ef27&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm045",
+      "homestayId": "hs021",
+      "itemRoomId": "r21-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 330000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/915130524.jpg?k=c3516630e13ee2442d654aae0512a71cde1918b82c8040c51ca8cb9e902ea48a&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/915130524.jpg?k=c3516630e13ee2442d654aae0512a71cde1918b82c8040c51ca8cb9e902ea48a&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm046",
+      "homestayId": "hs021",
+      "itemRoomId": "r21-2",
+      "name": "Deluxe Studio Hướng Đẹp",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 439000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/915130524.jpg?k=c3516630e13ee2442d654aae0512a71cde1918b82c8040c51ca8cb9e902ea48a&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/915130524.jpg?k=c3516630e13ee2442d654aae0512a71cde1918b82c8040c51ca8cb9e902ea48a&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm047",
+      "homestayId": "hs022",
+      "itemRoomId": "r22-1",
+      "name": "Phòng Superior Giường Đôi",
+      "description": "Phòng thoáng, giường đôi lớn, nhà tắm riêng.",
+      "capacity": 2,
+      "pricePerNight": 380000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480237699.jpg?k=5e472aa1ee6f2ef38cf2817feb7a4722d20c430cec3f8642e87a11210d0e7d24&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/657587245.jpg?k=23679b753af1476d42ee32eee26c8883a872115a469c88e06df600b9c8258980&o="
+      ],
+      "blockedDates": []
+    },
+    {
+      "id": "rm048",
+      "homestayId": "hs022",
+      "itemRoomId": "r22-2",
+      "name": "Deluxe Studio Hướng Núi",
+      "description": "Rộng hơn, có sofa và góc làm việc, bao gồm ăn sáng.",
+      "capacity": 3,
+      "pricePerNight": 505000,
+      "images": [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/657587245.jpg?k=23679b753af1476d42ee32eee26c8883a872115a469c88e06df600b9c8258980&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/480244743.jpg?k=07151f7fea1b38b25e91c95c5cbd328dbe203aaa44db6909f10eb8e03edb5ed2&o="
+      ],
+      "blockedDates": []
     }
   ]
 }

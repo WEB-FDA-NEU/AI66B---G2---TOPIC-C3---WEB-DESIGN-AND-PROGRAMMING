@@ -12,7 +12,7 @@ import { getToken, getUser, saveSession } from './auth.js';
 // Dữ liệu mock được copy vào localStorage lần đầu đọc, nên khi ai đó sửa mock/*.json mà máy các bạn
 // vẫn giữ bản cũ thì sẽ thấy dữ liệu "không đổi". TĂNG số này mỗi khi sửa mock/*.json:
 // lần mở trang kế tiếp, mọi máy tự xóa cache mock cũ (không đụng tới phiên đăng nhập).
-const MOCK_DATA_VERSION = '2026-11-13-a';
+const MOCK_DATA_VERSION = '2026-11-13-b';
 if (USE_MOCK && localStorage.getItem('mock_version') !== MOCK_DATA_VERSION) {
   ['customerBookings', 'homestays', 'rooms', 'bookings'].forEach(k => localStorage.removeItem(k));
   Object.keys(localStorage).filter(k => k.startsWith('reviews_')).forEach(k => localStorage.removeItem(k));
@@ -488,6 +488,42 @@ export async function getAdminOverview() {
   }
   return request(`${API_BASE}/admin/overview`);
 }
+
+// ---------- Admin: danh sách host ----------
+// Trả về: [{ id, display_name, email, phone, avatar, createdAt, homestays: [{id,title,location,rating,price}],
+//            bookingCount, revenue }]   (revenue = tổng tiền các đơn đã hoàn thành)
+// Mock: mock/admin-hosts.json + admin-overview.json + items.json, cộng thêm host đăng ký mới trên máy này
+// (role "host" trong localStorage). Backend thật: GET /admin/hosts (cùng dạng).
+export async function getAdminHosts() {
+  if (USE_MOCK) {
+    const [file, ov, items] = await Promise.all([
+      request(`${MOCK_BASE}/admin-hosts.json`),
+      request(`${MOCK_BASE}/admin-overview.json`),
+      request(`${MOCK_BASE}/items.json`),
+    ]);
+    let registered = [];
+    try {
+      const known = new Set(file.hosts.map(h => String(h.id)));
+      registered = (await loadMockUsers())
+        .filter(u => u.role === 'host' && !known.has(String(u.id)))
+        .map(u => ({ id: u.id, display_name: u.display_name, email: u.email, phone: u.phone,
+                     avatar: u.avatar, createdAt: u.createdAt, itemIds: [] }));
+    } catch { /* dữ liệu tài khoản mock hỏng: chỉ hiện host có sẵn trong file */ }
+    const itemById = Object.fromEntries(items.items.map(i => [i.id, i]));
+    return [...file.hosts, ...registered].map(({ itemIds, ...h }) => {
+      const mine = ov.bookings.filter(b => itemIds.includes(b.itemId));
+      return {
+        ...h,
+        homestays: itemIds.map(id => itemById[id]).filter(Boolean)
+          .map(i => ({ id: i.id, title: i.title, location: i.location, rating: i.rating, price: i.price })),
+        bookingCount: mine.length,
+        revenue: mine.filter(b => b.status === 'completed').reduce((sum, b) => sum + b.totalPrice, 0),
+      };
+    });
+  }
+  return request(`${API_BASE}/admin/hosts`);
+}
+
 // ══════════ NGƯỜI 5 — TODO: thêm vùng của em ở đây ══════════
 
 

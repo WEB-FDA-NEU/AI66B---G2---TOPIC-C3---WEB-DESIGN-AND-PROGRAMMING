@@ -11,9 +11,8 @@ import { periodTabs, getWindow, inWindow, bucketIndex, dayNum, fmtFullDate, fmtI
          countUp, drawChart, axisOptions, theme, centerTextPlugin } from '../charts.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
+import '../guard.js';
 
-// TODO Mốc 4: bật lại khi có role host thật
-// if (!isLoggedIn()) requireLogin();
 
 const STATUS_LABEL = {
   pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', checked_in: 'Đã nhận phòng',
