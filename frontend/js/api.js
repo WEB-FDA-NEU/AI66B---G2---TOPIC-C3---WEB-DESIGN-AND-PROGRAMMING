@@ -12,7 +12,7 @@ import { getToken, getUser, saveSession, clearSession, updateSessionUser } from 
 // Dữ liệu mock được copy vào localStorage lần đầu đọc, nên khi ai đó sửa mock/*.json mà máy các bạn
 // vẫn giữ bản cũ thì sẽ thấy dữ liệu "không đổi". TĂNG số này mỗi khi sửa mock/*.json:
 // lần mở trang kế tiếp, mọi máy tự xóa cache mock cũ (không đụng tới phiên đăng nhập).
-const MOCK_DATA_VERSION = '2026-11-13-b';
+const MOCK_DATA_VERSION = '2026-11-14-img';
 if (USE_MOCK && !ACCOUNT_API_MODE && localStorage.getItem('mock_version') !== MOCK_DATA_VERSION) {
   ['customerBookings', 'homestays', 'rooms', 'bookings'].forEach(k => localStorage.removeItem(k));
   Object.keys(localStorage).filter(k => k.startsWith('reviews_')).forEach(k => localStorage.removeItem(k));
