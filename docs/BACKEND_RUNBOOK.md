@@ -1,8 +1,8 @@
 # Chạy và kiểm thử backend LuxStay
 
-## Head và simulation Phase 6–7
+## Head và payment simulation
 
-Head hiện tại `0005_pay_events`: backup trước, `alembic upgrade head`, kiểm `/api/ready`; startup không tự migrate. 0004 thêm application decision history, 0005 thêm payment audit events/backfill current state. Không reset hoặc seed đè DB cũ. Snapshot legacy không thay được lịch sử giao dịch đã mất.
+Head hiện tại `0006_host_cancellations`: backup trước, `alembic upgrade head`, kiểm `/api/ready`; startup không tự migrate. 0004 thêm application decision history, 0005 thêm payment audit events/backfill current state, 0006 thêm lịch sử Host tự hủy/quản trị hủy quyền Host. Không reset hoặc seed đè DB cũ. Snapshot legacy không thay được lịch sử giao dịch đã mất.
 
 Dev/test-only: admin active có thể POST `/api/admin/bookings/{id}/payment-simulation` với `{action:"paid"|"refunded",reason:"..."}` và JWT admin. Không gửi amount/status/PAN/CVV. Production từ chối 403 trước khi xử lý payment. Customer/host/anonymous không có quyền; không có public simulate-paid. Retry cùng action trả state cũ, không phát sinh thu/hoàn lần hai. Reference SIM-* và DTO simulated=true phải được hiển thị đúng khi integration; KPI simulated* tách riêng, không trộn vào grossCaptured/paidRevenue/refunded thật.
 
@@ -63,7 +63,7 @@ Chưa chạy backup/restore trên DB thật trong đợt này. Hướng dẫn d�
 
 - SQLite: dừng tác vụ ghi nếu cần snapshot nghiệp vụ ổn định; dùng SQLite Backup API hoặc lệnh `.backup`, không copy riêng file `.db` trong khi bỏ qua WAL đang hoạt động. Mở nguồn bằng URI `mode=ro`, tạo file đích mới không ghi đè; kiểm tra `PRAGMA integrity_check`, revision Alembic và số lượng/quan hệ trên bản sao. Thử restore vào một đường dẫn development/test mới và chạy readiness/API smoke với DATABASE_URL của bản sao; chỉ thay đường dẫn dịch vụ thật theo kế hoạch vận hành sau khi đã kiểm tra.
 - PostgreSQL: dùng `pg_dump --format=custom --file=<backup.dump> <database>` với credential từ service/secret manager, không ghi password vào command/source. Tạo database restore test rỗng, ví dụ `luxstay_restore_test`, rồi `pg_restore --exit-on-error --no-owner --dbname=luxstay_restore_test <backup.dump>`. Không dùng `--clean` trên database thật. Xác minh extension/roles, FK/index, revision, counts, readiness, booking/payment history và một giao dịch rollback trên bản restore trước cutover. Lưu checksum, mã hóa/kiểm soát truy cập backup và retention ngoài repository.
-- Upgrade: ghi nhận head trước nâng, backup và test restore trước; chạy Alembic một lần trong maintenance/deployment job, kiểm `alembic current`/readiness head `0005_pay_events`. Nếu lỗi, ngừng ghi và điều tra trên bản sao; không tự downgrade destructive hoặc seed đè dữ liệu.
+- Upgrade: ghi nhận head trước nâng, backup và test restore trước; chạy Alembic một lần trong maintenance/deployment job, kiểm `alembic current`/readiness head `0006_host_cancellations`. Nếu lỗi, ngừng ghi và điều tra trên bản sao; không tự downgrade destructive hoặc seed đè dữ liệu.
 
 Rehearsal môi trường đích, RPO/RTO, retention, offsite backup và giám sát vẫn là gate production chưa thực hiện.
 

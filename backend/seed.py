@@ -148,7 +148,7 @@ def main():
     engine = make_engine(settings.database_url)
     try:
         with make_session_factory(engine)() as db:
-            if db.execute(text("SELECT version_num FROM alembic_version")).scalar_one() != "0005_pay_events":
+            if db.execute(text("SELECT version_num FROM alembic_version")).scalar_one() != "0006_host_cancellations":
                 raise RuntimeError("Run alembic upgrade head before seeding")
             print(seed_database(db, password, settings.environment))
     finally:

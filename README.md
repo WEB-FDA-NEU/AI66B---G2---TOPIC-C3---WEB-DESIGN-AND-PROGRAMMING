@@ -14,9 +14,9 @@
 | Phân quyền theo role (user / host / admin) trên giao diện | Hoàn thành (`js/guard.js`) |
 | Dashboard có biểu đồ cho Host và Admin | Hoàn thành (Chart.js) |
 | Kiểm thử giao diện tự động | Có (`tests/`) |
-| Backend FastAPI | Có schema/migrations, JWT thu hồi được, profile, duyệt host, catalog, booking giao dịch, API host/admin và automated tests; xem [runbook](docs/BACKEND_RUNBOOK.md) |
+| Backend FastAPI | Có migrations, JWT thu hồi được, profile, duyệt host, catalog, booking giao dịch, API host/admin; có thể hủy quyền Host và ghi nhận lý do/thông báo cho Admin. Migration head hiện tại: `0006_host_cancellations`; xem [runbook](docs/BACKEND_RUNBOOK.md) |
 | Nối frontend với backend thật | Đã nối customer/host/admin qua `?mode=api`; mock mặc định vẫn được giữ, `USE_MOCK=true` |
-| QA fullstack mới nhất | Backend SQLite/PostgreSQL 505 pass, 4 skip; browser API 103 assertion; xem [báo cáo QA](docs/PHASE_9_REVIEW.md) |
+| QA | Báo cáo Phase 9/10 là snapshot trước tính năng hủy quyền Host mới nhất; dùng các lệnh kiểm thử bên dưới để xác minh source hiện tại |
 | Triển khai production | Chưa sẵn sàng: gateway/email, TLS/deployment, backup/restore và kiểm thử vận hành còn thiếu |
 
 ---
@@ -67,6 +67,7 @@ Tất cả file giao diện nằm trong `frontend/`.
 - **Biểu đồ:** `js/charts.js` dùng chung cho hai dashboard (bộ lọc kỳ, hiệu ứng đếm số, Chart.js).
 - **Hiệu ứng chuyển động:** `js/motion.js` và `css/motion.css`, tôn trọng cài đặt `prefers-reduced-motion`.
 - **Tầng dữ liệu:** `js/api.js` là nơi duy nhất được gọi mạng. `js/config.js` chứa công tắc `USE_MOCK`.
+- **Hủy quyền Host:** Host tự hủy trong hồ sơ; Admin có thể hủy Host. Không cho hủy khi còn booking đang chờ, đã xác nhận hoặc đang lưu trú; hủy thành công sẽ vô hiệu hóa homestay và thu hồi phiên đăng nhập Host.
 - **UI dùng chung:** thẻ homestay, huy hiệu trạng thái, toast, hộp thoại xác nhận, skeleton loading (`render.js`, `ui.js`, `css/components.css`).
 
 ---
@@ -168,7 +169,7 @@ backend/.venv/Scripts/python -m ruff format --check backend tests/api-accounts-b
 backend/.venv/Scripts/python -m pip check
 ```
 
-Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (`POSTGRES_BIN` nếu đường dẫn khác); nếu không có, báo chưa kiểm chứng PostgreSQL, không coi skip là pass. Migration head `0005_pay_events`. Chi tiết kết quả, giới hạn bearer token, payment simulation và production blockers: [bàn giao](docs/PHASE_10_DELIVERY.md), [báo cáo tổng](docs/FULLSTACK_FINAL_REPORT.md).
+Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (`POSTGRES_BIN` nếu đường dẫn khác); nếu không có, báo chưa kiểm chứng PostgreSQL, không coi skip là pass. Migration head hiện tại `0006_host_cancellations`. Báo cáo Phase 9/10 và báo cáo tổng là snapshot tại thời điểm lập; [runbook](docs/BACKEND_RUNBOOK.md) mô tả quy trình hiện tại.
 
 ---
 
@@ -193,7 +194,7 @@ Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (
 ├── backend/    FastAPI + SQLAlchemy (main, models, schemas, security, deps, database, seed, routers/)
 ├── tests/      ui-browser.py · mock-accounts-browser.py · home-checks.js · motion-checks.js
 ├── tools/      add_mock_homestays.py · gen_dashboard_mock.py · add_mock_hosts.py
-└── docs/       PHASE-A-DATA-NOTES.md · ảnh chụp giao diện
+└── docs/       API_CONTRACT.md · BACKEND_RUNBOOK.md · báo cáo QA · ảnh chụp giao diện
 ```
 
 ---
@@ -215,7 +216,7 @@ Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (
 
 **Giao diện:** tất cả màn hình đã hoàn thành trên dữ liệu mock.
 
-**Backend đã có:** schema Alembic giữ dữ liệu cũ, Argon2id/JWT revocation, ownership, catalog/phòng thật, đặt nhiều phòng trong transaction, chống trùng bằng ledger unique, host/admin, review đủ điều kiện, upload và tests SQLite/PostgreSQL. Kết quả cụ thể và giới hạn nằm trong `docs/BACKEND_TEST_REPORT.md`.
+**Backend đã có:** schema Alembic giữ dữ liệu cũ, Argon2id/JWT revocation, ownership, catalog/phòng thật, đặt nhiều phòng trong transaction, chống trùng bằng ledger unique, host/admin, review đủ điều kiện, upload, tests SQLite/PostgreSQL và hủy quyền Host có kiểm tra booking đang hoạt động. Migration hiện tại là `0006_host_cancellations`.
 
 **Việc còn lại để chuyển frontend sang chạy thật:**
 
