@@ -61,7 +61,7 @@ def test_host_self_cancellation_keeps_reason_for_admin(client, headers, setup):
 
 def test_host_cancellation_is_blocked_by_active_booking(client, headers, booking_payload, setup):
     booking = client.post("/api/me/bookings", json=booking_payload, headers=headers()).json()
-    assert booking["status"] == "pending"
+    assert booking["status"] == "confirmed"
 
     self_cancel = client.post(
         "/api/me/host/cancel", json={"reason": "Tôi muốn hủy quyền Host."}, headers=headers(3)

@@ -73,13 +73,13 @@ export function initHero(root, items) {
     pause.title = motionPaused() ? 'Đang tắt theo cài đặt giảm chuyển động. Bạn có thể chủ động bật tự chuyển; hiệu ứng chuyển động vẫn tắt.'
       : root.dataset.autoplayState === 'paused-focus' ? 'Tự chuyển đang tạm dừng khi bạn thao tác bằng bàn phím trong banner.'
       : root.dataset.autoplayState === 'paused-hover' ? 'Di chuyển chuột ra ngoài banner để tiếp tục tự chuyển.'
-      : paused ? 'Bật tự chuyển sau mỗi 2 giây.' : 'Tạm dừng tự chuyển homestay.';
+      : paused ? 'Bật tự chuyển sau mỗi 7 giây.' : 'Tạm dừng tự chuyển homestay.';
     if (canPlay()) timer = setTimeout(() => {
       timer = null;
       // Recheck at execution too: focus/visibility events can be throttled in background tabs.
       if (canPlay()) move(index + 1);
       else schedule();
-    }, 2000);
+    }, 7000);
   }
   function move(next, manual = false) {
     if (!nodes.length) return;

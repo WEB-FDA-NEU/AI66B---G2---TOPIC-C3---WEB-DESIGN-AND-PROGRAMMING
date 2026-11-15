@@ -2,7 +2,7 @@
 
 ## Head và payment simulation
 
-Head hiện tại `0006_host_cancellations`: backup trước, `alembic upgrade head`, kiểm `/api/ready`; startup không tự migrate. 0004 thêm application decision history, 0005 thêm payment audit events/backfill current state, 0006 thêm lịch sử Host tự hủy/quản trị hủy quyền Host. Không reset hoặc seed đè DB cũ. Snapshot legacy không thay được lịch sử giao dịch đã mất.
+Head hiện tại `0007_booking_holds`: backup trước, `alembic upgrade head`, kiểm `/api/ready`; startup không tự migrate. 0004 thêm application decision history, 0005 thêm payment audit events/backfill current state, 0006 thêm lịch sử Host tự hủy/quản trị hủy quyền Host, 0007 thêm giữ tồn phòng 10 phút. Không reset hoặc seed đè DB cũ. Snapshot legacy không thay được lịch sử giao dịch đã mất.
 
 Dev/test-only: admin active có thể POST `/api/admin/bookings/{id}/payment-simulation` với `{action:"paid"|"refunded",reason:"..."}` và JWT admin. Không gửi amount/status/PAN/CVV. Production từ chối 403 trước khi xử lý payment. Customer/host/anonymous không có quyền; không có public simulate-paid. Retry cùng action trả state cũ, không phát sinh thu/hoàn lần hai. Reference SIM-* và DTO simulated=true phải được hiển thị đúng khi integration; KPI simulated* tách riêng, không trộn vào grossCaptured/paidRevenue/refunded thật.
 
@@ -63,7 +63,7 @@ Chưa chạy backup/restore trên DB thật trong đợt này. Hướng dẫn d�
 
 - SQLite: dừng tác vụ ghi nếu cần snapshot nghiệp vụ ổn định; dùng SQLite Backup API hoặc lệnh `.backup`, không copy riêng file `.db` trong khi bỏ qua WAL đang hoạt động. Mở nguồn bằng URI `mode=ro`, tạo file đích mới không ghi đè; kiểm tra `PRAGMA integrity_check`, revision Alembic và số lượng/quan hệ trên bản sao. Thử restore vào một đường dẫn development/test mới và chạy readiness/API smoke với DATABASE_URL của bản sao; chỉ thay đường dẫn dịch vụ thật theo kế hoạch vận hành sau khi đã kiểm tra.
 - PostgreSQL: dùng `pg_dump --format=custom --file=<backup.dump> <database>` với credential từ service/secret manager, không ghi password vào command/source. Tạo database restore test rỗng, ví dụ `luxstay_restore_test`, rồi `pg_restore --exit-on-error --no-owner --dbname=luxstay_restore_test <backup.dump>`. Không dùng `--clean` trên database thật. Xác minh extension/roles, FK/index, revision, counts, readiness, booking/payment history và một giao dịch rollback trên bản restore trước cutover. Lưu checksum, mã hóa/kiểm soát truy cập backup và retention ngoài repository.
-- Upgrade: ghi nhận head trước nâng, backup và test restore trước; chạy Alembic một lần trong maintenance/deployment job, kiểm `alembic current`/readiness head `0006_host_cancellations`. Nếu lỗi, ngừng ghi và điều tra trên bản sao; không tự downgrade destructive hoặc seed đè dữ liệu.
+- Upgrade: ghi nhận head trước nâng, backup và test restore trước; chạy Alembic một lần trong maintenance/deployment job, kiểm `alembic current`/readiness head `0007_booking_holds`. Nếu lỗi, ngừng ghi và điều tra trên bản sao; không tự downgrade destructive hoặc seed đè dữ liệu.
 
 Rehearsal môi trường đích, RPO/RTO, retention, offsite backup và giám sát vẫn là gate production chưa thực hiện.
 
@@ -118,8 +118,8 @@ Thanh toán mặc định pending/manual tại chỗ; simulation admin chỉ tes
 1. Mở `index.html?mode=api`, đăng ký customer; sửa profile/avatar, tải lại rồi logout/login để kiểm tra DB.
 2. Customer gửi host application. Dùng phiên admin riêng vào `admin.html?mode=api` duyệt; customer đăng nhập lại để nhận role host từ server.
 3. Host tạo homestay/phòng, nhập giá dương/inventory, upload ảnh. Lưu phòng rồi thêm lịch chặn theo unit hoặc tất cả; ngày kết thúc không tính đêm.
-4. Customer tìm homestay, chọn ngày/phòng, xem quote và gửi booking; confirmation phải pending/chưa thanh toán, không có ô thẻ. Tải lại history/detail.
-5. Host mở bookings để confirm hoặc reject có lý do; customer tải lại thấy cùng trạng thái. Customer hủy pending/confirmed; host tải lại thấy cancelled.
-6. Check-in chỉ vào ngày lưu trú hợp lệ; complete chỉ khi đạt ngày checkout. Không sửa clock/DB thật để ép trạng thái. Dùng test runner fixture lịch sử riêng nếu cần kiểm tra ngay. Customer completed mới review và reload rating.
+4. Customer tìm homestay, chọn một khoảng còn phòng trên lịch, chọn phòng để giữ chỗ 10 phút rồi gửi booking; đơn phải hiện confirmed ngay, payment vẫn pending/chưa thanh toán, không có ô thẻ. Tải lại history/detail.
+5. Host mở bookings; customer đã được xác nhận nên host chỉ chuyển sang nhận phòng rồi hoàn tất. Hoàn tất sớm giải phóng ngày từ ngày rời đi trở đi; customer khác có thể đặt các ngày đã mở lại.
+6. Check-in chỉ vào ngày lưu trú hợp lệ; complete chỉ sau khi nhận phòng. Không sửa clock/DB thật để ép trạng thái. Dùng test runner fixture lịch sử riêng nếu cần kiểm tra ngay. Customer completed mới review và reload rating.
 7. Admin khóa host hoặc tạm ngừng homestay; public catalog phản ánh thay đổi, JWT cũ bị revoke theo policy. Mở lại rồi login mới; không coi cache role là quyền.
-8. Thử 375/768/1024/1440, modal/toast/errors và carousel 2 giây. Bỏ cờ API để xác nhận mock vẫn độc lập. Payment simulation chỉ qua admin API trong DB dev/test chủ động, không có thanh toán ngân hàng thật.
+8. Thử 375/768/1024/1440, modal/toast/errors và carousel 7 giây. Bỏ cờ API để xác nhận mock vẫn độc lập. Payment simulation chỉ qua admin API trong DB dev/test chủ động, không có thanh toán ngân hàng thật.

@@ -4,7 +4,8 @@ import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
 //  Bố cục: ảnh → thanh thông tin → tab neo → [Tổng quan | Thông tin & giá | Tiện nghi | Đánh giá].
 //  Mọi lựa chọn (id, ngày, khách, phòng) nằm trên URL → F5 / đăng nhập xong quay lại vẫn giữ nguyên.
 // ============================================================
-import { getItem, getReviews, addReview, getAvailability, getQuote, ApiError } from '../api.js';
+import { getItem, getReviews, addReview, getAvailability, getCalendar, getQuote,
+         getBookingHold, reserveBookingHold, releaseBookingHold, ApiError } from '../api.js';
 import { toast, setFieldError, clearFieldErrors } from '../ui.js';
 import { formatVND } from '../render.js';
 import { stayFromParams, stayToParams, nightsBetween, todayISO, toISO, addDays, parseISO,
@@ -149,6 +150,11 @@ function setupBooking(item, types) {
   const $in = $('stay-checkin'), $out = $('stay-checkout'), $ad = $('stay-adults'), $ch = $('stay-children');
   const rooms = parseRooms(params.get('rooms'));
   let availability = {}, availabilityKey = '', generation = 0;
+  let calendarData = null, calendarMonth = new Date(), selectingCheckout = false, holdInterval, activeHold = null;
+  const setDateValue = (input, value) => {
+    input.dataset.iso = value || '';
+    input.value = value ? fmtDate(value) : '';
+  };
   for (const k of Object.keys(rooms)) if (!types.some(t => t.key === k)) delete rooms[k];   // bỏ phòng không có trong homestay này
 
   const fill = (sel, from, to, label) => sel.replaceChildren(...Array.from({ length: to - from + 1 }, (_, i) => {
@@ -158,10 +164,103 @@ function setupBooking(item, types) {
   fill($ch, 0, MAX_CHILDREN, 'trẻ em');
 
   const stay0 = stayFromParams(params);
-  $in.value = stay0.checkin; $out.value = stay0.checkout; $ad.value = stay0.adults; $ch.value = stay0.children;
-  $in.min = todayISO();
+  setDateValue($in, stay0.checkin); setDateValue($out, stay0.checkout);
+  $ad.value = stay0.adults; $ch.value = stay0.children;
 
-  const current = () => ({ checkin: $in.value, checkout: $out.value, adults: +$ad.value, children: +$ch.value });
+  const current = () => ({ checkin: $in.dataset.iso, checkout: $out.dataset.iso, adults: +$ad.value, children: +$ch.value });
+  const calendarRoom = key => calendarData?.rooms.find(room => room.key === key);
+  const availabilityForDate = (key, day) =>
+    calendarRoom(key)?.days.find(entry => entry.date === day)?.available || 0;
+  const rangeAvailable = (checkin, checkout, selections) => {
+    if (!calendarData || !checkin || !checkout || checkout <= checkin) return false;
+    const nights = calendarData.days.map(day => day.date).filter(day => day >= checkin && day < checkout);
+    if (!nights.length) return false;
+    if (selections.length) return selections.every(selection =>
+      nights.every(day => availabilityForDate(selection.key, day) >= selection.qty));
+    return calendarData.rooms.some(room => nights.every(day =>
+      availabilityForDate(room.key, day) > 0));
+  };
+  const selectedRooms = () => Object.entries(rooms)
+    .filter(([, qty]) => qty > 0).map(([key, qty]) => ({ key, qty }));
+
+  function renderCalendar() {
+    const grid = $('calendar-days');
+    const year = calendarMonth.getFullYear(), month = calendarMonth.getMonth();
+    $('calendar-month').textContent = calendarMonth.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
+    const first = new Date(year, month, 1);
+    const offset = first.getDay();
+    const count = new Date(year, month + 1, 0).getDate();
+    const stay = current(), selected = selectedRooms();
+    const buttons = Array.from({ length: offset }, () => {
+      const empty = document.createElement('span'); empty.className = 'stay-calendar__empty'; return empty;
+    });
+    for (let day = 1; day <= count; day++) {
+      const date = toISO(new Date(year, month, day));
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'stay-calendar__day';
+      button.textContent = day; button.setAttribute('role', 'gridcell');
+      const available = selected.length
+        ? selected.every(selection => availabilityForDate(selection.key, date) >= selection.qty)
+        : calendarData?.rooms.some(room => availabilityForDate(room.key, date) > 0);
+      if (!available) button.classList.add('is-unavailable');
+      const isStart = date === stay.checkin, isEnd = date === stay.checkout;
+      if (isStart || isEnd) button.classList.add('is-selected');
+      else if (stay.checkin && stay.checkout && date > stay.checkin && date < stay.checkout)
+        button.classList.add('is-in-range');
+      const inRange = selectingCheckout && stay.checkin && date > stay.checkin
+        ? rangeAvailable(stay.checkin, date, selected) : false;
+      const isPast = date < todayISO();
+      button.disabled = !calendarData || isPast
+        || (selectingCheckout ? !inRange : !available);
+      button.setAttribute('aria-label', `${day} ${calendarMonth.toLocaleDateString('vi-VN', { month: 'long' })}${available ? ', còn phòng' : ', hết phòng'}`);
+      button.addEventListener('click', () => {
+        if (!selectingCheckout || date <= current().checkin) {
+          setDateValue($in, date);
+          setDateValue($out, '');
+          selectingCheckout = true;
+        } else {
+          setDateValue($out, date);
+          selectingCheckout = false;
+        }
+        renderCalendar();
+        refresh();
+      });
+      buttons.push(button);
+    }
+    grid.replaceChildren(...buttons);
+    const monthStart = new Date(year, month, 1);
+    const currentMonth = new Date(); currentMonth.setDate(1); currentMonth.setHours(0, 0, 0, 0);
+    $('calendar-prev').disabled = monthStart <= currentMonth;
+    const maxDate = addDays(parseISO(todayISO()), 365);
+    $('calendar-next').disabled = monthStart > new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+  }
+
+  function showHold(hold) {
+    activeHold = hold || null;
+    clearInterval(holdInterval);
+    const timer = $('booking-hold-timer');
+    if (!hold?.expiresAt) { timer.hidden = true; return; }
+    const expires = Date.parse(hold.expiresAt);
+    const tick = () => {
+      const seconds = Math.max(0, Math.ceil((expires - Date.now()) / 1000));
+      timer.hidden = false;
+      timer.textContent = seconds
+        ? `Phòng đang được giữ cho bạn trong ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')} phút.`
+        : 'Thời gian giữ chỗ đã hết. Vui lòng chọn lại ngày để kiểm tra phòng.';
+      if (!seconds) clearInterval(holdInterval);
+    };
+    tick();
+    holdInterval = setInterval(tick, 1000);
+  }
+
+  $('calendar-prev').addEventListener('click', () => {
+    calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1);
+    renderCalendar();
+  });
+  $('calendar-next').addEventListener('click', () => {
+    calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
+    renderCalendar();
+  });
 
   // ----- danh sách phòng (dựng 1 lần, refresh chỉ cập nhật số) -----
   const cards = types.map(t => {
@@ -201,35 +300,54 @@ function setupBooking(item, types) {
     let quoteError = '';
     let q;
     $('book-btn').disabled = true;
-    if (ACCOUNT_API_MODE) {
-      q = {nights:nightsBetween(s.checkin,s.checkout),lines:[],roomCount:Object.values(rooms).reduce((a,n)=>a+n,0),capacity:0,roomSubtotal:null,serviceFee:null,total:null};
-      try {
-        if (sp) throw new Error(sp);
-        const key = JSON.stringify(s);
-        if (key !== availabilityKey) {
-          const data = await getAvailability(id,s);
-          if (version !== generation) return;
-          availability = Object.fromEntries(data.rooms.map(r=>[r.key,r])); availabilityKey = key;
-          for (const k of Object.keys(rooms)) rooms[k]=Math.min(rooms[k],availability[k]?.available || 0);
-        }
-        const selections=Object.entries(rooms).filter(([,n])=>n>0).map(([key,qty])=>({key,qty}));
-        q.roomCount=selections.reduce((sum,r)=>sum+r.qty,0);
-        if (selections.length) q = await getQuote({homestayId:Number(id),checkIn:s.checkin,checkOut:s.checkout,adults:s.adults,children:s.children,rooms:selections});
-      } catch (error) {
-        quoteError = error.detail || error.message;
-        if (error.status === 409) {
-          availabilityKey = '';
-          try {
-            const fresh = await getAvailability(id, s);
-            if (version !== generation) return;
-            availability = Object.fromEntries(fresh.rooms.map(room => [room.key, room]));
-            for (const key of Object.keys(rooms)) rooms[key] = Math.min(rooms[key], availability[key]?.available || 0);
-          } catch { /* Keep the server conflict visible; no mock fallback. */ }
-        }
+    q = {nights:nightsBetween(s.checkin,s.checkout),lines:[],roomCount:Object.values(rooms).reduce((a,n)=>a+n,0),capacity:0,roomSubtotal:null,serviceFee:null,total:null};
+    try {
+      if (sp) throw new Error(sp);
+      const key = JSON.stringify(s);
+      if (key !== availabilityKey) {
+        const data = await getAvailability(id,s);
+        if (version !== generation) return;
+        availability = Object.fromEntries(data.rooms.map(r=>[r.key,r])); availabilityKey = key;
+        for (const k of Object.keys(rooms)) rooms[k]=Math.min(rooms[k],availability[k]?.available || 0);
       }
-      if (version !== generation) return;
-    } else q = quote({ item, rooms, checkin: s.checkin, checkout: s.checkout });
-    $out.min = $in.value ? toISO(addDays(parseISO($in.value), 1)) : todayISO();
+      const selections=selectedRooms();
+      q.roomCount=selections.reduce((sum,r)=>sum+r.qty,0);
+      if (selections.length && isLoggedIn() && getUser()?.role === 'user') {
+        activeHold = await reserveBookingHold({
+          homestayId:Number(id),checkIn:s.checkin,checkOut:s.checkout,
+          adults:s.adults,children:s.children,rooms:selections,
+        });
+        showHold(activeHold);
+      } else if (!selections.length && activeHold
+        && String(activeHold.homestayId) === String(id)) {
+        await releaseBookingHold();
+        showHold(null);
+      }
+      if (selections.length) {
+        q = ACCOUNT_API_MODE
+          ? await getQuote({homestayId:Number(id),checkIn:s.checkin,checkOut:s.checkout,adults:s.adults,children:s.children,rooms:selections})
+          : quote({ item, rooms, checkin: s.checkin, checkout: s.checkout });
+      }
+    } catch (error) {
+      quoteError = error.detail || error.message;
+      if (error.status === 409) {
+        availabilityKey = '';
+        try {
+          const [fresh, freshCalendar] = await Promise.all([
+            getAvailability(id, s),
+            getCalendar(id, todayISO(), 366),
+          ]);
+          if (version !== generation) return;
+          availability = Object.fromEntries(fresh.rooms.map(room => [room.key, room]));
+          availabilityKey = JSON.stringify(s);
+          calendarData = freshCalendar;
+          for (const key of Object.keys(rooms)) rooms[key] = Math.min(rooms[key], availability[key]?.available || 0);
+          renderCalendar();
+        } catch { /* Keep the conflict visible; never fall back to mock inventory. */ }
+      }
+    }
+    if (version !== generation) return;
+    renderCalendar();
 
     $('stay-error').textContent = sp;
     $('stay-nights').textContent = q.nights ? `${q.nights} đêm · ${guestText(s)}` : '';
@@ -245,7 +363,13 @@ function setupBooking(item, types) {
       el.querySelector('.room-pick').hidden = n > 0;
       el.querySelector('.stepper').hidden = n === 0;
       el.querySelector('.room-qty').textContent = n;
-      const available = ACCOUNT_API_MODE ? (availability[t.key]?.available || 0) : 4;
+      const currentAvailability = !sp && availabilityKey === JSON.stringify(s)
+        ? availability[t.key] : null;
+      const available = currentAvailability?.available || 0;
+      const availabilityMessage = el.querySelector('.room-card__availability');
+      availabilityMessage.hidden = !currentAvailability || available > 0;
+      availabilityMessage.textContent = availabilityMessage.hidden
+        ? '' : 'Phòng đã được đặt hoặc đang được giữ chỗ trong khoảng ngày này.';
       el.querySelector('.room-plus').disabled = n >= available;
       el.querySelector('.room-pick').disabled = available === 0;
       el.querySelector('.room-card__total').textContent = q.nights ? `${q.nights} đêm: ${formatVND(t.price * q.nights)}` : '';
@@ -281,12 +405,54 @@ function setupBooking(item, types) {
     history.replaceState(null, '', `?${stayToParams(s, keep)}${location.hash}`);
   }
 
-  $in.addEventListener('change', () => {
-    if ($in.value && $out.value && nightsBetween($in.value, $out.value) === 0)
-      $out.value = toISO(addDays(parseISO($in.value), 1));
-    refresh();
-  });
-  [$out, $ad, $ch].forEach(el => el.addEventListener('change', refresh));
+  async function initializeCalendar() {
+    calendarData = await getCalendar(item.id, todayISO(), 366);
+    const hold = isLoggedIn() ? await getBookingHold() : null;
+    let restoredHold = false;
+    if (hold && String(hold.homestayId) === String(item.id)) {
+      Object.keys(rooms).forEach(key => { delete rooms[key]; });
+      for (const selection of hold.rooms || []) {
+        const key = selection.key || calendarData.rooms.find(room => room.id === String(selection.roomId))?.key;
+        if (key && types.some(type => type.key === key)) rooms[key] = selection.qty;
+      }
+      setDateValue($in, hold.checkIn);
+      setDateValue($out, hold.checkOut);
+      showHold(hold);
+      restoredHold = true;
+    }
+
+    if (!restoredHold) {
+      const requested = current();
+      const explicitStay = params.has('checkin') && params.has('checkout');
+      if (!rangeAvailable(requested.checkin, requested.checkout, selectedRooms())) {
+        const findStay = selections => {
+          for (let index = 0; index < calendarData.days.length - 2; index++) {
+            const checkin = calendarData.days[index].date;
+            const checkout = toISO(addDays(parseISO(checkin), 2));
+            if (rangeAvailable(checkin, checkout, selections)) return { checkin, checkout };
+          }
+          return null;
+        };
+        let next = findStay(selectedRooms());
+        if (!next && Object.values(rooms).some(qty => qty > 0)) {
+          Object.keys(rooms).forEach(key => { delete rooms[key]; });
+          next = findStay([]);
+        }
+        setDateValue($in, next?.checkin || '');
+        setDateValue($out, next?.checkout || '');
+      } else if (!explicitStay && requested.checkin < todayISO()) {
+        setDateValue($in, '');
+        setDateValue($out, '');
+      }
+    }
+    const monthDate = parseISO(current().checkin || todayISO());
+    calendarMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+    selectingCheckout = false;
+    renderCalendar();
+    await refresh();
+  }
+
+  [$ad, $ch].forEach(el => el.addEventListener('change', refresh));
   $('stay-form').addEventListener('submit', e => e.preventDefault());
 
   $('book-btn').addEventListener('click', () => {
@@ -297,7 +463,12 @@ function setupBooking(item, types) {
     location.href = accountHref(`booking-page.html?${stayToParams(current(), { id: item.id, rooms: stringifyRooms(rooms), ...(ACCOUNT_API_MODE ? {intent:crypto.randomUUID()} : {}) })}`);
   });
 
-  refresh();
+  initializeCalendar().catch(error => {
+    $('summary-msg').hidden = false;
+    $('summary-msg').textContent = error.detail || error.message || 'Không tải được lịch phòng.';
+    $('book-btn').disabled = true;
+    toast($('summary-msg').textContent, 'error');
+  });
 }
 
 // ---------------- TAB NEO: sáng đúng mục đang xem ----------------

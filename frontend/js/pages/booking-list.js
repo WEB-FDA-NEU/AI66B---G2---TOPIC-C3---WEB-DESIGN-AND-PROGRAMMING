@@ -15,7 +15,7 @@ import '../guard.js';
 if (!isLoggedIn()) requireLogin(); // Booking History chỉ dành cho user đã đăng nhập
 
 const STATUS_LABEL = {
-  pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', checked_in: 'Đã nhận phòng',
+  pending: 'Đang xử lý', confirmed: 'Đã xác nhận', checked_in: 'Đã nhận phòng',
   completed: 'Hoàn thành', cancelled: 'Đã huỷ', rejected: 'Bị từ chối',
 };
 const STATUS_BADGE = {
@@ -58,6 +58,11 @@ function renderRow(b) {
 
   node.querySelector('.row__meta').textContent =
     `${b.roomName} · ${fmtDate(b.checkIn)} → ${fmtDate(b.checkOut)} (${b.nights} đêm)`;
+  const rejectReason = node.querySelector('.booking-reject-reason');
+  if (b.status === 'rejected' && b.rejectReason) {
+    rejectReason.textContent = `Lý do từ chối: ${b.rejectReason}`;
+    rejectReason.hidden = false;
+  }
   node.querySelector('.row__price').textContent = formatVND(b.totalPrice);
 
   const badge = node.querySelector('.badge');

@@ -140,7 +140,7 @@ def create_app(settings=None, engine=None):
         try:
             with app.state.engine.connect() as connection:
                 revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-                if revision != "0006_host_cancellations":
+                if revision != "0007_booking_holds":
                     raise HTTPException(503, "Database cần được nâng cấp migration.")
                 connection.execute(text("SELECT id FROM users LIMIT 1"))
         except OperationalError:

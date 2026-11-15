@@ -95,16 +95,17 @@
             <span class="field__error"></span>
           </label>
 
-          <h4 class="booking-form-section">Thanh toán tại chỗ</h4>
-          <p class="field__hint">Không thu thập thông tin thẻ. Giá trị đặt phòng không phải xác nhận đã thu tiền.</p>
+          <h4 class="booking-form-section">Xác nhận đặt phòng</h4>
+          <p class="field__hint">Đơn được xác nhận ngay sau khi lưu. Thanh toán tại homestay; không nhập thông tin thẻ.</p>
 
           <div class="msg msg--error booking-form-message" id="formMsg" hidden></div>
 
           <div>
             <button type="submit" class="btn btn--primary btn--block booking-submit-button" id="btnSubmit" disabled>
-              Xác nhận &amp; Thanh toán (<span id="btnPayAmount">—</span>)
+              Đặt phòng ngay (<span id="btnPayAmount">—</span>)
             </button>
-            <p class="field__hint booking-secure-note">🔒 Thanh toán giả lập — không trừ tiền thật.</p>
+            <p class="field__hint booking-secure-note">Thanh toán tại homestay.</p>
+            <p class="field__hint" id="checkout-hold-timer" hidden></p>
           </div>
         </form>
       </section>

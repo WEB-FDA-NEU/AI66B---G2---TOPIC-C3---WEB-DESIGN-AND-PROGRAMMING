@@ -5,18 +5,61 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import schemas
-from ..booking_service import calculate_quote, change_status, create_booking
+from ..booking_service import calculate_quote, change_status, create_booking, create_booking_hold, remove_hold
 from ..database import get_db
-from ..deps import get_current_user
-from ..models import Booking, Payment, User
+from ..deps import get_current_user, get_optional_current_user
+from ..models import Booking, BookingHold, Payment, User, utcnow
 from ..serializers import booking_list_out, booking_out
 
 router = APIRouter(prefix="/api", tags=["bookings"])
 
 
 @router.post("/bookings/quote")
-def quote(payload: schemas.QuoteIn, db: Session = Depends(get_db)):
-    return calculate_quote(db, payload)[2]
+def quote(
+    payload: schemas.QuoteIn,
+    user: User | None = Depends(get_optional_current_user),
+    db: Session = Depends(get_db),
+):
+    return calculate_quote(
+        db, payload, exclude_hold_customer_id=user.id if user else None
+    )[2]
+
+
+def hold_out(hold):
+    if not hold or hold.expires_at <= utcnow():
+        return None
+    return {
+        "homestayId": hold.homestay_id,
+        "checkIn": hold.check_in.isoformat(),
+        "checkOut": hold.check_out.isoformat(),
+        "rooms": hold.selections,
+        "expiresAt": hold.expires_at.isoformat().replace("+00:00", "Z"),
+        "remainingSeconds": max(0, int((hold.expires_at - utcnow()).total_seconds())),
+    }
+
+
+@router.get("/me/booking-hold")
+def get_booking_hold(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    hold = db.scalar(select(BookingHold).where(BookingHold.customer_id == user.id))
+    return hold_out(hold)
+
+
+@router.post("/me/booking-hold")
+def reserve_booking_hold(
+    payload: schemas.QuoteIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return hold_out(create_booking_hold(db, payload, user))
+
+
+@router.delete("/me/booking-hold", status_code=204)
+def delete_booking_hold(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    hold = db.scalar(select(BookingHold).where(BookingHold.customer_id == user.id).with_for_update())
+    if hold:
+        remove_hold(db, hold)
+    db.commit()
+    return Response(status_code=204)
 
 
 @router.post("/me/bookings", status_code=201)

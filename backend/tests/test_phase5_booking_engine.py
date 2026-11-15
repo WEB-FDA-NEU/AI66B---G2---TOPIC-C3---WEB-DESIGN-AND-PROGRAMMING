@@ -177,7 +177,7 @@ def test_host_detail_filters_pagination_and_customer_isolation(client, headers, 
     ]
     assert client.post(f"/api/me/bookings/{ids[0]}/cancel", headers=headers()).status_code == 200
     for path, h in [("/api/me/bookings", headers()), ("/api/host/bookings", headers(3))]:
-        values = client.get(path, params={"status": "pending", "page": 1, "page_size": 1}, headers=h).json()
+        values = client.get(path, params={"status": "confirmed", "page": 1, "page_size": 1}, headers=h).json()
         assert len(values) == 1 and int(values[0]["id"]) == ids[1]
         assert client.get(path, params={"page": 3, "page_size": 1}, headers=h).json() == []
         assert client.get(path, params={"status": "bad"}, headers=h).status_code == 422
@@ -195,14 +195,13 @@ def test_host_detail_filters_pagination_and_customer_isolation(client, headers, 
 def test_status_repeat_and_cancel_do_not_duplicate_history(setup, client, headers, booking_payload):
     b = client.post("/api/me/bookings", json=booking_payload, headers=headers()).json()
     path = f"/api/host/bookings/{b['id']}/status"
-    assert client.patch(path, json={"status": "confirmed"}, headers=headers(3)).status_code == 200
     assert client.patch(path, json={"status": "confirmed"}, headers=headers(3)).status_code == 409
     cancel = f"/api/me/bookings/{b['id']}/cancel"
     assert client.post(cancel, headers=headers()).status_code == 200
     assert client.post(cancel, headers=headers()).status_code == 200
     assert client.patch(path, json={"status": "confirmed"}, headers=headers(3)).status_code == 409
     with setup["factory"]() as db:
-        assert db.scalar(select(func.count()).select_from(BookingStatusHistory)) == 3
+        assert db.scalar(select(func.count()).select_from(BookingStatusHistory)) == 2
         assert db.scalar(select(func.count()).select_from(RoomNight)) == 0
         assert db.scalar(select(Payment)).status == "cancelled"
 
@@ -289,8 +288,7 @@ def test_parallel_confirm_vs_cancel_serializes_history(setup, client, headers, b
         assert db.scalar(select(func.count()).select_from(RoomNight)) == 0
         entries = list(db.scalars(select(BookingStatusHistory).order_by(BookingStatusHistory.id)))
         assert [e.new_status for e in entries] in [
-            ["pending", "cancelled"],
-            ["pending", "confirmed", "cancelled"],
+            ["confirmed", "cancelled"],
         ]
         assert all(entries[i].new_status == entries[i + 1].old_status for i in range(len(entries) - 1))
 
@@ -334,7 +332,7 @@ def test_quantity_overflow_or_boolean_rejected(client, headers, booking_payload,
     assert client.get("/api/me/bookings", headers=headers()).json() == []
 
 
-def test_parallel_duplicate_host_confirm_has_one_history_entry(setup, client, headers, booking_payload):
+def test_parallel_duplicate_host_confirm_does_not_change_confirmed_booking(setup, client, headers, booking_payload):
     booking = client.post("/api/me/bookings", json=booking_payload, headers=headers()).json()
     ready = Barrier(2)
 
@@ -345,9 +343,9 @@ def test_parallel_duplicate_host_confirm_has_one_history_entry(setup, client, he
         ).status_code
 
     with ThreadPoolExecutor(max_workers=2) as pool:
-        assert sorted(pool.map(confirm, range(2))) == [200, 409]
+        assert sorted(pool.map(confirm, range(2))) == [409, 409]
     with setup["factory"]() as db:
-        assert db.scalar(select(func.count()).select_from(BookingStatusHistory)) == 2
+        assert db.scalar(select(func.count()).select_from(BookingStatusHistory)) == 1
         assert db.get(Booking, booking["id"]).status == "confirmed"
         assert db.scalar(select(func.count()).select_from(RoomNight)) == 2
 

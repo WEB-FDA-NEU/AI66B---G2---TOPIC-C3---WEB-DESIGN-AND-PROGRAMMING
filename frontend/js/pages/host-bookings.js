@@ -13,7 +13,7 @@ initHostDashboardReturn();
 const $ = id => document.getElementById(id);
 
 const STATUS_LABEL = {
-  pending: 'Chờ xác nhận',
+  pending: 'Đang xử lý',
   confirmed: 'Đã xác nhận',
   checked_in: 'Đã nhận phòng',
   completed: 'Hoàn tất',

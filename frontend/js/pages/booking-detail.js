@@ -15,7 +15,7 @@ import '../guard.js';
 if (!isLoggedIn()) requireLogin();
 
 const STATUS_LABEL = {
-  pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', checked_in: 'Đã nhận phòng',
+  pending: 'Đang xử lý', confirmed: 'Đã xác nhận', checked_in: 'Đã nhận phòng',
   completed: 'Hoàn thành', cancelled: 'Đã huỷ', rejected: 'Bị từ chối',
 };
 const STATUS_BADGE = {
@@ -38,6 +38,9 @@ function render(b) {
   const badge = $('bd-status');
   badge.className = 'badge ' + (STATUS_BADGE[b.status] ?? '');
   badge.textContent = STATUS_LABEL[b.status] ?? b.status;
+  const rejectReason = $('bd-reject-reason');
+  rejectReason.hidden = b.status !== 'rejected' || !b.rejectReason;
+  rejectReason.textContent = rejectReason.hidden ? '' : `Lý do từ chối: ${b.rejectReason}`;
 
   // Timeline: bật các bước đã đi qua; huỷ/từ chối thì tắt hết
   const cur = STEPS.indexOf(b.status);

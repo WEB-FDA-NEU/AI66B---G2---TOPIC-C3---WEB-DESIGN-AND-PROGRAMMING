@@ -1,8 +1,14 @@
 # Schema và quy tắc dữ liệu LuxStay
 
+## Booking hold và xác nhận ngay
+
+Migration `0007_booking_holds` thêm `BookingHold` (một bản ghi mỗi customer, hạn 10 phút, homestay/ngày/chọn phòng) và `BookingHoldNight` (unit+night tạm giữ). Quote/calendar loại trừ hold còn hạn; hold bị xóa khi booking được tạo, hoặc bỏ qua khi hết hạn. SQLite tuần tự hóa transaction; PostgreSQL khóa user→homestay→room trước khi phân bổ unit.
+
+Booking mới tạo ở `confirmed`, ghi lịch sử trạng thái và chiếm ledger trong cùng transaction; payment vẫn `pending/pay_at_property`. Khi host hoàn tất sớm, `RoomNight` từ ngày hoàn tất trở đi được giải phóng, các đêm trước đó giữ lại.
+
 ## Xác minh Phase 8–10
 
-Head vẫn `0005_pay_events`; không thêm bảng/column hoặc sửa revisions đã phát hành trong integration. Các DTO `admin.overview.period` và `host.dashboard.occupancySummary` tổng hợp trên models hiện hữu. Bộ test mới xác minh 105 user/101 homestay không làm KPI bị cắt ở projection 100, date bucket Việt Nam đúng trên SQLite/PostgreSQL. Full suite mới 505 pass/4 skip, chi tiết `PHASE_9_REVIEW.md`.
+Head hiện tại `0007_booking_holds`; các DTO `admin.overview.period` và `host.dashboard.occupancySummary` tổng hợp trên models hiện hữu. Bộ test nền trước đó được ghi trong `PHASE_9_REVIEW.md`; test giữ phòng/xác nhận ngay được kiểm tra riêng trong source hiện tại.
 
 Frontend chỉ lưu API session/request intent ở sessionStorage; User/Homestay/Room/RoomBlock/Booking/Review/Payment canonical vẫn ở DB. Snapshot booking không đổi khi host sửa giá; unit-night ledger vẫn là ràng buộc tránh oversell. Migration sạch/legacy/backfill/constraint được chạy trên DB test riêng; không migrate/backup/restore DB thật trong lượt này.
 
@@ -23,11 +29,15 @@ erDiagram
     USER ||--o{ HOMESTAY : owns
     HOMESTAY ||--o{ ROOM : contains
     USER ||--o{ BOOKING : books
+    USER ||--o| BOOKING_HOLD : holds
     HOMESTAY ||--o{ BOOKING : receives
+    HOMESTAY ||--o{ BOOKING_HOLD : receives
     BOOKING ||--|{ BOOKING_LINE : contains
     ROOM ||--o{ BOOKING_LINE : reserves
     ROOM ||--o{ ROOM_BLOCK : blocks
     ROOM ||--o{ ROOM_NIGHT : allocates
+    ROOM ||--o{ BOOKING_HOLD_NIGHT : temporarily_allocates
+    BOOKING_HOLD ||--o{ BOOKING_HOLD_NIGHT : holds
     BOOKING ||--o{ ROOM_NIGHT : holds
     ROOM_BLOCK ||--o{ ROOM_NIGHT : holds
     BOOKING ||--|{ BOOKING_STATUS_HISTORY : audits
@@ -44,6 +54,7 @@ erDiagram
 - Booking và Room có quan hệ N-N qua BookingLine, có số lượng và snapshot giá/capacity/name. Đây là yêu cầu thực tế của checkout hiện tại: cùng một đơn chọn nhiều loại phòng.
 - Room.inventory là số unit tương đương; RoomNight có UNIQUE(room_id,unit,night), FK booking hoặc block (XOR CHECK), unit dương. Không chiếm ngày checkout.
 - RoomBlock là khoảng [start_date,end_date), unit nullable: null giữ mọi unit trong ledger, integer giữ đúng unit. Migration `0003_block_unit` thêm cột và CHECK unit null hoặc 1–100, không đổi ledger/block cũ; mọi row cũ mang null. Tăng inventory mở rộng all-unit blocks, không mở rộng partial blocks; giảm inventory và capacity không được phá reservation đang hoạt động.
+- BookingHoldNight giữ tạm chính xác từng unit/đêm trong 10 phút; ngày checkout không được giữ. `BookingHold.expires_at` có index để dọn và bỏ qua hold hết hạn. Availability lịch ngày và quote không tính các hold của chính customer đang đăng nhập.
 - Booking có code unique, FK customer/homestay, unique(customer_id,idempotency_key), request fingerprint, snapshot giá/tên/liên hệ, history và refund_due. Client không được quyết định customer, status hay tổng tiền.
 - Review unique theo booking, rating 1–5; POST chỉ nhận completed booking của người đang đăng nhập. Tên và verified lấy server, không lấy tên tự khai.
 - Payment chỉ theo dõi nghiệp vụ: mặc định pending/pay_at_property. Không có PAN/CVV; không tự ghi paid/refunded khi chưa có xác nhận cổng thanh toán.
@@ -61,9 +72,10 @@ erDiagram
 - SQLite development dùng BEGIN IMMEDIATE để serialize transaction; đây không phải lựa chọn dành cho tải production cao.
 - PostgreSQL khóa theo thứ tự customer → homestay → room tăng dần khi đặt; host sửa tồn khóa homestay trước room. UNIQUE ở ledger bảo vệ cuối cùng, toàn booking/payment/history rollback nếu một dòng thất bại.
 - Cancel/reject giải phóng ledger; snapshot BookingLine không bị đổi khi host sửa giá.
+- Tạo/đổi hold khóa customer trước rồi homestay và room theo thứ tự ID; booking giữ inventory ở trạng thái confirmed cùng lúc với việc tiêu thụ hold. Early completion giải phóng đêm từ ngày thực tế rời đi trở đi.
 - Idempotency theo customer chống request thanh toán/booking gửi lặp; cùng key khác payload trả 409.
 - Phase 5 không đổi schema/revision head 0003_block_unit. Booking.created_at xác định replay 24h và cutoff retention key 30 ngày, unique(customer_id,idempotency_key) vẫn bảo vệ request đồng thời. Maintenance chỉ set idempotency_key=null sau cutoff, không đổi updated_at hoặc xóa Booking/line/history/payment/ledger. Không dùng cleanup để hủy pending hoặc trả tồn; đây là hai nghiệp vụ độc lập. Sau khi key đã purge, cùng key có thể được coi là checkout mới, nên client phải đối soát lịch sử thay vì retry mù quá retention.
-- Create refresh customer sau FOR UPDATE rồi kiểm lại active/role/token_version; quote/create khóa homestay rồi room theo ID. Status mutation khóa Booking và refresh identity map, payment chỉ khóa sau Booking khi cancel/reject; không thêm đường khóa ngược room→customer. Host lặp trạng thái trả 409, customer cancel retry idempotent. Pending/confirmed/checked_in giữ ledger; cancelled/rejected giải phóng; completed giữ lịch sử đêm đã qua.
+- Create refresh customer sau FOR UPDATE rồi kiểm lại active/role/token_version; quote/create khóa homestay rồi room theo ID. Status mutation khóa Booking và refresh identity map, payment chỉ khóa sau Booking khi cancel/reject; không thêm đường khóa ngược room→customer. Host lặp trạng thái trả 409, customer cancel retry idempotent. Pending legacy/confirmed/checked_in giữ ledger; cancelled/rejected giải phóng; completed giữ lịch sử đêm đã qua và giải phóng đêm tương lai nếu hoàn tất sớm.
 
 ## Seed và giới hạn thống kê
 - Seed idempotent chỉ development/test, từ 22 homestay và 48 room đang có; không nhập 550/900 booking dashboard độc lập, không nhập review chưa có completed booking, không nhập credential mock.

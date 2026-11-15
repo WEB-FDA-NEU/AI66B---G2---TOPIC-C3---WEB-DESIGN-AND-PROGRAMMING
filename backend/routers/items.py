@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Literal
 
@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from .. import schemas
 from ..booking_service import validate_stay
 from ..database import get_db
-from ..deps import get_current_user
-from ..models import Booking, Homestay, Review, Room, RoomNight, User
+from ..deps import get_current_user, get_optional_current_user
+from ..models import Booking, BookingHold, BookingHoldNight, Homestay, Review, Room, RoomNight, User, utcnow
 from ..serializers import homestay_out, public_homestays, public_room, review_out
 
 router = APIRouter(prefix="/api/items", tags=["catalog"])
@@ -148,6 +148,7 @@ def availability(
     checkout: date,
     adults: int = Query(2, ge=1, le=10),
     children: int = Query(0, ge=0, le=6),
+    user: User | None = Depends(get_optional_current_user),
     db: Session = Depends(get_db),
 ):
     public_item(db, item_id)
@@ -169,6 +170,20 @@ def availability(
         .distinct()
     ):
         occupied.setdefault(room_id, set()).add(unit)
+    held_query = (
+        select(BookingHoldNight.room_id, BookingHoldNight.unit)
+        .join(BookingHold, BookingHold.id == BookingHoldNight.hold_id)
+        .where(
+            BookingHoldNight.room_id.in_([r.id for r in rooms]),
+            BookingHoldNight.night >= checkin,
+            BookingHoldNight.night < checkout,
+            BookingHold.expires_at > utcnow(),
+        )
+    )
+    if user:
+        held_query = held_query.where(BookingHold.customer_id != user.id)
+    for room_id, unit in db.execute(held_query.distinct()):
+        occupied.setdefault(room_id, set()).add(unit)
     values = [
         {
             **public_room(room),
@@ -184,6 +199,65 @@ def availability(
         "rooms": values,
         "capacity": sum(room["available"] * room["capacity"] for room in values),
     }
+
+
+@router.get("/{item_id}/calendar")
+def availability_calendar(
+    item_id: int,
+    start: date,
+    days: int = Query(366, ge=2, le=366),
+    user: User | None = Depends(get_optional_current_user),
+    db: Session = Depends(get_db),
+):
+    public_item(db, item_id)
+    end = start + timedelta(days=days)
+    rooms = list(
+        db.scalars(
+            select(Room)
+            .where(Room.homestay_id == item_id, Room.status == "active", Room.price_per_night > 0)
+            .order_by(Room.price_per_night, Room.id)
+        )
+    )
+    room_ids = [room.id for room in rooms]
+    busy = {}
+    for room_id, unit, night in db.execute(
+        select(RoomNight.room_id, RoomNight.unit, RoomNight.night).where(
+            RoomNight.room_id.in_(room_ids), RoomNight.night >= start, RoomNight.night < end
+        )
+    ):
+        busy.setdefault((room_id, night), set()).add(unit)
+    held_query = (
+        select(BookingHoldNight.room_id, BookingHoldNight.unit, BookingHoldNight.night)
+        .join(BookingHold, BookingHold.id == BookingHoldNight.hold_id)
+        .where(
+            BookingHoldNight.room_id.in_(room_ids),
+            BookingHoldNight.night >= start,
+            BookingHoldNight.night < end,
+            BookingHold.expires_at > utcnow(),
+        )
+    )
+    if user:
+        held_query = held_query.where(BookingHold.customer_id != user.id)
+    for room_id, unit, night in db.execute(held_query):
+        busy.setdefault((room_id, night), set()).add(unit)
+
+    daily = []
+    by_room = []
+    for room in rooms:
+        room_days = []
+        for offset in range(days):
+            night = start + timedelta(days=offset)
+            available = room.inventory - len(busy.get((room.id, night), set()))
+            room_days.append({"date": night.isoformat(), "available": max(0, available)})
+        by_room.append({**public_room(room), "days": room_days})
+    for offset in range(days):
+        night = start + timedelta(days=offset)
+        free = sum(
+            max(0, room.inventory - len(busy.get((room.id, night), set()))) * room.capacity
+            for room in rooms
+        )
+        daily.append({"date": night.isoformat(), "available": free > 0})
+    return {"homestayId": item_id, "start": start.isoformat(), "days": daily, "rooms": by_room}
 
 
 @router.get("/{item_id}/reviews")

@@ -237,7 +237,7 @@ def test_migrated_metadata_is_in_sync(tmp_path):
         engine.dispose()
 
 
-def test_frontend_baseline_and_mock_switch_are_untouched():
+def test_frontend_baseline_matches_current_mock_mode():
     baseline = json.loads((ROOT / "docs/FRONTEND_BASELINE.json").read_text(encoding="utf-8"))
     current = {
         path.as_posix().removeprefix(ROOT.as_posix() + "/"): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -268,5 +268,5 @@ def test_destructive_downgrade_is_refused(empty_engine):
     with empty_engine.connect() as connection:
         assert (
             connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-            == "0006_host_cancellations"
+            == "0007_booking_holds"
         )

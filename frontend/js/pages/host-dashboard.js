@@ -18,7 +18,7 @@ import '../guard.js';
 
 
 const STATUS_LABEL = {
-  pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', checked_in: 'Đã nhận phòng',
+  pending: 'Đang xử lý', confirmed: 'Đã xác nhận', checked_in: 'Đã nhận phòng',
   completed: 'Hoàn tất', cancelled: 'Đã hủy', rejected: 'Bị từ chối',
 };
 const STATUS_BADGE = {

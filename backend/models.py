@@ -196,6 +196,36 @@ class BookingLine(Base):
     price_per_night: Mapped[Decimal] = mapped_column(Numeric(14, 0))
 
 
+class BookingHold(Base):
+    __tablename__ = "booking_holds"
+    __table_args__ = (
+        UniqueConstraint("customer_id"),
+        CheckConstraint("check_out > check_in", name="date_order"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    customer_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    homestay_id: Mapped[int] = mapped_column(ForeignKey("homestays.id"), index=True)
+    check_in: Mapped[date] = mapped_column(Date)
+    check_out: Mapped[date] = mapped_column(Date)
+    selections: Mapped[list] = mapped_column(JSON)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime(), index=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
+
+
+class BookingHoldNight(Base):
+    __tablename__ = "booking_hold_nights"
+    __table_args__ = (
+        UniqueConstraint("room_id", "unit", "night"),
+        CheckConstraint("unit >= 1", name="positive_unit"),
+        Index("ix_booking_hold_nights_lookup", "room_id", "night"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    hold_id: Mapped[int] = mapped_column(ForeignKey("booking_holds.id"), index=True)
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"))
+    unit: Mapped[int] = mapped_column()
+    night: Mapped[date] = mapped_column(Date)
+
+
 class RoomBlock(Base):
     __tablename__ = "room_blocks"
     __table_args__ = (

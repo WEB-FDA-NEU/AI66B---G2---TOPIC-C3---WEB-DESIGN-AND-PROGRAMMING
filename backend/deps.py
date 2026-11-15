@@ -9,12 +9,10 @@ from .security import decode_token, session_id
 bearer = HTTPBearer(auto_error=False)
 
 
-def get_current_user(
-    request: Request,
-    cred: HTTPAuthorizationCredentials | None = Depends(bearer),
-    db: Session = Depends(get_db),
-):
+def resolve_current_user(request, cred, db, optional=False):
     if not cred or cred.scheme.lower() != "bearer":
+        if optional:
+            return None
         raise HTTPException(401, "Bạn cần đăng nhập.", headers={"WWW-Authenticate": "Bearer"})
     claims = decode_token(cred.credentials, request.app.state.settings)
     if claims:
@@ -34,6 +32,22 @@ def get_current_user(
     raise HTTPException(
         401, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn.", headers={"WWW-Authenticate": "Bearer"}
     )
+
+
+def get_current_user(
+    request: Request,
+    cred: HTTPAuthorizationCredentials | None = Depends(bearer),
+    db: Session = Depends(get_db),
+):
+    return resolve_current_user(request, cred, db)
+
+
+def get_optional_current_user(
+    request: Request,
+    cred: HTTPAuthorizationCredentials | None = Depends(bearer),
+    db: Session = Depends(get_db),
+):
+    return resolve_current_user(request, cred, db, optional=True)
 
 
 def get_host(user: User = Depends(get_current_user)):

@@ -3,7 +3,7 @@
 //  Đọc phòng/ngày/khách từ URL (do trang detail.html tạo, đã gộp bước chọn phòng), tính giá bằng pricing.quote(),
 //  rồi tạo booking, lưu vào sessionStorage('lastBooking') và chuyển sang booking-confirmed.html
 // ============================================================
-import { getItem, createBooking, ApiError } from '../api.js';
+import { getItem, createBooking, getBookingHold, ApiError } from '../api.js';
 import { ACCOUNT_API_MODE } from '../config.js';
 import { startApiCheckout } from './api-checkout.js';
 import { setFieldError, clearFieldErrors, toast } from '../ui.js';
@@ -30,6 +30,26 @@ async function init() {
 
   const stay  = stayFromParams(params);
   const rooms = parseRooms(params.get('rooms'));
+  const holdTimer = $('checkout-hold-timer');
+  const hold = await getBookingHold();
+  let holdInterval;
+  if (hold && String(hold.homestayId) === String(item.id)
+    && hold.checkIn === stay.checkin && hold.checkOut === stay.checkout) {
+    const expires = Date.parse(hold.expiresAt);
+    const tick = () => {
+      const seconds = Math.max(0, Math.ceil((expires - Date.now()) / 1000));
+      holdTimer.hidden = false;
+      holdTimer.textContent = seconds
+        ? `Thời gian giữ chỗ còn ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}.`
+        : 'Đã hết thời gian giữ chỗ. Quay lại lịch để chọn phòng lại.';
+      if (!seconds) clearInterval(holdInterval);
+    };
+    tick();
+    holdInterval = setInterval(tick, 1000);
+  } else {
+    holdTimer.hidden = false;
+    holdTimer.textContent = 'Chưa có giữ chỗ còn hiệu lực. Vui lòng quay lại lịch và chọn phòng lại.';
+  }
   const q = quote({ item, rooms, checkin: stay.checkin, checkout: stay.checkout });
   const back = `detail.html?${params}#pricing`;
 
@@ -123,7 +143,7 @@ async function init() {
     btn.textContent = 'Đang xử lý giao dịch...';
 
     try {
-      await new Promise(r => setTimeout(r, 1200));   // giả lập cổng thanh toán
+      await new Promise(r => setTimeout(r, 250));   // Hiển thị trạng thái đang lưu trước khi xác nhận
       const booking = await createBooking({
         homestayId: item.id,
         homestayName: item.title,
@@ -140,7 +160,7 @@ async function init() {
         hostPhone: item.hostPhone ?? '0909123456',
         hostAddress: item.location ?? '',
       });
-      toast('Thanh toán thành công!');
+      toast('Đặt phòng đã được xác nhận.');
       sessionStorage.setItem('lastBooking', JSON.stringify(booking));   // booking-confirmed.js đọc từ đây
       location.href = 'booking-confirmed.html';
     } catch (err) {

@@ -19,12 +19,6 @@ def book(client, headers, payload):
 def test_host_cash_is_not_booking_value_and_lines_not_duplicated(setup, client, headers, booking_payload):
     booking_payload["rooms"] = [{"roomId": 1, "qty": 1}, {"roomId": 2, "qty": 1}]
     b = book(client, headers, booking_payload)
-    assert (
-        client.patch(
-            f"/api/host/bookings/{b['id']}/status", json={"status": "confirmed"}, headers=headers(3)
-        ).status_code
-        == 200
-    )
     dashboard = client.get("/api/host/dashboard", headers=headers(3)).json()
     assert dashboard["periodBookingCount"] == 1 and dashboard["bookingValue"] == 525000
     assert dashboard["payments"]["paidRevenue"] == 0
@@ -51,7 +45,7 @@ def test_admin_overview_kpis_and_pagination(client, headers, booking_payload):
     assert kpi["users"] == 5 and kpi["roles"] == {"user": 2, "host": 2, "admin": 1}
     assert kpi["applications"]["pending"] == 1 and kpi["bookingCount"] == 1
     assert kpi["payments"]["paidRevenue"] == 0 and kpi["allBookingValue"] == 210000
-    assert kpi["bookingValue"] == 0
+    assert kpi["bookingValue"] == 210000
     values = client.get(
         "/api/admin/users", params={"role": "host", "page_size": 1, "page": 2}, headers=headers(5)
     ).json()
@@ -63,6 +57,22 @@ def test_admin_overview_kpis_and_pagination(client, headers, booking_payload):
     )
     assert client.get("/api/me", headers=headers()).status_code == 401
     assert len(client.get("/api/admin/users", params={"is_active": False}, headers=headers(5)).json()) == 1
+
+
+def test_cancelled_booking_is_removed_from_host_and_admin_booking_value(client, headers, booking_payload):
+    booking = book(client, headers, booking_payload)
+    host_before = client.get("/api/host/dashboard", headers=headers(3)).json()
+    admin_before = client.get("/api/admin/overview", headers=headers(5)).json()["kpis"]
+    assert host_before["bookingValue"] == booking["totalPrice"]
+    assert admin_before["bookingValue"] == booking["totalPrice"]
+
+    cancelled = client.post(f"/api/me/bookings/{booking['id']}/cancel", headers=headers())
+    assert cancelled.status_code == 200 and cancelled.json()["status"] == "cancelled"
+
+    host_after = client.get("/api/host/dashboard", headers=headers(3)).json()
+    admin_after = client.get("/api/admin/overview", headers=headers(5)).json()["kpis"]
+    assert host_after["bookingValue"] == 0
+    assert admin_after["bookingValue"] == 0
 
 
 @pytest.mark.parametrize(

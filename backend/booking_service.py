@@ -12,6 +12,8 @@ from sqlalchemy import delete, select
 
 from .models import (
     Booking,
+    BookingHold,
+    BookingHoldNight,
     BookingLine,
     BookingStatusHistory,
     Homestay,
@@ -25,6 +27,7 @@ from .models import (
 
 ACTIVE = ("pending", "confirmed", "checked_in")
 IDEMPOTENCY_WINDOW = timedelta(hours=24)
+BOOKING_HOLD_DURATION = timedelta(minutes=10)
 
 
 def business_today():
@@ -40,7 +43,7 @@ def nights(start, end):
     return [start + timedelta(days=index) for index in range((end - start).days)]
 
 
-def free_units(db, room, checkin, checkout):
+def free_units(db, room, checkin, checkout, exclude_hold_id=None, exclude_hold_customer_id=None):
     used = set(
         db.scalars(
             select(RoomNight.unit).where(
@@ -48,10 +51,25 @@ def free_units(db, room, checkin, checkout):
             )
         )
     )
+    held_query = (
+        select(BookingHoldNight.unit)
+        .join(BookingHold, BookingHold.id == BookingHoldNight.hold_id)
+        .where(
+            BookingHoldNight.room_id == room.id,
+            BookingHoldNight.night >= checkin,
+            BookingHoldNight.night < checkout,
+            BookingHold.expires_at > utcnow(),
+        )
+    )
+    if exclude_hold_id is not None:
+        held_query = held_query.where(BookingHold.id != exclude_hold_id)
+    if exclude_hold_customer_id is not None:
+        held_query = held_query.where(BookingHold.customer_id != exclude_hold_customer_id)
+    used.update(db.scalars(held_query))
     return [unit for unit in range(1, room.inventory + 1) if unit not in used]
 
 
-def calculate_quote(db, payload, lock=False):
+def calculate_quote(db, payload, lock=False, exclude_hold_id=None, exclude_hold_customer_id=None):
     validate_stay(payload.check_in, payload.check_out)
     stay_query = (
         select(Homestay)
@@ -91,9 +109,13 @@ def calculate_quote(db, payload, lock=False):
         if room.id in seen:
             raise HTTPException(422, "Không được gửi lặp một loại phòng.")
         seen.add(room.id)
-        units = free_units(db, room, payload.check_in, payload.check_out)
+        units = free_units(
+            db, room, payload.check_in, payload.check_out, exclude_hold_id, exclude_hold_customer_id
+        )
         if len(units) < selection.qty:
-            raise HTTPException(409, "Phòng không còn đủ cho toàn bộ thời gian lưu trú.")
+            raise HTTPException(
+                409, "Phòng không khả dụng (Lý do: Phòng đang được thuê hoặc giữ chỗ trong khoảng thời gian này)."
+            )
         selected.append((room, selection.qty, units[: selection.qty]))
     count_nights = (payload.check_out - payload.check_in).days
     capacity = sum(room.capacity * qty for room, qty, _ in selected)
@@ -126,6 +148,52 @@ def calculate_quote(db, payload, lock=False):
     return homestay, selected, quote
 
 
+def remove_hold(db, hold):
+    db.execute(delete(BookingHoldNight).where(BookingHoldNight.hold_id == hold.id))
+    db.delete(hold)
+    db.flush()
+
+
+def create_booking_hold(db, payload, user):
+    token_version = user.token_version
+    user = db.scalar(
+        select(User).where(User.id == user.id).with_for_update().execution_options(populate_existing=True)
+    )
+    if not user or not user.is_active or user.token_version != token_version:
+        raise HTTPException(401, "Account session is no longer valid.")
+    if user.role != "user":
+        raise HTTPException(403, "Chỉ tài khoản khách hàng được giữ phòng.")
+
+    existing = db.scalar(
+        select(BookingHold).where(BookingHold.customer_id == user.id).with_for_update()
+    )
+    homestay, selected, _ = calculate_quote(
+        db, payload, lock=True, exclude_hold_customer_id=user.id
+    )
+    now = utcnow()
+    expired_ids = select(BookingHold.id).where(BookingHold.expires_at <= now)
+    db.execute(delete(BookingHoldNight).where(BookingHoldNight.hold_id.in_(expired_ids)))
+    db.execute(delete(BookingHold).where(BookingHold.expires_at <= now))
+    if existing and existing.expires_at > now:
+        remove_hold(db, existing)
+    hold = BookingHold(
+        customer_id=user.id,
+        homestay_id=homestay.id,
+        check_in=payload.check_in,
+        check_out=payload.check_out,
+        selections=[{"roomId": room.id, "qty": qty} for room, qty, _ in selected],
+        expires_at=now + BOOKING_HOLD_DURATION,
+    )
+    db.add(hold)
+    db.flush()
+    for room, _, units in selected:
+        for unit in units:
+            for night in nights(payload.check_in, payload.check_out):
+                db.add(BookingHoldNight(hold_id=hold.id, room_id=room.id, unit=unit, night=night))
+    db.commit()
+    return hold
+
+
 def create_booking(db, payload, user, idempotency_key=None):
     token_version = user.token_version
     user = db.scalar(
@@ -152,7 +220,38 @@ def create_booking(db, payload, user, idempotency_key=None):
             if old.request_hash != fingerprint:
                 raise HTTPException(409, "Idempotency-Key đã được dùng cho yêu cầu khác.")
             return old, False
-    homestay, selected, quote = calculate_quote(db, payload, lock=True)
+    hold = db.scalar(
+        select(BookingHold).where(BookingHold.customer_id == user.id).with_for_update()
+    )
+    if hold and hold.expires_at <= utcnow():
+        raise HTTPException(409, "Thời gian giữ chỗ 10 phút đã hết. Vui lòng chọn lại ngày.")
+    if hold:
+        requested = {}
+        rooms_by_id = {
+            room.id: room
+            for room in db.scalars(
+                select(Room).where(Room.homestay_id == payload.homestay_id, Room.status == "active")
+            )
+        }
+        for selection in payload.rooms:
+            room = (
+                rooms_by_id.get(selection.room_id)
+                if selection.room_id
+                else next((r for r in rooms_by_id.values() if r.key == selection.key), None)
+            )
+            if room:
+                requested[room.id] = selection.qty
+        expected = {int(selection["roomId"]): int(selection["qty"]) for selection in hold.selections}
+        if (
+            hold.homestay_id != payload.homestay_id
+            or hold.check_in != payload.check_in
+            or hold.check_out != payload.check_out
+            or requested != expected
+        ):
+            raise HTTPException(409, "Ngày hoặc phòng đã thay đổi. Vui lòng giữ chỗ lại trước khi đặt.")
+    homestay, selected, quote = calculate_quote(
+        db, payload, lock=True, exclude_hold_id=hold.id if hold else None
+    )
     host = db.get(User, homestay.host_id)
     if not host or not host.is_active or host.role != "host":
         raise HTTPException(409, "Chủ homestay hiện không nhận đặt phòng.")
@@ -179,6 +278,8 @@ def create_booking(db, payload, user, idempotency_key=None):
     )
     db.add(booking)
     db.flush()
+    if hold:
+        remove_hold(db, hold)
     for room, qty, units in selected:
         db.add(
             BookingLine(
@@ -194,8 +295,9 @@ def create_booking(db, payload, user, idempotency_key=None):
         for unit in units:
             for night in nights(payload.check_in, payload.check_out):
                 db.add(RoomNight(room_id=room.id, unit=unit, night=night, booking_id=booking.id))
+    booking.status = "confirmed"
     db.add(
-        BookingStatusHistory(booking_id=booking.id, old_status=None, new_status="pending", changed_by=user.id)
+        BookingStatusHistory(booking_id=booking.id, old_status=None, new_status="confirmed", changed_by=user.id)
     )
     payment = Payment(booking_id=booking.id, amount=booking.total_price)
     db.add(payment)
@@ -227,8 +329,6 @@ def change_status(db, booking, status, actor, reason=""):
         raise HTTPException(409, "Không thể xác nhận đặt phòng đã hết thời gian lưu trú.")
     if status == "checked_in" and not booking.check_in <= today < booking.check_out:
         raise HTTPException(409, "Nhận phòng chỉ được thực hiện trong ngày lưu trú.")
-    if status == "completed" and today < booking.check_out:
-        raise HTTPException(409, "Chưa đến ngày trả phòng.")
     db.add(
         BookingStatusHistory(
             booking_id=booking.id,
@@ -241,6 +341,10 @@ def change_status(db, booking, status, actor, reason=""):
     booking.status = status
     if status == "rejected":
         booking.reject_reason = reason
+    if status == "completed":
+        db.execute(
+            delete(RoomNight).where(RoomNight.booking_id == booking.id, RoomNight.night >= today)
+        )
     if status in {"cancelled", "rejected"}:
         db.execute(delete(RoomNight).where(RoomNight.booking_id == booking.id))
         payment = db.scalar(select(Payment).where(Payment.booking_id == booking.id).with_for_update())

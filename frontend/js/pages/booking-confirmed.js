@@ -131,14 +131,14 @@ if (ACCOUNT_API_MODE) {
   if (!id) location.replace(accountHref('booking-list.html'));
   else Promise.all([getBooking(id),getPayment(id)]).then(([booking,payment])=>{
     render(booking);
-    document.querySelector('.booking-confirmed-success__heading strong').textContent='Đã ghi nhận yêu cầu đặt phòng';
-    document.querySelector('.booking-confirmed-success > p').textContent='Trạng thái bên dưới lấy từ máy chủ. Chưa có dịch vụ gửi email xác nhận.';
+    document.querySelector('.booking-confirmed-success__heading strong').textContent='Đặt phòng đã được ghi nhận';
+    document.querySelector('.booking-confirmed-success > p').textContent='Đơn được xác nhận ngay sau khi lưu. Trạng thái bên dưới lấy từ máy chủ; chưa có dịch vụ gửi email.';
     const badge=document.querySelector('.booking-confirmed-code-card .badge');
-    badge.textContent=({pending:'Chờ xác nhận',confirmed:'Đã xác nhận',cancelled:'Đã hủy',rejected:'Bị từ chối',checked_in:'Đã nhận phòng',completed:'Hoàn tất'})[booking.status] || booking.status;
+    badge.textContent=({pending:'Đang xử lý',confirmed:'Đã xác nhận',cancelled:'Đã hủy',rejected:'Bị từ chối',checked_in:'Đã nhận phòng',completed:'Hoàn tất'})[booking.status] || booking.status;
     badge.className='badge '+(booking.status==='pending'?'badge--warning':['cancelled','rejected'].includes(booking.status)?'badge--danger':'badge--success');
     document.querySelector('.booking-confirmed-total > strong').textContent='Tổng giá trị đặt phòng:';
     const state=document.createElement('p');state.id='booking-server-state';state.className='field__hint';
-    state.textContent=`Trạng thái đặt phòng: ${({pending:'Chờ xác nhận',confirmed:'Đã xác nhận',cancelled:'Đã hủy',rejected:'Bị từ chối',checked_in:'Đã nhận phòng',completed:'Hoàn tất'})[booking.status] || booking.status}. ${paymentText(payment)}`;
+    state.textContent=`Trạng thái đặt phòng: ${({pending:'Đang xử lý',confirmed:'Đã xác nhận',cancelled:'Đã hủy',rejected:'Bị từ chối',checked_in:'Đã nhận phòng',completed:'Hoàn tất'})[booking.status] || booking.status}. ${paymentText(payment)}`;
     document.querySelector('main').prepend(state);
   }).catch(error=>{if(error.status===401)requireLogin();else{const p=document.createElement('p');p.textContent=error.detail || 'Không tải được booking.';document.querySelector('main').prepend(p);}});
 } else if (!raw) {

@@ -14,7 +14,7 @@
 | Phân quyền theo role (user / host / admin) trên giao diện | Hoàn thành (`js/guard.js`) |
 | Dashboard có biểu đồ cho Host và Admin | Hoàn thành (Chart.js) |
 | Kiểm thử giao diện tự động | Có (`tests/`) |
-| Backend FastAPI | Có migrations, JWT thu hồi được, profile, duyệt host, catalog, booking giao dịch, API host/admin; có thể hủy quyền Host và ghi nhận lý do/thông báo cho Admin. Migration head hiện tại: `0006_host_cancellations`; xem [runbook](docs/BACKEND_RUNBOOK.md) |
+| Backend FastAPI | Có migrations, JWT thu hồi được, profile, duyệt host, catalog, giữ phòng 10 phút, booking xác nhận ngay và API host/admin; hoàn tất sớm sẽ mở lại tồn chưa dùng. Migration head hiện tại: `0007_booking_holds`; xem [runbook](docs/BACKEND_RUNBOOK.md) |
 | Nối frontend với backend thật | Đã nối customer/host/admin qua `?mode=api`; mock mặc định vẫn được giữ, `USE_MOCK=true` |
 | QA | Báo cáo Phase 9/10 là snapshot trước tính năng hủy quyền Host mới nhất; dùng các lệnh kiểm thử bên dưới để xác minh source hiện tại |
 | Triển khai production | Chưa sẵn sàng: gateway/email, TLS/deployment, backup/restore và kiểm thử vận hành còn thiếu |
@@ -169,7 +169,7 @@ backend/.venv/Scripts/python -m ruff format --check backend tests/api-accounts-b
 backend/.venv/Scripts/python -m pip check
 ```
 
-Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (`POSTGRES_BIN` nếu đường dẫn khác); nếu không có, báo chưa kiểm chứng PostgreSQL, không coi skip là pass. Migration head hiện tại `0006_host_cancellations`. Báo cáo Phase 9/10 và báo cáo tổng là snapshot tại thời điểm lập; [runbook](docs/BACKEND_RUNBOOK.md) mô tả quy trình hiện tại.
+Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (`POSTGRES_BIN` nếu đường dẫn khác); nếu không có, báo chưa kiểm chứng PostgreSQL, không coi skip là pass. Migration head hiện tại `0007_booking_holds`. Báo cáo Phase 9/10 và báo cáo tổng là snapshot tại thời điểm lập; [runbook](docs/BACKEND_RUNBOOK.md) mô tả quy trình hiện tại.
 
 ---
 
@@ -216,7 +216,7 @@ Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (
 
 **Giao diện:** tất cả màn hình đã hoàn thành trên dữ liệu mock.
 
-**Backend đã có:** schema Alembic giữ dữ liệu cũ, Argon2id/JWT revocation, ownership, catalog/phòng thật, đặt nhiều phòng trong transaction, chống trùng bằng ledger unique, host/admin, review đủ điều kiện, upload, tests SQLite/PostgreSQL và hủy quyền Host có kiểm tra booking đang hoạt động. Migration hiện tại là `0006_host_cancellations`.
+**Backend đã có:** schema Alembic giữ dữ liệu cũ, Argon2id/JWT revocation, ownership, catalog/phòng thật, giữ chỗ hết hạn và đặt nhiều phòng trong transaction, chống trùng bằng ledger, host/admin, review đủ điều kiện, upload, tests SQLite/PostgreSQL và hoàn tất sớm có giải phóng đêm chưa dùng. Migration hiện tại là `0007_booking_holds`.
 
 **Việc còn lại để chuyển frontend sang chạy thật:**
 

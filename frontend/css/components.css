@@ -1381,6 +1381,46 @@ dialog::backdrop {
   grid-column: 1 / -1;
 }
 
+.stay-calendar {
+  max-width: 560px;
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-m);
+  background: var(--c-bg);
+}
+
+.stay-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.stay-calendar__header .btn { min-width: 44px; padding-inline: var(--sp-2); }
+.stay-calendar__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--sp-1); }
+.stay-calendar__weekdays { margin-bottom: var(--sp-1); color: var(--c-muted); text-align: center; font-size: var(--fs-sm); }
+.stay-calendar__day, .stay-calendar__empty {
+  display: grid;
+  min-width: 0;
+  min-height: 40px;
+  place-items: center;
+}
+.stay-calendar__day {
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  background: var(--c-surface);
+  color: var(--c-text);
+  cursor: pointer;
+}
+.stay-calendar__day:hover:not(:disabled) { border-color: var(--c-primary); }
+.stay-calendar__day:disabled { cursor: not-allowed; opacity: .48; }
+.stay-calendar__day.is-unavailable { background: var(--c-danger-soft); color: var(--c-danger); text-decoration: line-through; }
+.stay-calendar__day.is-selected { border-color: var(--c-primary); background: var(--c-primary); color: #fff; font-weight: 700; }
+.stay-calendar__day.is-in-range { background: var(--c-primary-soft); color: var(--c-primary); }
+.stay-calendar__legend { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-3) 0 0; color: var(--c-muted); font-size: var(--fs-sm); }
+.stay-calendar__legend-dot { width: 14px; height: 14px; border-radius: 4px; background: var(--c-danger-soft); border: 1px solid var(--c-danger); }
+
 .room-list {
   display: grid;
   gap: var(--sp-3);
@@ -1467,6 +1507,15 @@ dialog::backdrop {
   font-size: var(--fs-caption);
   min-height: 1.2em;
 }
+
+.room-card__availability {
+  flex: 1 0 100%;
+  color: var(--c-danger);
+  font-size: var(--fs-caption);
+  text-align: left;
+}
+
+.room-card__availability[hidden] { display: none; }
 
 .stepper {
   display: flex;

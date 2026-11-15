@@ -244,12 +244,7 @@ def test_admin_cannot_lock_or_demote_self(client, headers):
 
 def test_dashboard_aggregates_only_current_host(client, headers, booking_payload):
     booking = client.post("/api/me/bookings", json=booking_payload, headers=headers()).json()
-    assert (
-        client.patch(
-            f"/api/host/bookings/{booking['id']}/status", json={"status": "confirmed"}, headers=headers(3)
-        ).status_code
-        == 200
-    )
+    assert booking["status"] == "confirmed"
     dashboard = client.get("/api/host/dashboard", headers=headers(3)).json()
     assert (
         dashboard["bookingCount"] == 1
@@ -266,12 +261,7 @@ def test_dashboard_aggregates_only_current_host(client, headers, booking_payload
 def test_dashboard_counts_quantity_and_filters_created_date(client, headers, booking_payload):
     booking_payload["rooms"] = [{"roomId": 1, "qty": 2}]
     booking = client.post("/api/me/bookings", json=booking_payload, headers=headers()).json()
-    assert (
-        client.patch(
-            f"/api/host/bookings/{booking['id']}/status", json={"status": "confirmed"}, headers=headers(3)
-        ).status_code
-        == 200
-    )
+    assert booking["status"] == "confirmed"
     future = client.get(
         "/api/host/dashboard",
         params={"from": booking_payload["checkIn"], "to": booking_payload["checkOut"]},

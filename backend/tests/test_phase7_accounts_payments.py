@@ -92,7 +92,7 @@ def test_payment_inconsistent_amount_and_refund_reject_atomically(setup, client,
     assert sim(client, headers, b["id"]).status_code == 409
     assert client.post(f"/api/me/bookings/{b['id']}/cancel", headers=headers()).status_code == 409
     with setup["factory"]() as db:
-        assert db.get(Booking, b["id"]).status == "pending"
+        assert db.get(Booking, b["id"]).status == "confirmed"
         assert db.scalar(select(func.count()).select_from(RoomNight)) == 2
         db.scalar(select(Payment)).amount = b["totalPrice"]
         db.commit()

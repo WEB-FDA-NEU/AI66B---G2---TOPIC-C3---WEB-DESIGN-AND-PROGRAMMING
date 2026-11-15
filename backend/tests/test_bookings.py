@@ -5,7 +5,7 @@ from threading import Barrier
 import pytest
 from sqlalchemy import func, select
 
-from backend.models import Booking, BookingLine, Payment, Room, RoomNight
+from backend.models import Booking, BookingLine, BookingStatusHistory, Payment, Room, RoomNight
 
 
 def test_quote_ignores_client_prices_and_snapshots(client, booking_payload):
@@ -24,7 +24,7 @@ def test_booking_is_one_canonical_order_visible_to_customer_and_host(client, hea
     response = client.post("/api/me/bookings", json=booking_payload, headers=headers())
     assert response.status_code == 201
     booking = response.json()
-    assert booking["totalPrice"] == 210000 and booking["userId"] == 1 and booking["status"] == "pending"
+    assert booking["totalPrice"] == 210000 and booking["userId"] == 1 and booking["status"] == "confirmed"
     assert booking["homestayName"] == "Homestay 1" and booking["hostPhone"] == "0912345678"
     host = client.get("/api/host/bookings", headers=headers(3)).json()
     assert len(host) == 1 and host[0]["bookingId"] == booking["id"]
@@ -82,6 +82,15 @@ def test_rejection_requires_reason_and_releases_inventory(client, headers, booki
     booking_payload["rooms"] = [{"key": "room-two", "qty": 1}]
     first = client.post("/api/me/bookings", json=booking_payload, headers=headers()).json()
     assert client.post("/api/me/bookings", json=booking_payload, headers=headers(2)).status_code == 409
+    with client.app.state.session_factory() as db:
+        booking = db.get(Booking, first["id"])
+        booking.status = "pending"
+        db.add(
+            BookingStatusHistory(
+                booking_id=booking.id, old_status="confirmed", new_status="pending", changed_by=1
+            )
+        )
+        db.commit()
     url = f"/api/host/bookings/{first['id']}/status"
     assert client.patch(url, json={"status": "rejected"}, headers=headers(3)).status_code == 422
     result = client.patch(url, json={"status": "rejected", "reason": "Room under repair"}, headers=headers(3))
@@ -130,17 +139,14 @@ def test_status_machine_and_review_eligibility(client, headers, booking_payload,
     review = {"bookingId": booking["id"], "rating": 5, "comment": "A good stay", "name": "Forged Name"}
     assert client.post("/api/items/1/reviews", json=review, headers=headers()).status_code == 409
     assert client.patch(url, json={"status": "completed"}, headers=headers(3)).status_code == 409
-    assert client.patch(url, json={"status": "confirmed"}, headers=headers(3)).status_code == 200
+    assert client.patch(url, json={"status": "confirmed"}, headers=headers(3)).status_code == 409
     assert client.patch(url, json={"status": "checked_in"}, headers=headers(3)).status_code == 409
     checkin = date.fromisoformat(booking_payload["checkIn"])
     monkeypatch.setattr("backend.booking_service.business_today", lambda: checkin)
     assert client.patch(url, json={"status": "checked_in"}, headers=headers(3)).status_code == 200
     assert client.post(f"/api/me/bookings/{booking['id']}/cancel", headers=headers()).status_code == 409
-    assert client.patch(url, json={"status": "completed"}, headers=headers(3)).status_code == 409
-    monkeypatch.setattr(
-        "backend.booking_service.business_today", lambda: date.fromisoformat(booking_payload["checkOut"])
-    )
     assert client.patch(url, json={"status": "completed"}, headers=headers(3)).status_code == 200
+    assert client.patch(url, json={"status": "completed"}, headers=headers(3)).status_code == 409
     assert client.post("/api/items/1/reviews", json=review, headers=headers(2)).status_code == 409
     response = client.post("/api/items/1/reviews", json=review, headers=headers())
     assert (
@@ -179,6 +185,58 @@ def test_parallel_bookings_do_not_oversell(client, headers, booking_payload, set
         assert db.scalar(select(func.count()).select_from(Booking)) == 1
         assert db.scalar(select(func.count()).select_from(BookingLine)) == 1
         assert db.scalar(select(func.count()).select_from(RoomNight)) == 2
+
+
+def test_ten_minute_hold_blocks_other_users_and_is_consumed_on_booking(
+    client, headers, booking_payload, setup
+):
+    booking_payload["rooms"] = [{"key": "room-two", "qty": 1}]
+    first_hold = client.post("/api/me/booking-hold", json=booking_payload, headers=headers())
+    assert first_hold.status_code == 200 and first_hold.json()["remainingSeconds"] <= 600
+
+    conflict = client.post("/api/bookings/quote", json=booking_payload, headers=headers(2))
+    assert conflict.status_code == 409
+    assert "đang được thuê hoặc giữ chỗ" in conflict.json()["detail"]
+    assert client.post("/api/me/booking-hold", json=booking_payload, headers=headers(2)).status_code == 409
+
+    booking = client.post("/api/me/bookings", json=booking_payload, headers=headers()).json()
+    assert booking["status"] == "confirmed"
+    assert client.get("/api/me/booking-hold", headers=headers()).json() is None
+    assert client.post("/api/me/bookings", json=booking_payload, headers=headers(2)).status_code == 409
+    with setup["factory"]() as db:
+        assert db.scalar(select(func.count()).select_from(Booking)) == 1
+
+
+def test_expired_hold_is_not_a_booking_conflict(client, headers, booking_payload, setup):
+    booking_payload["rooms"] = [{"key": "room-two", "qty": 1}]
+    assert client.post("/api/me/booking-hold", json=booking_payload, headers=headers()).status_code == 200
+    with setup["factory"]() as db:
+        from backend.models import BookingHold, utcnow
+
+        hold = db.scalar(select(BookingHold))
+        hold.expires_at = utcnow() - timedelta(seconds=1)
+        db.commit()
+    assert client.post("/api/me/bookings", json=booking_payload, headers=headers(2)).status_code == 201
+
+
+def test_early_completion_releases_unused_nights(client, headers, booking_payload, monkeypatch, setup):
+    checkin = date.fromisoformat(booking_payload["checkIn"])
+    monkeypatch.setattr("backend.booking_service.business_today", lambda: checkin)
+    booking = client.post("/api/me/bookings", json=booking_payload, headers=headers()).json()
+    status_url = f"/api/host/bookings/{booking['id']}/status"
+    assert client.patch(status_url, json={"status": "checked_in"}, headers=headers(3)).status_code == 200
+    early_checkout = checkin + timedelta(days=1)
+    monkeypatch.setattr("backend.booking_service.business_today", lambda: early_checkout)
+    assert client.patch(status_url, json={"status": "completed"}, headers=headers(3)).status_code == 200
+    next_stay = {
+        **booking_payload,
+        "checkIn": early_checkout.isoformat(),
+        "checkOut": (early_checkout + timedelta(days=1)).isoformat(),
+        "rooms": [{"key": "room-one", "qty": 1}],
+    }
+    assert client.post("/api/me/bookings", json=next_stay, headers=headers(2)).status_code == 201
+    with setup["factory"]() as db:
+        assert db.scalar(select(func.count()).select_from(RoomNight).where(RoomNight.booking_id == booking["id"])) == 1
 
 
 def test_parallel_same_idempotency_key_does_not_duplicate(client, headers, booking_payload):

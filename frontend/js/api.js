@@ -7,6 +7,7 @@
 // ============================================================
 import { USE_MOCK, API_BASE, MOCK_BASE, ACCOUNT_API_MODE, apiModuleEnabled, safeImageURL } from './config.js';
 import { getToken, getUser, saveSession, clearSession, updateSessionUser } from './auth.js';
+import { roomTypesFor } from './pricing.js';
 
 // ---- Phiên bản dữ liệu mock ----
 // Dữ liệu mock được copy vào localStorage lần đầu đọc. Tăng phiên bản để dọn dữ liệu mẫu cũ
@@ -83,9 +84,155 @@ function blockUnintegratedBusiness(module = 'unavailable') {
 
 const mediaItem = item => ({ ...item, cover_url: safeImageURL(item.cover_url), images: (item.images || []).map(safeImageURL),
   roomTypes: (item.roomTypes || []).map(r => ({ ...r, image: safeImageURL(r.image), images: (r.images || []).map(safeImageURL) })) });
-export function getAvailability(id, stay) {
+const MOCK_HOLDS_KEY = 'luxstay_mock_booking_holds_v1';
+const MOCK_HOLD_MS = 10 * 60 * 1000;
+const mockOverlap = (aStart, aEnd, bStart, bEnd) => aStart < bEnd && bStart < aEnd;
+function readMockHolds() {
+  try {
+    const holds = JSON.parse(localStorage.getItem(MOCK_HOLDS_KEY) || '[]');
+    if (!Array.isArray(holds)) throw new Error();
+    return holds.filter(hold => Number(hold.expiresAt) > Date.now());
+  } catch {
+    throw new ApiError(0, 'Dữ liệu giữ phòng mock bị hỏng. Hãy sao lưu rồi xóa riêng luxstay_mock_booking_holds_v1.');
+  }
+}
+function writeMockHolds(holds) {
+  try { localStorage.setItem(MOCK_HOLDS_KEY, JSON.stringify(holds)); }
+  catch { throw new ApiError(0, 'Không lưu được giữ phòng mock. Bộ nhớ trình duyệt có thể đã đầy hoặc bị chặn.'); }
+}
+async function mockAvailability(id, checkin, checkout, excludingUserId = getUser()?.id) {
+  const [item, bookings] = await Promise.all([
+    getItem(id),
+    readTable('customerBookings', 'bookings.json'),
+  ]);
+  const types = roomTypesFor(item);
+  const holds = readMockHolds().filter(hold => String(hold.homestayId) === String(id));
+  const occupiedByKey = new Map(types.map(type => [type.key, new Map()]));
+  const addRange = (from, to, rooms) => {
+    if (!mockOverlap(from, to, checkin, checkout)) return;
+    for (const room of rooms || []) {
+      const byNight = occupiedByKey.get(room.key);
+      if (!byNight) continue;
+      const start = from > checkin ? from : checkin;
+      const end = to < checkout ? to : checkout;
+      for (let day = start; day < end; ) {
+        byNight.set(day, (byNight.get(day) || 0) + Number(room.qty || 0));
+        const next = new Date(`${day}T00:00:00Z`);
+        next.setUTCDate(next.getUTCDate() + 1);
+        day = next.toISOString().slice(0, 10);
+      }
+    }
+  };
+  for (const booking of bookings) {
+    if (String(booking.homestayId ?? booking.itemId) !== String(id)
+      || ['cancelled', 'rejected'].includes(booking.status)) continue;
+    const checkoutDate = booking.releasedAfter && booking.releasedAfter < booking.checkOut
+      ? booking.releasedAfter : booking.checkOut;
+    addRange(booking.checkIn, checkoutDate, booking.rooms);
+  }
+  for (const hold of holds) {
+    if (String(hold.userId) === String(excludingUserId)) continue;
+    addRange(hold.checkIn, hold.checkOut, hold.rooms);
+  }
+  const requestedNights = [];
+  for (let day = checkin; day < checkout; ) {
+    requestedNights.push(day);
+    const next = new Date(`${day}T00:00:00Z`);
+    next.setUTCDate(next.getUTCDate() + 1);
+    day = next.toISOString().slice(0, 10);
+  }
+  return types.map(type => {
+    const occupied = occupiedByKey.get(type.key);
+    return {
+      ...type,
+      available: Math.max(0, Math.min(1, ...requestedNights.map(day => 1 - (occupied.get(day) || 0)))),
+    };
+  });
+}
+export async function getAvailability(id, stay) {
   blockUnintegratedBusiness('catalog');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const rooms = await mockAvailability(id, stay.checkin, stay.checkout);
+    return { homestayId: id, checkIn: stay.checkin, checkOut: stay.checkout, rooms };
+  }
   return request(`${API_BASE}/items/${encodeURIComponent(id)}/availability?${new URLSearchParams(stay)}`);
+}
+export async function getCalendar(id, start, days = 366) {
+  blockUnintegratedBusiness('catalog');
+  if (!(USE_MOCK && !ACCOUNT_API_MODE))
+    return request(`${API_BASE}/items/${encodeURIComponent(id)}/calendar?${new URLSearchParams({ start, days })}`);
+  const [item, bookings] = await Promise.all([
+    getItem(id),
+    readTable('customerBookings', 'bookings.json'),
+  ]);
+  const types = roomTypesFor(item);
+  const holds = readMockHolds().filter(hold => String(hold.homestayId) === String(id));
+  const rooms = types.map(type => {
+    const dates = [];
+    for (let offset = 0; offset < days; offset++) {
+      const date = new Date(`${start}T00:00:00Z`);
+      date.setUTCDate(date.getUTCDate() + offset);
+      const day = date.toISOString().slice(0, 10);
+      let occupied = 0;
+      for (const booking of bookings) {
+        if (String(booking.homestayId ?? booking.itemId) !== String(id)
+          || ['cancelled', 'rejected'].includes(booking.status)) continue;
+        const checkout = booking.releasedAfter && booking.releasedAfter < booking.checkOut
+          ? booking.releasedAfter : booking.checkOut;
+        if (booking.checkIn <= day && day < checkout)
+          occupied += Number((booking.rooms || []).find(room => room.key === type.key)?.qty || 0);
+      }
+      for (const hold of holds) {
+        if (String(hold.userId) === String(getUser()?.id) || hold.checkIn > day || day >= hold.checkOut) continue;
+        occupied += Number((hold.rooms || []).find(room => room.key === type.key)?.qty || 0);
+      }
+      dates.push({ date: day, available: Math.max(0, 1 - occupied) });
+    }
+    return { ...type, days: dates };
+  });
+  return {
+    homestayId: id,
+    start,
+    days: Array.from({ length: days }, (_, offset) => {
+      const date = new Date(`${start}T00:00:00Z`);
+      date.setUTCDate(date.getUTCDate() + offset);
+      const day = date.toISOString().slice(0, 10);
+      return { date: day, available: rooms.some(room => room.days[offset].available > 0) };
+    }),
+    rooms,
+  };
+}
+export async function getBookingHold() {
+  if (!(USE_MOCK && !ACCOUNT_API_MODE)) return request(`${API_BASE}/me/booking-hold`);
+  const user = getUser();
+  const hold = user ? readMockHolds().find(row => String(row.userId) === String(user.id)) : null;
+  return hold ? { ...hold, expiresAt: new Date(hold.expiresAt).toISOString(),
+    remainingSeconds: Math.max(0, Math.ceil((hold.expiresAt - Date.now()) / 1000)) } : null;
+}
+export async function reserveBookingHold(payload) {
+  if (!(USE_MOCK && !ACCOUNT_API_MODE))
+    return request(`${API_BASE}/me/booking-hold`, { method: 'POST', body: payload });
+  const user = getUser();
+  if (!user) throw new ApiError(401, 'Bạn cần đăng nhập để giữ phòng.');
+  const rooms = await mockAvailability(payload.homestayId, payload.checkIn, payload.checkOut, user.id);
+  for (const selection of payload.rooms) {
+    const room = rooms.find(candidate => selection.key ? candidate.key === selection.key : candidate.id === String(selection.roomId));
+    if (!room || room.available < selection.qty)
+      throw new ApiError(409, 'Phòng không khả dụng (Lý do: Phòng đang được thuê hoặc giữ chỗ trong khoảng thời gian này).');
+  }
+  const holds = readMockHolds().filter(hold => String(hold.userId) !== String(user.id));
+  const hold = {
+    userId: user.id, homestayId: payload.homestayId, checkIn: payload.checkIn,
+    checkOut: payload.checkOut, rooms: payload.rooms, expiresAt: Date.now() + MOCK_HOLD_MS,
+  };
+  holds.push(hold);
+  writeMockHolds(holds);
+  return { ...hold, expiresAt: new Date(hold.expiresAt).toISOString(), remainingSeconds: 600 };
+}
+export async function releaseBookingHold() {
+  if (!(USE_MOCK && !ACCOUNT_API_MODE)) return request(`${API_BASE}/me/booking-hold`, { method: 'DELETE' });
+  const user = getUser();
+  if (user) writeMockHolds(readMockHolds().filter(hold => String(hold.userId) !== String(user.id)));
 }
 export function getQuote(payload) {
   blockUnintegratedBusiness('catalog');
@@ -533,7 +680,12 @@ export async function getBookings(params = {}) {
   if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await readTable('customerBookings', 'bookings.json');
     const me = getUser();
-    return me ? list.filter(b => String(b.userId) === String(me.id)) : list;
+    return (me ? list.filter(b => String(b.userId) === String(me.id)) : list)
+      .sort((a, b) => {
+        const createdAt = booking => Date.parse(booking.createdAt || '') || 0;
+        return createdAt(b) - createdAt(a)
+          || String(b.id).localeCompare(String(a.id), undefined, { numeric: true });
+      });
   }
   return request(`${API_BASE}/me/bookings?${new URLSearchParams(params)}`);
 }
@@ -554,14 +706,36 @@ export async function createBooking(payload, key) {
     const me = getUser();
     if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để đặt phòng.');
     const list = await readTable('customerBookings', 'bookings.json');
+    const holds = readMockHolds();
+    const hold = holds.find(row => String(row.userId) === String(me.id));
+    if (!hold) throw new ApiError(409, 'Thời gian giữ chỗ đã hết. Vui lòng quay lại lịch và chọn phòng lại.');
+    const roomSignature = rooms => (rooms || []).map(room => ({
+      key: room.key || null,
+      roomId: room.roomId ? String(room.roomId) : null,
+      qty: Number(room.qty),
+    })).sort((a, b) => String(a.key || a.roomId).localeCompare(String(b.key || b.roomId)));
+    if (hold && (
+      String(hold.homestayId) !== String(payload.homestayId)
+      || hold.checkIn !== payload.checkIn
+      || hold.checkOut !== payload.checkOut
+      || JSON.stringify(roomSignature(hold.rooms)) !== JSON.stringify(roomSignature(payload.rooms))
+    )) throw new ApiError(409, 'Ngày hoặc phòng đã thay đổi. Vui lòng giữ chỗ lại trước khi đặt.');
+    const inventory = await mockAvailability(payload.homestayId, payload.checkIn, payload.checkOut, me.id);
+    for (const selection of payload.rooms) {
+      const room = inventory.find(candidate => selection.key
+        ? candidate.key === selection.key : candidate.id === String(selection.roomId));
+      if (!room || room.available < selection.qty)
+        throw new ApiError(409, 'Phòng không khả dụng (Lý do: Phòng đang được thuê hoặc giữ chỗ trong khoảng thời gian này).');
+    }
     const id = list.reduce((m, b) => Math.max(m, Number(b.id) || 0), 0) + 1;
     const booking = {
-      id, userId: me.id, status: 'pending', createdAt: new Date().toISOString(),
+      id, userId: me.id, status: 'confirmed', createdAt: new Date().toISOString(),
       code: 'BK' + String(id).padStart(6, '0'),   // cùng định dạng mã với booking-detail
       ...payload,
     };
     list.push(booking);
     writeTable('customerBookings', list);
+    writeMockHolds(holds.filter(row => String(row.userId) !== String(me.id)));
     return booking;
   }
   if (!key) throw new ApiError(400, 'Stable Idempotency-Key required');
@@ -801,6 +975,11 @@ export async function updateBookingStatus(id, status, reason = '') {
       if (customerIndex === -1) throw new ApiError(404, 'Không tìm thấy đặt phòng.');
       customerBookings[customerIndex].status = status;
       customerBookings[customerIndex].rejectReason = status === 'rejected' ? reason.trim() : '';
+      if (status === 'completed') {
+        const now = new Date();
+        customerBookings[customerIndex].releasedAfter =
+          `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      }
       writeTable('customerBookings', customerBookings);
       return { ...customerBookings[customerIndex], id: String(id) };
     }

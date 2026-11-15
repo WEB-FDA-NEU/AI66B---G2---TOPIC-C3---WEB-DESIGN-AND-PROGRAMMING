@@ -1,4 +1,4 @@
-import { getItem, getProfile, getQuote, createBooking, getBooking } from '../api.js';
+import { getItem, getProfile, getQuote, createBooking, getBooking, getBookingHold } from '../api.js';
 import { accountHref, safeImageURL } from '../config.js';
 import { requireLogin } from '../auth.js';
 import { stayFromParams, parseRooms, fmtDate, guestText } from '../pricing.js';
@@ -10,8 +10,8 @@ const $ = id => document.getElementById(id);
 export async function startApiCheckout(params) {
   // No card data is collected while no real provider exists.
   for (const id of ['cardNum','cardExp','cardCvv']) $(id)?.closest('.field')?.remove();
-  document.querySelector('.booking-form-section').textContent = 'Thanh toán tại chỗ';
-  document.querySelector('.booking-secure-note').textContent = 'Đặt phòng chờ host xác nhận. Chưa thu tiền; không nhập thông tin thẻ.';
+  document.querySelector('.booking-form-section').textContent = 'Xác nhận đặt phòng';
+  document.querySelector('.booking-secure-note').textContent = 'Đặt phòng được xác nhận ngay sau khi lưu. Thanh toán tại homestay; không nhập thông tin thẻ.';
   const button = $('btnSubmit'); button.disabled = true;
   const message = $('formMsg');
   const showError = error => {
@@ -36,6 +36,37 @@ export async function startApiCheckout(params) {
       location.replace(accountHref(`booking-confirmed.html?id=${booking.id}`)); return;
     }
     const quoteBody = {homestayId:id,checkIn:stay.checkin,checkOut:stay.checkout,adults:stay.adults,children:stay.children,rooms:selections};
+    const holdTimer = $('checkout-hold-timer');
+    let holdInterval;
+    if (previous?.state !== 'sent') {
+      const hold = await getBookingHold();
+      const selectedIds = selections.map(selection => ({
+        roomId: String(item.roomTypes.find(room => room.key === selection.key)?.id),
+        qty: selection.qty,
+      })).sort((a,b) => a.roomId.localeCompare(b.roomId));
+      const heldIds = (hold?.rooms || []).map(selection => ({
+        roomId: String(selection.roomId), qty: Number(selection.qty),
+      })).sort((a,b) => a.roomId.localeCompare(b.roomId));
+      if (!hold || Number(hold.homestayId) !== id || hold.checkIn !== stay.checkin
+        || hold.checkOut !== stay.checkout || JSON.stringify(selectedIds) !== JSON.stringify(heldIds)) {
+        showError(Error('Giữ chỗ đã hết hạn hoặc thay đổi. Quay lại lịch để chọn phòng và giữ chỗ lại.'));
+        return;
+      }
+      const expiresAt = Date.parse(hold.expiresAt);
+      const updateTimer = () => {
+        const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+        holdTimer.hidden = false;
+        holdTimer.textContent = remaining
+          ? `Thời gian giữ chỗ còn ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}.`
+          : 'Đã hết thời gian giữ chỗ. Quay lại lịch để chọn ngày và giữ phòng lại.';
+        if (!remaining) {
+          clearInterval(holdInterval);
+          if (previous?.state !== 'sent') button.disabled = true;
+        }
+      };
+      updateTimer();
+      holdInterval = setInterval(updateTimer, 1000);
+    }
     let currentQuote;
     const renderQuote = q => {
       currentQuote = q;
@@ -46,7 +77,7 @@ export async function startApiCheckout(params) {
         const amount=document.createElement('span');amount.textContent=formatVND(line.subtotal);row.append(label,amount);return row;
       }));
       $('roomSubtotalVal').textContent=formatVND(q.roomSubtotal);$('serviceFeeVal').textContent=formatVND(q.serviceFee);$('grandTotalVal').textContent=formatVND(q.total);
-      button.textContent=`Gửi yêu cầu đặt phòng (${formatVND(q.total)})`;
+      button.textContent=`Đặt phòng ngay (${formatVND(q.total)})`;
     };
     $('sumImg').src=safeImageURL(item.cover_url);$('sumImg').alt=item.title;
     $('sumTitle').textContent=item.title;$('sumLocation').textContent=item.location || '';
@@ -76,7 +107,7 @@ export async function startApiCheckout(params) {
       const payload=previous?.state==='sent'?previous.payload:{...quoteBody,guestName:`${$('firstname').value.trim()} ${$('lastname').value.trim()}`,guestEmail:$('email').value.trim()};
       const signature=JSON.stringify(payload);
       if(previous?.state==='sent' && previous.signature!==signature){showError(Error('Nội dung khác yêu cầu chưa rõ kết quả. Đối soát lịch sử trước khi tạo đơn mới.'));return;}
-      button.disabled=true;
+      button.disabled=true;button.textContent='Đang xử lý đặt phòng...';
       try {
         if(previous?.state!=='sent') {
           const fresh=await getQuote(quoteBody);
@@ -89,9 +120,9 @@ export async function startApiCheckout(params) {
         const booking=await createBooking(previous.payload,key);
         previous={key,signature,state:'complete',bookingId:booking.id};
         sessionStorage.setItem(storageKey,JSON.stringify(previous));
-        toast('Đã gửi yêu cầu đặt phòng. Chưa xác nhận thanh toán.');
+        toast('Đặt phòng đã được xác nhận.');
         location.href=accountHref(`booking-confirmed.html?id=${booking.id}`);
-      } catch(error) { showError(error);button.disabled=false;button.textContent=previous?.state==='sent'?'Thử lại cùng yêu cầu':'Gửi yêu cầu đặt phòng'; }
+      } catch(error) { showError(error);button.disabled=false;button.textContent=previous?.state==='sent'?'Thử lại cùng yêu cầu':`Đặt phòng ngay (${formatVND(currentQuote.total)})`; }
     });
   } catch(error) { showError(error); }
 }
