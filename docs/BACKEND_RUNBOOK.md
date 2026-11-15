@@ -1,5 +1,11 @@
 # Chạy và kiểm thử backend LuxStay
 
+## Nguồn dữ liệu dùng chung
+
+Hướng dẫn hiện hành cho nhóm ở [POSTGRESQL_SHARED_SETUP.md](POSTGRESQL_SHARED_SETUP.md). Đặt `FRONTEND_MODE=shared`, `SERVE_FRONTEND=true` và DATABASE_URL của một PostgreSQL chung để FastAPI phục vụ cả website ở cùng origin. Module `/js/runtime-config.js` bật toàn bộ API ngay cả khi URL thiếu query. Static frontend riêng tiếp tục dùng mock. Lệnh `python -m backend.bootstrap_admin` tạo admin đầu tiên có kiểm tra migration, không seed catalog.
+
+Chạy kiểm thử hai context bằng `python tools/test_backend_postgres.py --browser-only`, hoặc cả backend suite rồi browser bằng `--shared-browser`. Runner tạo cluster PostgreSQL tạm và database test riêng. Kết quả và phạm vi xác minh xem [MULTI_DEVICE_SYNC_TEST.md](MULTI_DEVICE_SYNC_TEST.md). LAN/Internet và backup rehearsal trên server đích cần được kiểm tra trước khi đưa vào sử dụng.
+
 ## Head và payment simulation
 
 Head hiện tại `0007_booking_holds`: backup trước, `alembic upgrade head`, kiểm `/api/ready`; startup không tự migrate. 0004 thêm application decision history, 0005 thêm payment audit events/backfill current state, 0006 thêm lịch sử Host tự hủy/quản trị hủy quyền Host, 0007 thêm giữ tồn phòng 10 phút. Không reset hoặc seed đè DB cũ. Snapshot legacy không thay được lịch sử giao dịch đã mất.
@@ -19,7 +25,7 @@ backend/.venv/Scripts/python -m backend.idempotency_cleanup
 backend/.venv/Scripts/python -m backend.idempotency_cleanup --apply
 ```
 
-Cleanup chỉ đặt idempotency_key=null trên booking cũ hơn cutoff, giữ snapshots/status/updated_at/lines/history/payment/ledger. Không reset database, hủy booking hoặc refund. Sau purge, key cũ không còn chống tạo checkout mới; phải đối soát booking gốc khi mạng gián đoạn quá lâu. Chưa cài lịch maintenance vào máy người dùng hoặc chạy cleanup trên DB thật trong đợt này; chức năng đã test với DB tạm. Pending chưa có auto-expiry/hold timeout vì chưa có chính sách được duyệt; không nhầm key TTL với inventory hold TTL.
+Cleanup chỉ đặt idempotency_key=null trên booking cũ hơn cutoff, giữ snapshots/status/updated_at/lines/history/payment/ledger. Không reset database, hủy booking hoặc refund. Sau purge, key cũ không còn chống tạo checkout mới; phải đối soát booking gốc khi mạng gián đoạn quá lâu. Chưa cài lịch maintenance vào máy người dùng hoặc chạy cleanup trên DB thật trong đợt này; chức năng đã test với DB tạm. Checkout hiện có BookingHold 10 phút theo revision 0007. Hold hết hạn phải chọn và giữ phòng lại trước khi gửi đơn. TTL của idempotency key độc lập với thời hạn giữ tồn phòng.
 
 ## Cài đặt (Python 3.12+, từ thư mục gốc repository)
 

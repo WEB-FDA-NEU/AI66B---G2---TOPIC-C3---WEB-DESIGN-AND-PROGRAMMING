@@ -5,7 +5,7 @@
 // ============================================================
 import { getBookings, cancelBooking, ApiError } from '../api.js';
 import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
-import { toast, confirmAction } from '../ui.js';
+import { toast, confirmAction, showError } from '../ui.js';
 import { formatVND } from '../render.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import '../components/site-header.js';
@@ -164,6 +164,10 @@ async function load() {
     renderPages();
   } catch (err) {
     if(ACCOUNT_API_MODE && err.status===401){requireLogin();return;}
+    listEl.hidden = false;
+    emptyEl.hidden = true;
+    pager.replaceChildren();
+    showError(listEl, err, load);
     toast(err instanceof ApiError ? err.detail : 'Không tải được danh sách đặt phòng.', 'error');
   }
 }

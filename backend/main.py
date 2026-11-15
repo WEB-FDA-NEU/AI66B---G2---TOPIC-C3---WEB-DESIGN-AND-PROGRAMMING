@@ -1,12 +1,13 @@
 """App factory. Startup never creates, drops or migrates tables."""
 
+import json
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, OperationalError
@@ -134,6 +135,16 @@ def create_app(settings=None, engine=None):
     @app.get("/api/health", tags=["ops"])
     def health():
         return {"status": "ok"}
+
+    @app.get("/js/runtime-config.js", include_in_schema=False)
+    def frontend_configuration():
+        # Public configuration contains no database URL, JWT key or credentials.
+        configuration = {"mode": settings.frontend_mode, "apiBase": "/api"}
+        return Response(
+            "export const deployment = " + json.dumps(configuration) + ";\n",
+            media_type="application/javascript",
+            headers={"Cache-Control": "no-store"},
+        )
 
     @app.get("/api/ready", tags=["ops"])
     def ready():

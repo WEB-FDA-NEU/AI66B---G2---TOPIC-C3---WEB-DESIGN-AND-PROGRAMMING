@@ -93,12 +93,25 @@ def main():
                 environment["TEST_POSTGRES_URL"] = (
                     f"postgresql+psycopg://luxstay_test@127.0.0.1:{port}/luxstay_test"
                 )
+                arguments = [
+                    argument
+                    for argument in sys.argv[1:]
+                    if argument not in {"--shared-browser", "--browser-only"}
+                ]
+                if "--browser-only" in sys.argv:
+                    return subprocess.run(
+                        [sys.executable, "tests/shared-postgres-browser.py"], cwd=root, env=environment
+                    ).returncode
                 print("Running SQLite + isolated PostgreSQL tests", flush=True)
                 result = subprocess.run(
-                    [sys.executable, "-m", "pytest", "backend/tests", "-q", "--tb=short", *sys.argv[1:]],
+                    [sys.executable, "-m", "pytest", "backend/tests", "-q", "--tb=short", *arguments],
                     cwd=root,
                     env=environment,
                 )
+                if result.returncode == 0 and "--shared-browser" in sys.argv:
+                    return subprocess.run(
+                        [sys.executable, "tests/shared-postgres-browser.py"], cwd=root, env=environment
+                    ).returncode
                 return result.returncode
         finally:
             if process is not None:

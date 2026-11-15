@@ -24,8 +24,13 @@ class Settings:
     auth_rate_window: int = 300
     max_body_bytes: int = 12 * 1024 * 1024
     serve_frontend: bool = True
+    frontend_mode: str = "mock"
 
     def __post_init__(self):
+        if self.frontend_mode not in {"mock", "shared"}:
+            raise ValueError("FRONTEND_MODE must be mock or shared")
+        if self.environment == "production" and self.serve_frontend and self.frontend_mode != "shared":
+            raise ValueError("Production frontend requires FRONTEND_MODE=shared")
         if self.environment not in {"development", "test", "production"}:
             raise ValueError("APP_ENV must be development, test or production")
         if len(self.jwt_secret.encode()) < 32 or any(
@@ -98,4 +103,5 @@ class Settings:
             auth_rate_window=int(os.getenv("AUTH_RATE_WINDOW", "300")),
             max_body_bytes=int(os.getenv("MAX_BODY_BYTES", str(12 * 1024 * 1024))),
             serve_frontend=serve_frontend.lower() == "true",
+            frontend_mode=os.getenv("FRONTEND_MODE", "shared" if environment == "production" else "mock"),
         )

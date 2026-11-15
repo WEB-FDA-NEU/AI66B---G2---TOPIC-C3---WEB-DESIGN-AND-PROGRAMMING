@@ -4,7 +4,7 @@
 //  Cả hai vẫn đọc được bởi JavaScript/XSS; không phải HttpOnly hoặc bảo mật tuyệt đối.
 //  User cache chỉ phục vụ UX, GET profile/backend mới quyết định identity/role.
 // ============================================================
-import { ACCOUNT_API_MODE, API_SCOPE, accountHref, supportedApiRoute } from './config.js';
+import { ACCOUNT_API_MODE, API_SCOPE, SHARED_MODE, accountHref, supportedApiRoute } from './config.js';
 const TOKEN_KEY = ACCOUNT_API_MODE ? 'luxstay_api_access_token' : 'app_token';
 const USER_KEY = ACCOUNT_API_MODE ? 'luxstay_api_user' : 'app_user';
 const storage = ACCOUNT_API_MODE ? sessionStorage : localStorage;
@@ -65,7 +65,7 @@ export function returnAfterLogin() {
 if (ACCOUNT_API_MODE) {
   const wire = () => {
     const hint = document.createElement('p'); hint.className = 'field__hint'; hint.dataset.accountApiNotice = '';
-    hint.textContent = API_SCOPE === 'accounts' ? 'Tài khoản đang dùng máy chủ thử nghiệm. Đặt phòng và quản trị chưa được bật ở chế độ này.' : 'Dữ liệu đang lấy từ máy chủ thử nghiệm.';
+    hint.textContent = SHARED_MODE ? 'Dữ liệu được lưu trên máy chủ LuxStay dùng chung.' : API_SCOPE === 'accounts' ? 'Tài khoản đang dùng máy chủ thử nghiệm. Đặt phòng và quản trị chưa được bật ở chế độ này.' : 'Dữ liệu đang lấy từ máy chủ thử nghiệm.';
     document.querySelector('main')?.prepend(hint);
     document.querySelectorAll('a[href]').forEach(link => {
       if (link.getAttribute('href').startsWith('#')) return;
@@ -73,7 +73,7 @@ if (ACCOUNT_API_MODE) {
       if (url.origin === location.origin && url.pathname.endsWith('.html')) link.href = accountHref(url.href);
     });
     document.querySelectorAll('.field__hint').forEach(el => {
-      if (el.textContent.includes('Tài khoản mô phỏng chỉ lưu')) el.textContent = 'Thông tin tài khoản được lưu trên máy chủ. Yêu cầu làm host phải chờ quản trị viên xét duyệt.';
+      if (el.textContent.includes('mô phỏng') && el.textContent.includes('trình duyệt này')) el.textContent = 'Thông tin tài khoản được lưu trên máy chủ. Yêu cầu làm host phải chờ quản trị viên xét duyệt.';
     });
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire, { once: true }); else queueMicrotask(wire);

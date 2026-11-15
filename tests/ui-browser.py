@@ -123,7 +123,7 @@ METRICS = """(() => {
     headings:[...document.querySelectorAll('h1')].map(e=>e.textContent.trim())};
 })()"""
 
-INTERACTIONS = """(() => {
+INTERACTIONS = """(async () => {
   const checks=[];
   const check=(ok,name)=>{if(!ok)throw Error('UI interaction: '+name);checks.push(name);};
   const click=s=>document.querySelector(s)?.click();
@@ -144,7 +144,10 @@ INTERACTIONS = """(() => {
     check(r.left>=-1 && r.right<=innerWidth+1 && r.top>=-1 && r.bottom<=innerHeight+1,'gallery fits viewport');
     click('#lb-next');click('#lb-close');check(!document.querySelector('#lightbox').open,'gallery closes');
     click('#write-review-btn');check(!document.querySelector('#review-form-wrapper').hidden,'review form opens');click('#cancel-review-btn');
-    click('.room-pick');check(document.querySelector('#summary-rooms').textContent.includes('1'),'room selection UI updates');
+    for(let i=0;i<100 && !document.querySelector('.room-pick:not(:disabled)');i++) await new Promise(resolve=>setTimeout(resolve,50));
+    click('.room-pick:not(:disabled)');
+    for(let i=0;i<100 && !document.querySelector('#summary-rooms').textContent.includes('1');i++) await new Promise(resolve=>setTimeout(resolve,50));
+    check(document.querySelector('#summary-rooms').textContent.includes('1'),'room selection UI updates');
   }
   if(location.pathname.endsWith('/booking-list.html'))click('[data-action="cancel"]');
   if(location.pathname.endsWith('/host-homestays.html'))click('[data-del]');
@@ -245,7 +248,7 @@ def main():
         ('profile.html', "document.querySelector('#profile-form [type=submit]')?.disabled===false", 0),
         ('login.html', "document.querySelector('#login-form [type=submit]')?.disabled===false", None),
         ('register.html', "document.querySelector('#register-form [type=submit]')?.disabled===false", None),
-        ('host-register.html', "document.querySelector('#host-register-form [type=submit]')?.disabled===false", None),
+        ('host-register.html', "document.querySelector('#profile-form [type=submit]')?.disabled===false", 0),
         ('host-dashboard.html', "document.querySelectorAll('.period-tabs__btn').length===3", 1),
         ('host-homestays.html', "document.querySelector('.host-homestay-card, .host-homestays-empty')", 1),
         ('host-rooms.html', "document.querySelector('.host-room-card, .host-rooms-empty') || document.getElementById('homestayName')?.textContent.includes('Bạn chưa có homestay nào.')", 1),
@@ -288,7 +291,8 @@ def main():
                         if path.startswith('booking-confirmed'):
                             c.js("sessionStorage.setItem('lastBooking'," + json.dumps(json.dumps(booking)) + ");")
                         c.call('Page.navigate', url=origin + '/' + path)
-                        c.until("location.pathname==='/" + path.split('?')[0] + "' && document.readyState==='complete' && !!(" + ready + ")")
+                        expected_path = "profile.html" if path == "host-register.html" else path.split("?")[0]
+                        c.until("location.pathname==='/" + expected_path + "' && document.readyState==='complete' && !!(" + ready + ")")
                         time.sleep(.15)
                         data = c.js(METRICS)
                         data.update(page=path, errors=c.errors[:]); c.errors.clear()

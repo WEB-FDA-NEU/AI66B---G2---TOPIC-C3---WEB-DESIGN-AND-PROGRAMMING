@@ -180,15 +180,12 @@ try {
   const currentAuth=await win().eval("import('./js/auth.js')");
   const changedUser=JSON.parse(localStorage.luxstay_mock_users_v1).find(user=>user.email==='changed@example.test');
   currentAuth.saveSession({access_token:'mock-token',user:changedUser});
-  await page('host-register.html', d => !!d.getElementById('host-password'));
-  const button=doc().querySelector('[data-target="host-password"]'), password=doc().getElementById('host-password');
-  button.click(); assert(password.type==='text','Host password toggle changes once');
-  button.click(); assert(password.type==='password','Host password toggle restores on second click');
+  await page('host-register.html', d => !!d.getElementById('profile-form'));
+  assert(win().location.pathname.endsWith('/profile.html'),'Host registration link opens current profile application workflow');
   service=await api();
   const seeded=await service.login('host@test.com',String.fromCharCode(49,50,51,52,53,54,55,56));
   assert(seeded.user.id==='host001','Existing demo host login remains compatible');
-  const spoof=await service.register({display_name:'Role Test',email:'role@example.test',password:newPassword,role:'admin'});
-  assert(spoof.user.role==='user','Registration cannot request admin role');
+  await rejects(() => service.register({display_name:'Role Test',email:'role@example.test',password:newPassword,role:'admin'}),422,'Registration rejects admin role escalation');
   // Force quota failure without filling the real device storage.
   const original=win().Storage.prototype.setItem;
   win().Storage.prototype.setItem=function(k,v) { if(k==='luxstay_mock_users_v1') throw new Error('quota'); return original.call(this,k,v); };

@@ -1,5 +1,11 @@
 # LuxStay — Homestay Booking Website
 
+## Chạy chung cho nhiều thiết bị
+
+Một máy server chạy FastAPI với `FRONTEND_MODE=shared`, `SERVE_FRONTEND=true` và `DATABASE_URL` trỏ đến PostgreSQL chung. Mọi thành viên mở cùng URL của server. Chế độ này tự dùng API trên tất cả trang, kể cả URL thiếu `?mode=api`. Mở frontend bằng static server riêng tiếp tục là bản demo mock trên từng trình duyệt.
+
+Thiết lập PostgreSQL, migration, tạo admin đầu tiên, LAN và staging HTTPS được mô tả trong [POSTGRESQL_SHARED_SETUP.md](docs/POSTGRESQL_SHARED_SETUP.md). Nguyên nhân dữ liệu tách giữa các máy xem [SHARED_DATABASE_AUDIT.md](docs/SHARED_DATABASE_AUDIT.md). Kết quả kiểm thử và các bước vận hành còn lại xem [SHARED_FULLSTACK_REPORT.md](docs/SHARED_FULLSTACK_REPORT.md).
+
 **Topic:** C3 – Homestay Booking
 **Group:** 2 — AI66B
 **Repository:** https://github.com/WEB-FDA-NEU/AI66B---G2---TOPIC-C3---WEB-DESIGN-AND-PROGRAMMING

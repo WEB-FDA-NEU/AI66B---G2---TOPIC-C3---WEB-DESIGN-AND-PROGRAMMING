@@ -4,16 +4,19 @@
 //  Chưa được đổi USE_MOCK=false cho toàn ứng dụng trước gate tích hợp.
 // ============================================================
 
+import { deployment } from './runtime-config.js';
+
 export const USE_MOCK = true;
+export const SHARED_MODE = deployment.mode === 'shared';
 
 // Same-origin Uvicorn/staging by default; standard Live Server ports target the same loopback host.
 // A deployment may supply a non-secret global LUXSTAY_CONFIG.apiBase before module loading.
 const loopback = ['localhost', '127.0.0.1'].includes(location.hostname);
-const configuredBase = globalThis.LUXSTAY_CONFIG?.apiBase;
+const configuredBase = SHARED_MODE ? deployment.apiBase : globalThis.LUXSTAY_CONFIG?.apiBase;
 export const API_BASE = new URL(configuredBase || (loopback && ['5500', '5501'].includes(location.port)
   ? `http://${location.hostname}:8000/api` : '/api'), location.origin).href.replace(/\/$/, '');
 if (!['http:', 'https:'].includes(new URL(API_BASE).protocol) || new URL(API_BASE).username || new URL(API_BASE).password) throw Error('Invalid API origin');
-export const API_SCOPE = new URLSearchParams(location.search).get('mode') === 'api' ? 'customer'
+export const API_SCOPE = SHARED_MODE || new URLSearchParams(location.search).get('mode') === 'api' ? 'customer'
   : new URLSearchParams(location.search).get('accounts') === 'api' ? 'accounts' : 'mock';
 export const ACCOUNT_API_MODE = API_SCOPE !== 'mock';
 export const apiModuleEnabled = module => module === 'accounts' || (API_SCOPE === 'customer' && ['catalog','bookings','host-bookings','host-properties','host-rooms','host-dashboard','admin'].includes(module));

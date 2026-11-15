@@ -155,7 +155,9 @@ def test_disabled_applicant_cannot_be_approved(client, headers):
         ).status_code
         == 409
     )
-    assert client.post("/api/host/apply", json=host_application_payload(), headers=headers()).status_code == 401
+    assert (
+        client.post("/api/host/apply", json=host_application_payload(), headers=headers()).status_code == 401
+    )
 
 
 def test_reactivation_does_not_restore_revoked_tokens(client, headers):
@@ -230,7 +232,9 @@ def test_database_enforces_user_role_session_fk_and_application_uniqueness(setup
         with pytest.raises(IntegrityError):
             db.flush()
         db.rollback()
-    assert client.post("/api/host/apply", json=host_application_payload(), headers=headers()).status_code == 201
+    assert (
+        client.post("/api/host/apply", json=host_application_payload(), headers=headers()).status_code == 201
+    )
     with setup["factory"]() as db:
         db.add(HostApplication(user_id=1))
         with pytest.raises(IntegrityError):
@@ -316,7 +320,32 @@ def test_concurrent_host_apply_and_approval_must_not_deadlock(setup, client, hea
             statuses = [apply.result(timeout=30).status_code, approve.result(timeout=30).status_code]
     finally:
         event.remove(setup["engine"], "before_cursor_execute", synchronize_locks)
-    assert sorted(statuses) == [200, 409], f"Concurrent request statuses: {statuses}"
+    assert statuses[1] == 200, f"Approval failed: {statuses}"
+    assert statuses[0] in (403, 409), f"Concurrent application was not rejected: {statuses}"
+    # Approval can win the User lock, so the competing request sees a Host and returns 403.
+    # Both lock orders must produce exactly one decision and no second application.
+    from sqlalchemy import func, select
+
+    from backend.models import HostApplication, HostApplicationHistory, User
+
+    with setup["factory"]() as db:
+        assert db.get(User, 1).role == "host"
+        assert db.get(HostApplication, application["id"]).status == "approved"
+        assert (
+            db.scalar(select(func.count()).select_from(HostApplication).where(HostApplication.user_id == 1))
+            == 1
+        )
+        assert (
+            db.scalar(
+                select(func.count())
+                .select_from(HostApplicationHistory)
+                .where(
+                    HostApplicationHistory.application_id == application["id"],
+                    HostApplicationHistory.status == "approved",
+                )
+            )
+            == 1
+        )
 
 
 @pytest.mark.parametrize(
