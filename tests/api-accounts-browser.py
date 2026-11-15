@@ -256,7 +256,7 @@ def main():
                     fill("#login-form", {"email": mail, "password": secret})
                     submit("#login-form")
                     c.until(
-                        "location.pathname.endsWith('/profile.html') && !document.querySelector('#profile-form [type=submit]').disabled"
+                        "location.pathname.endsWith('/index.html')"
                     )
 
                 def api(expression):
@@ -282,7 +282,7 @@ def main():
                 )
                 submit("#register-form", True)
                 c.until(
-                    "location.pathname.endsWith('/profile.html') && !document.querySelector('#profile-form [type=submit]').disabled"
+                    "location.pathname.endsWith('/index.html')"
                 )
                 check(
                     sum(m == "POST" and p == "/api/auth/register" for m, p in c.requests) == 1,

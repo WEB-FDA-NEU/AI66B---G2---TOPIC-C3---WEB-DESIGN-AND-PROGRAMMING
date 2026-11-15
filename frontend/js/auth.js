@@ -52,7 +52,7 @@ export function requireLogin() {
 export function returnAfterLogin() {
   const key = ACCOUNT_API_MODE ? 'api_return_to' : 'app_return_to';
   const raw = sessionStorage.getItem(key); sessionStorage.removeItem(key);
-  const fallback = ACCOUNT_API_MODE ? 'profile.html' : 'index.html';
+  const fallback = 'index.html';   // đăng nhập trực tiếp → về trang chủ
   let next = fallback;
   try {
     const url = new URL(raw || fallback, location.href);
