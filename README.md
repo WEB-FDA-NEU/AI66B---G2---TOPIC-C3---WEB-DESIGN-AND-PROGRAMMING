@@ -225,5 +225,4 @@ Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (
 - **Dashboard:** đã nối SQL KPI/series/inventory-aware; occupancy dùng tồn kho hiện tại, chưa có inventory history; cash không phải settlement/lợi nhuận.
 - **Dịch vụ ngoài:** payment gateway/webhook, email verification/reset và storage/deployment cần cấu hình và QA riêng; không giả lập thành công. Xem EXT-001.
 - **Contract:** tài liệu mới là [API_CONTRACT.md](docs/API_CONTRACT.md); một số comment cũ trong frontend vẫn dùng tên tài liệu trước đó và chưa bị sửa trong giai đoạn backend.
-- **Ảnh:** mock mới dùng một số ít ảnh Unsplash nên vài homestay còn trùng ảnh bìa. Cần ảnh riêng cho mỗi homestay.
 - **File thừa từ template:** `js/pages/shop.js` và `docs/preview-shop.html` không được trang nào dùng, có thể xóa khi dọn dẹp.
