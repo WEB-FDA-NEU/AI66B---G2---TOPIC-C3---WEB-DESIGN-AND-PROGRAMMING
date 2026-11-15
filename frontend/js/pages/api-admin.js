@@ -2,6 +2,7 @@ import { getAdminOverview, getAdminApplications, decideHostApplication, getAdmin
   getAdminHomestays, moderateHomestay, getAdminHosts, getAdminHostCancellations, cancelAdminHost } from '../api.js';
 import { safeImageURL } from '../config.js';
 import { confirmAction, toast } from '../ui.js';
+import { bindSearchbar, createSearchbar } from '../search.js';
 import { periodTabs, getWindow, dayNum, bucketIndex, countUp, drawChart, axisOptions, theme, palette, fmtVND } from '../charts.js';
 
 const $ = id => document.getElementById(id);
@@ -47,17 +48,21 @@ export async function initAdmin() {
   }
 
   // Each list has independent, server-backed filters and paging. Counts are page counts only.
-  function pagedList({ root, list, filters, fetchRows, renderRow, afterLoad }) {
-    let page = 1, busy = false;
+  // `search` (tùy chọn): khối <label class="searchbar">; từ khóa gửi lên backend qua tham số q.
+  function pagedList({ root, list, filters, fetchRows, renderRow, afterLoad, search }) {
+    let page = 1, busy = false, again = false;
+    const searchInput = search?.querySelector('input');
     const controls = el('div', 'row__actions'), pager = el('div', 'row__actions'), note = el('p', 'field__hint');
     for (const [label, node] of filters) { controls.append(field(label, node)); node.onchange = () => { if (!busy) { page = 1; load(); } }; }
     list.before(controls); list.after(note, pager);
     async function load() {
-      if (busy) return; busy = true;
+      if (busy) { again = true; return; }   // vừa gõ tìm kiếm khi đang tải → tải lại ngay khi xong
+      busy = true;
       for (const [, node] of filters) node.disabled = true;
       try {
         const params = { page, page_size: 20 };
         for (const [, node] of filters) if (node.value !== '') params[node.dataset.param] = node.value;
+        if (searchInput?.value.trim()) params.q = searchInput.value.trim();
         const rows = await fetchRows(params);
         list.replaceChildren(...rows.map(row => renderRow(row, load)));
         list.hidden = false; if (!rows.length) list.append(el('p', 'empty', 'Không có dữ liệu ở trang này.'));
@@ -68,8 +73,12 @@ export async function initAdmin() {
         }
         afterLoad?.(rows);
       } catch (error) { list.replaceChildren(el('p', 'text-danger', error.detail || 'Không tải được dữ liệu.')); pager.replaceChildren(); }
-      finally { busy = false; for (const [, node] of filters) node.disabled = false; }
+      finally {
+        busy = false; for (const [, node] of filters) node.disabled = false;
+        if (again) { again = false; load(); }
+      }
     }
+    if (search) bindSearchbar(search, () => { page = 1; load(); });
     load(); return load;
   }
   const filter = (id, param, options) => { const node = select(id, options); node.dataset.param = param; return node; };
@@ -86,6 +95,7 @@ export async function initAdmin() {
   };
   $('application-empty').hidden = true;
   pagedList({ root: $('application-list').parentElement, list: $('application-list'), filters: [['Trạng thái', applicationStatus]], fetchRows: getAdminApplications,
+    search: $('application-search'),
     renderRow(application, reload) {
       const row = el('article', 'row'); row.dataset.status = application.status; row.dataset.applicationId = application.id;
       const info = el('div'), actions = el('div', 'row__actions');
@@ -122,11 +132,17 @@ export async function initAdmin() {
     } });
 
   function section(id, title) { const root = el('section', 'mt-6'); root.id = id; root.append(el('h2', '', title)); const list = el('div', 'stack'); root.append(list); document.querySelector('main').append(root); return { root, list }; }
+  // Ô tìm kiếm cho mục dựng bằng JS: đặt phía trên bộ lọc của danh sách.
+  const addSearch = (sectionNode, placeholder, label) => {
+    const bar = createSearchbar({ placeholder, label }), toolbar = el('div', 'list-toolbar');
+    toolbar.append(bar); sectionNode.list.before(toolbar); return bar;
+  };
   const userSection = section('admin-users', 'Quản lý người dùng');
+  const userSearch = addSearch(userSection, 'Tìm tên, email hoặc SĐT…', 'Tìm người dùng');
   const role = filter('admin-user-role', 'role', [['','Tất cả vai trò'],['user','Customer'],['host','Host'],['admin','Admin']]);
   const active = filter('admin-user-active', 'is_active', [['','Tất cả tài khoản'],['true','Đang hoạt động'],['false','Đã khóa']]);
   const sort = filter('admin-user-sort', 'sort', [['id','ID'],['newest','Mới nhất'],['email','Email']]);
-  pagedList({ ...userSection, filters: [['Vai trò',role],['Tình trạng',active],['Sắp xếp',sort]], fetchRows: getAdminUsers,
+  pagedList({ ...userSection, filters: [['Vai trò',role],['Tình trạng',active],['Sắp xếp',sort]], fetchRows: getAdminUsers, search: userSearch,
     renderRow(user, reload) {
       const row = el('article', 'row'); row.dataset.userId = user.id;
       const info = el('div'), actions = el('div', 'row__actions');
@@ -156,8 +172,9 @@ export async function initAdmin() {
     } });
 
   const staySection = section('admin-homestays', 'Kiểm duyệt homestay');
+  const staySearch = addSearch(staySection, 'Tìm tên homestay hoặc địa chỉ…', 'Tìm homestay');
   const stayStatus = filter('admin-stay-status', 'status', [['','Tất cả trạng thái'],['active','Đang hoạt động'],['inactive','Tạm ngừng'],['deleted','Đã xóa']]);
-  pagedList({ ...staySection, filters: [['Trạng thái',stayStatus]], fetchRows: getAdminHomestays,
+  pagedList({ ...staySection, filters: [['Trạng thái',stayStatus]], fetchRows: getAdminHomestays, search: staySearch,
     renderRow(stay, reload) {
       const row = el('article', 'row'); row.dataset.homestayId = stay.id;
       const info = el('div'), actions = el('div', 'row__actions');
@@ -177,12 +194,12 @@ export async function initAdmin() {
       row.append(picture(stay.images?.[0]),info,actions); return row;
     } });
 
-  // Backend has no host name search parameter: disclose that this search covers the current page.
-  $('host-search').placeholder = 'Tìm trong trang host hiện tại'; $('host-empty').hidden = true;
+  // Tìm host (tên, email, SĐT, tên homestay) do backend xử lý qua tham số q, trên toàn bộ host.
+  $('host-empty').hidden = true;
   let hostRows = [], reloadHostRows = async () => {};
   const renderHosts = () => {
-    const query = $('host-search').value.trim().toLocaleLowerCase('vi');
-    $('host-list').replaceChildren(...hostRows.filter(h => `${h.display_name} ${h.email} ${h.phone}`.toLocaleLowerCase('vi').includes(query)).map(host => {
+    $('host-empty').hidden = hostRows.length > 0;
+    $('host-list').replaceChildren(...hostRows.map(host => {
       const row = el('article','row'), info = el('div'), actions = el('div', 'row__actions');
       info.append(el('p','row__title',host.display_name),el('p','row__meta',`${host.email} · ${host.phone || ''}`),
         el('p','row__meta',`${host.bookingCount} booking · Giá trị đơn hoàn tất ${fmtVND(host.revenue)} (không phải tiền đã thu)`),
@@ -206,8 +223,7 @@ export async function initAdmin() {
       actions.append(cancel); row.append(picture(host.avatar),info,actions); return row;
     }));
   };
-  $('host-search').oninput = renderHosts;
-  reloadHostRows = pagedList({ root: $('host-section'), list: $('host-list'), filters: [], fetchRows: getAdminHosts,
+  reloadHostRows = pagedList({ root: $('host-section'), list: $('host-list'), filters: [], fetchRows: getAdminHosts, search: $('host-searchbar'),
     renderRow: () => el('div'), afterLoad(rows) { hostRows = rows; renderHosts(); $('host-count').textContent = `(${rows.length} trong trang)`; } });
   await renderOverview(tabs.value);
 }

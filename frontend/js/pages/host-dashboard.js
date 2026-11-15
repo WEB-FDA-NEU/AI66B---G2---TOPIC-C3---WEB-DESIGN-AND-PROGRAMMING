@@ -1,6 +1,7 @@
 import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
 import { initHostDashboardNavigation } from '../host-navigation.js';
 import { getHostDashboard } from '../api.js';
+import { bindSearchbar, matchesQuery } from '../search.js';
 // ============================================================
 //  Host Dashboard: số liệu + biểu đồ tính từ dữ liệu host (getHost*), có bộ lọc kỳ.
 //  Quy ước tính (hiện ngay trên giao diện để người xem hiểu số):
@@ -33,6 +34,8 @@ const make = (tag, cls, text) => { const e = document.createElement(tag); if (cl
 let homestays = [], rooms = [], bookings = [], roomsById = {}, roomsByHs = {}, hsById = {};
 let anchor = 0;
 let requestGeneration = 0;
+let searchQuery = '', searchGeneration = 0;   // ô tìm trong mục "Đặt phòng gần đây"
+const RECENT_LIMIT = 5, SEARCH_LIMIT = 10;
 let tabs;
 
 async function load() {
@@ -242,9 +245,18 @@ function renderOccupancyChart({ perHs, totalNights, w }) {
 }
 
 // ---------- Đặt phòng gần đây (có ảnh thật) ----------
-function renderRecent() {
-  const recent = [...bookings].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
-  if (!recent.length) { $('recent').replaceChildren(make('p', 'text-muted', 'Chưa có đặt phòng nào.')); return; }
+// items = null → 5 đơn mới nhất; items = mảng → kết quả tìm kiếm.
+function renderRecent(items = null) {
+  if (items === null && searchQuery) return;   // đang hiển thị kết quả tìm kiếm, đừng ghi đè khi đổi kỳ
+  const searching = items !== null;
+  const recent = searching ? items : [...bookings].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, RECENT_LIMIT);
+  $('recent-sub').textContent = searching
+    ? `${recent.length}${recent.length >= SEARCH_LIMIT ? '+' : ''} kết quả cho “${searchQuery}” trong toàn bộ đặt phòng.`
+    : `${RECENT_LIMIT} đặt phòng mới nhất trên các homestay của bạn.`;
+  if (!recent.length) {
+    $('recent').replaceChildren(make('p', 'text-muted', searching ? 'Không có đặt phòng phù hợp.' : 'Chưa có đặt phòng nào.'));
+    return;
+  }
 
   const wrap = make('div', 'stack host-dashboard-recent-list');
   recent.forEach(b => {
@@ -273,6 +285,30 @@ function renderRecent() {
   });
   $('recent').replaceChildren(wrap);
 }
+
+// ---------- Tìm kiếm đặt phòng (theo tên khách, SĐT, tên homestay) ----------
+async function runSearch(value) {
+  searchQuery = value;
+  const current = ++searchGeneration;
+  $('recent-all').href = accountHref(value ? `host-bookings.html?q=${encodeURIComponent(value)}` : 'host-bookings.html');
+  if (!value) { renderRecent(); return; }
+  try {
+    const sortNewest = list => [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, SEARCH_LIMIT);
+    // API mode: backend tìm trên TOÀN BỘ đặt phòng. Mock mode: `bookings` đã chứa tất cả.
+    const found = ACCOUNT_API_MODE
+      ? await getHostBookings({ q: value, page: 1, page_size: SEARCH_LIMIT })
+      : sortNewest(bookings.filter(b => matchesQuery(
+          value, b.customerName, b.customerPhone,
+          b.homestayName || hsById[roomsById[b.roomId]?.homestayId]?.name,
+          b.roomName || roomsById[b.roomId]?.name)));
+    if (current !== searchGeneration) return;
+    renderRecent(found);
+  } catch (error) {
+    if (current !== searchGeneration) return;
+    $('recent').replaceChildren(make('p', 'text-danger', `Không tìm được. ${error.detail ?? ''}`));
+  }
+}
+bindSearchbar($('recent-search'), runSearch);
 
 initHostDashboardNavigation();
 load();

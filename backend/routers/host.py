@@ -11,6 +11,7 @@ from ..database import get_db
 from ..deps import get_host, owned_homestay, owned_room
 from ..media import normalize_image
 from ..models import Booking, BookingLine, Homestay, Room, RoomBlock, RoomNight, User
+from ..search import matches, page_slice, tokens
 from ..serializers import booking_list_out, booking_out, homestay_out, room_out
 
 router = APIRouter(prefix="/api/host", tags=["host"])
@@ -22,17 +23,22 @@ def homestays(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=100),
+    q: str | None = Query(None, max_length=100),
 ):
-    return [
-        homestay_out(db, item)
-        for item in db.scalars(
-            select(Homestay)
-            .where(Homestay.host_id == user.id, Homestay.status != "deleted")
-            .order_by(Homestay.id)
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+    owned = (Homestay.host_id == user.id, Homestay.status != "deleted")
+    needles = tokens(q)
+    if needles:
+        # Tìm theo tên hoặc địa chỉ, không phân biệt dấu; lọc trước rồi mới phân trang.
+        found = db.execute(
+            select(Homestay.id, Homestay.name, Homestay.address).where(*owned).order_by(Homestay.id)
+        ).all()
+        ids = page_slice([r.id for r in found if matches(needles, r.name, r.address)], page, page_size)
+        stays = db.scalars(select(Homestay).where(Homestay.id.in_(ids)).order_by(Homestay.id)) if ids else []
+    else:
+        stays = db.scalars(
+            select(Homestay).where(*owned).order_by(Homestay.id).offset((page - 1) * page_size).limit(page_size)
         )
-    ]
+    return [homestay_out(db, item) for item in stays]
 
 
 def save_homestay(payload, request, db, user, item=None):
@@ -295,18 +301,29 @@ def bookings(
     page: int | None = Query(1, ge=1, le=100000),
     page_size: int = Query(20, ge=1, le=100),
     status: schemas.BookingState | None = None,
+    q: str | None = Query(None, max_length=100),
     user: User = Depends(get_host),
     db: Session = Depends(get_db),
 ):
-    query = (
-        select(Booking)
-        .join(Homestay)
-        .where(Homestay.host_id == user.id)
-        .order_by(Booking.created_at.desc(), Booking.id.desc())
-    )
+    order = (Booking.created_at.desc(), Booking.id.desc())
+    query = select(Booking).join(Homestay).where(Homestay.host_id == user.id).order_by(*order)
     if status:
         query = query.where(Booking.status == status)
-    if page is not None:
+    needles = tokens(q)
+    if needles:
+        # Tìm theo tên khách, số điện thoại, tên homestay hoặc mã đặt phòng (không phân biệt dấu).
+        found = db.execute(
+            query.with_only_columns(
+                Booking.id, Booking.guest_name, Booking.customer_phone, Booking.homestay_name, Booking.code
+            )
+        ).all()
+        ids = [r.id for r in found if matches(needles, r.guest_name, r.customer_phone, r.homestay_name, r.code)]
+        if page is not None:
+            ids = page_slice(ids, page, page_size)
+        if not ids:
+            return []
+        query = select(Booking).where(Booking.id.in_(ids)).order_by(*order)
+    elif page is not None:
         query = query.offset((page - 1) * page_size).limit(page_size)
     return booking_list_out(db, db.scalars(query), host=True)
 

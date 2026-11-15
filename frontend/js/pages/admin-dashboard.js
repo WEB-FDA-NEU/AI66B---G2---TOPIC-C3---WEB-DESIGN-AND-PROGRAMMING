@@ -11,6 +11,7 @@ import { periodTabs, getWindow, inWindow, bucketIndex, dayNum, fmtFullDate, fmtI
          countUp, drawChart, axisOptions, theme, palette } from '../charts.js';
 import { safeImageURL } from '../config.js';
 import { confirmAction, toast } from '../ui.js';
+import { bindSearchbar, matchesQuery } from '../search.js';
 
 import { ACCOUNT_API_MODE } from '../config.js';
 if (ACCOUNT_API_MODE) {
@@ -20,6 +21,7 @@ if (ACCOUNT_API_MODE) {
 const $ = id => document.getElementById(id);
 
 let users = [], bookings = [], homestays = [], provinceOf = {};
+let allApplications = [];   // toàn bộ đơn chờ duyệt (ô tìm kiếm chỉ lọc phần hiển thị, KPI vẫn đếm đủ)
 let anchor = 0, tabs;
 
 const province = loc => (loc ?? '').split(',').pop().trim() || 'Khác';
@@ -108,20 +110,33 @@ async function loadHostCancellations() {
 // ---------- Đơn chờ duyệt: đếm từ danh sách đơn trên trang, tự cập nhật khi Duyệt/Từ chối ----------
 function watchPending() {
   const list = $('application-list');
-  const count = () => list.querySelectorAll('[data-status="pending"]').length;
+  const count = () => allApplications.filter(a => a.status === 'pending').length;
   countUp($('kpi-pending'), count());
   new MutationObserver(() => countUp($('kpi-pending'), count()))
     .observe(list, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-status'] });
 }
+
+// Lọc theo người nộp (tên, email) hoặc nội dung đơn (tên homestay dự kiến, địa chỉ, tỉnh, SĐT); không phân biệt dấu.
+function renderApplicationList() {
+  const list = $('application-list'), empty = $('application-empty');
+  const q = $('application-search').querySelector('input').value.trim();
+  const shown = allApplications.filter(a => matchesQuery(q, a.user.display_name, a.user.email,
+    ...['homestay_name', 'address', 'province', 'phone'].map(k => a.application_data?.[k])));
+  list.replaceChildren(...shown.map(renderApplication));
+  list.hidden = shown.length === 0;
+  empty.hidden = shown.length > 0;
+  empty.querySelector('.empty__title').textContent = q ? 'Không tìm thấy đơn nào' : 'Không còn đơn nào chờ duyệt';
+  empty.querySelector('.empty__hint').textContent = q ? 'Thử đổi từ khóa tìm kiếm.' : 'Mọi đơn xin làm host đã được xử lý.';
+}
+bindSearchbar($('application-search'), renderApplicationList, { delay: 150 });
 
 async function loadApplications() {
   const list = $('application-list');
   const empty = $('application-empty');
   try {
     const applications = await getAdminApplications({ status: 'pending', page: 1, page_size: 100 });
-    list.replaceChildren(...applications.map(renderApplication));
-    list.hidden = applications.length === 0;
-    empty.hidden = applications.length > 0;
+    allApplications = applications;
+    renderApplicationList();
     countUp($('kpi-pending'), applications.length);
   } catch (error) {
     console.error(error);

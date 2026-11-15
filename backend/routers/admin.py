@@ -18,6 +18,7 @@ from ..models import (
     User,
     utcnow,
 )
+from ..search import matches, page_slice, tokens
 from ..serializers import application_out, homestay_out, iso, user_out
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -96,21 +97,44 @@ def overview(
 def hosts(
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=100),
+    q: str | None = Query(None, max_length=100),
     user: User = Depends(get_admin),
     db: Session = Depends(get_db),
 ):
     from ..models import Room
     from ..serializers import public_homestays
 
-    rows = list(
-        db.scalars(
-            select(User)
-            .where(User.role == "host")
-            .order_by(User.id)
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+    needles = tokens(q)
+    if needles:
+        # Tìm theo tên host, email, SĐT hoặc tên homestay của host đó (không phân biệt dấu).
+        stay_names = {}
+        for host_id, name in db.execute(
+            select(Homestay.host_id, Homestay.name).where(Homestay.status != "deleted")
+        ):
+            stay_names.setdefault(host_id, []).append(name)
+        found = db.execute(
+            select(User.id, User.display_name, User.email, User.phone).where(User.role == "host").order_by(User.id)
+        ).all()
+        wanted = page_slice(
+            [
+                r.id
+                for r in found
+                if matches(needles, r.display_name, r.email, r.phone, " ".join(stay_names.get(r.id, [])))
+            ],
+            page,
+            page_size,
         )
-    )
+        rows = list(db.scalars(select(User).where(User.id.in_(wanted)).order_by(User.id))) if wanted else []
+    else:
+        rows = list(
+            db.scalars(
+                select(User)
+                .where(User.role == "host")
+                .order_by(User.id)
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+            )
+        )
     ids = [u.id for u in rows]
     stays = list(
         db.scalars(
@@ -159,19 +183,52 @@ def applications(
     status: Literal["pending", "approved", "rejected"] | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=100),
+    q: str | None = Query(None, max_length=100),
     user: User = Depends(get_admin),
     db: Session = Depends(get_db),
 ):
     query = select(HostApplication)
     if status:
         query = query.where(HostApplication.status == status)
-    rows = list(
-        db.scalars(
-            query.order_by(HostApplication.created_at.desc(), HostApplication.id.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+    query = query.order_by(HostApplication.created_at.desc(), HostApplication.id.desc())
+    needles = tokens(q)
+    if needles:
+        # Tìm theo người nộp (tên, email) hoặc nội dung đơn (tên homestay dự kiến, địa chỉ, tỉnh, SĐT).
+        found = db.execute(
+            query.join(User, User.id == HostApplication.user_id).with_only_columns(
+                HostApplication.id, User.display_name, User.email, HostApplication.application_data
+            )
+        ).all()
+        wanted = page_slice(
+            [
+                r.id
+                for r in found
+                if matches(
+                    needles,
+                    r.display_name,
+                    r.email,
+                    *(
+                        (r.application_data or {}).get(k)
+                        for k in ("homestay_name", "address", "province", "phone")
+                    ),
+                )
+            ],
+            page,
+            page_size,
         )
-    )
+        rows = (
+            list(
+                db.scalars(
+                    select(HostApplication)
+                    .where(HostApplication.id.in_(wanted))
+                    .order_by(HostApplication.created_at.desc(), HostApplication.id.desc())
+                )
+            )
+            if wanted
+            else []
+        )
+    else:
+        rows = list(db.scalars(query.offset((page - 1) * page_size).limit(page_size)))
     owners = {u.id: u for u in db.scalars(select(User).where(User.id.in_([a.user_id for a in rows])))}
     histories = {}
     for h in db.scalars(
@@ -249,6 +306,7 @@ def users(
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=100),
     sort: Literal["id", "newest", "email"] = "id",
+    q: str | None = Query(None, max_length=100),
     user: User = Depends(get_admin),
     db: Session = Depends(get_db),
 ):
@@ -258,10 +316,18 @@ def users(
     if is_active is not None:
         query = query.where(User.is_active == is_active)
     order = {"id": User.id, "newest": User.created_at.desc(), "email": User.email}[sort]
-    return [
-        {**user_out(u), "is_active": u.is_active}
-        for u in db.scalars(query.order_by(order, User.id).offset((page - 1) * page_size).limit(page_size))
-    ]
+    query = query.order_by(order, User.id)
+    needles = tokens(q)
+    if needles:
+        # Tìm theo tên, email hoặc số điện thoại (không phân biệt dấu).
+        found = db.execute(query.with_only_columns(User.id, User.display_name, User.email, User.phone)).all()
+        wanted = page_slice([r.id for r in found if matches(needles, r.display_name, r.email, r.phone)], page, page_size)
+        users_page = (
+            list(db.scalars(select(User).where(User.id.in_(wanted)).order_by(order, User.id))) if wanted else []
+        )
+    else:
+        users_page = db.scalars(query.offset((page - 1) * page_size).limit(page_size))
+    return [{**user_out(u), "is_active": u.is_active} for u in users_page]
 
 
 @router.get("/host-cancellations")
@@ -350,16 +416,23 @@ def homestays(
     status: Literal["active", "inactive", "deleted"] | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=100),
+    q: str | None = Query(None, max_length=100),
     user: User = Depends(get_admin),
     db: Session = Depends(get_db),
 ):
     query = select(Homestay)
     if status:
         query = query.where(Homestay.status == status)
-    return [
-        homestay_out(db, stay)
-        for stay in db.scalars(query.order_by(Homestay.id).offset((page - 1) * page_size).limit(page_size))
-    ]
+    query = query.order_by(Homestay.id)
+    needles = tokens(q)
+    if needles:
+        # Tìm theo tên hoặc địa chỉ homestay (không phân biệt dấu).
+        found = db.execute(query.with_only_columns(Homestay.id, Homestay.name, Homestay.address)).all()
+        wanted = page_slice([r.id for r in found if matches(needles, r.name, r.address)], page, page_size)
+        stays = db.scalars(select(Homestay).where(Homestay.id.in_(wanted)).order_by(Homestay.id)) if wanted else []
+    else:
+        stays = db.scalars(query.offset((page - 1) * page_size).limit(page_size))
+    return [homestay_out(db, stay) for stay in stays]
 
 
 @router.patch("/homestays/{item_id}/status")

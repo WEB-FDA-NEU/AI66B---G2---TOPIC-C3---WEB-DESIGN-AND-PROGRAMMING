@@ -3,6 +3,7 @@ import { initHostDashboardReturn } from '../host-navigation.js';
 
 import { getHostHomestays, getHostRooms, deleteHostHomestay } from '../api.js';
 import { confirmAction, toast } from '../ui.js';
+import { bindSearchbar, matchesQuery } from '../search.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
 import '../guard.js';
@@ -11,18 +12,27 @@ const $ = id => document.getElementById(id);
 initHostDashboardReturn();
 let page = 1;
 let loading = false;
+let again = false;      // có yêu cầu tải mới (vd. vừa gõ tìm kiếm) khi đang tải
+let query = '';
 const pager = document.createElement('div'); pager.className = 'row__actions'; $('list').after(pager);
 
 async function load() {
-  if (loading) return;
+  if (loading) { again = true; return; }
   loading = true;
   try {
-    const [homestays, rooms] = await Promise.all([
-      getHostHomestays({ page, page_size: 20 }),
+    const [fetched, rooms] = await Promise.all([
+      getHostHomestays({ page, page_size: 20, ...(query ? { q: query } : {}) }),
       ACCOUNT_API_MODE ? Promise.resolve([]) : getHostRooms()
     ]);
+    // API mode: backend đã lọc theo q. Mock mode: lọc tại đây (không phân biệt dấu).
+    const homestays = ACCOUNT_API_MODE || !query
+      ? fetched
+      : fetched.filter(h => matchesQuery(query, h.name, h.address));
 
-    $('count').textContent = `${homestays.length} homestay`;
+    $('count').textContent = !ACCOUNT_API_MODE && query
+      ? `${homestays.length}/${fetched.length} homestay`
+      : `${homestays.length} homestay`;
+    $('search-count').textContent = query ? `${homestays.length} kết quả cho “${query}”` : '';
 
     pager.replaceChildren();
     if (ACCOUNT_API_MODE) {
@@ -32,6 +42,18 @@ async function load() {
         button.addEventListener('click', () => { if (!loading) { page += delta; load(); } }); pager.append(button);
       }
     }
+    // Tìm kiếm không có kết quả
+    if (!homestays.length && query) {
+      const box = document.createElement('div'); box.className = 'empty search-empty';
+      const title = document.createElement('p'); title.className = 'empty__title'; title.textContent = 'Không tìm thấy homestay nào';
+      const hint = document.createElement('p'); hint.className = 'empty__hint'; hint.textContent = `Không có homestay khớp “${query}”. Thử tên hoặc địa chỉ khác.`;
+      const reset = document.createElement('button'); reset.type = 'button'; reset.className = 'btn'; reset.textContent = 'Xóa tìm kiếm';
+      reset.addEventListener('click', () => { search.set(''); query = ''; page = 1; load(); });
+      box.append(title, hint, reset);
+      $('list').replaceChildren(box);
+      return;
+    }
+
     // Trường hợp chưa có homestay
     if (!homestays.length) {
       $('list').innerHTML = `
@@ -167,7 +189,11 @@ async function load() {
     `;
 
     toast(e.detail || e.message, 'error');
-  } finally { loading = false; }
+  } finally {
+    loading = false;
+    if (again) { again = false; load(); }
+  }
 }
 
+const search = bindSearchbar($('homestay-search'), value => { query = value; page = 1; load(); });
 load();

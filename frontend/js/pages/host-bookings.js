@@ -5,6 +5,7 @@ import { ACCOUNT_API_MODE } from '../config.js';
 import { initHostDashboardReturn } from '../host-navigation.js';
 import { formatVND } from '../render.js';
 import { toast } from '../ui.js';
+import { bindSearchbar, matchesQuery } from '../search.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
 import '../guard.js';
@@ -47,6 +48,7 @@ let bookings = [];
 let rooms = [];
 let homestays = [];
 let filter = '';
+let query = '';
 let page = 1;
 let loading = false;
 let generation = 0;
@@ -59,7 +61,7 @@ async function loadData() {
   loading = true;
   try {
     const result = ACCOUNT_API_MODE
-      ? [await getHostBookings({ page, page_size: 20, ...(filter ? { status: filter } : {}) }), [], []]
+      ? [await getHostBookings({ page, page_size: 20, ...(filter ? { status: filter } : {}), ...(query ? { q: query } : {}) }), [], []]
       : await Promise.all([getHostBookings(), getHostRooms(), getHostHomestays()]);
     if (current !== generation) return;
     [bookings, rooms, homestays] = result;
@@ -86,9 +88,17 @@ function render({ changedId = null } = {}) {
   const roomsById = Object.fromEntries(rooms.map(r => [r.id, r]));
   const hsById = Object.fromEntries(homestays.map(h => [h.id, h]));
 
-  const list = filter
-    ? bookings.filter(b => b.status === filter)
-    : bookings;
+  // Tìm kiếm: API mode đã lọc ở backend; mock mode lọc tại đây (không phân biệt dấu).
+  const list = bookings.filter(b => (!filter || b.status === filter) && (ACCOUNT_API_MODE || matchesQuery(
+    query,
+    b.customerName, b.customerPhone,
+    b.homestayName || hsById[roomsById[b.roomId]?.homestayId]?.name,
+    b.roomName || roomsById[b.roomId]?.name
+  )));
+  $('search-count').hidden = !query;
+  $('search-count').textContent = query
+    ? `${list.length} kết quả cho “${query}”${ACCOUNT_API_MODE ? ` (trang ${page})` : ''}`
+    : '';
 
   const sorted = [...list].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt)
@@ -99,9 +109,11 @@ function render({ changedId = null } = {}) {
       <div class="empty host-bookings-empty">
         <p class="empty__title">Không có đặt phòng nào</p>
         <p class="empty__hint">
-          ${filter
-            ? 'Không có đặt phòng ở trạng thái này.'
-            : 'Chưa có khách đặt phòng nào của bạn.'}
+          ${query
+            ? 'Không có đặt phòng khớp từ khóa tìm kiếm.'
+            : filter
+              ? 'Không có đặt phòng ở trạng thái này.'
+              : 'Chưa có khách đặt phòng nào của bạn.'}
         </p>
       </div>
     `;
@@ -263,6 +275,15 @@ $('tabs').addEventListener('click', async e => {
   try { if (ACCOUNT_API_MODE) await loadData(); render(); }
   catch (error) { $('list').replaceChildren(); pager.replaceChildren(); toast(error.detail, 'error'); }
 });
+
+// Thanh tìm kiếm; ?q=... (từ ô tìm ở Bảng điều khiển) điền sẵn từ khóa.
+const search = bindSearchbar($('booking-search'), async value => {
+  query = value; page = 1;
+  try { if (ACCOUNT_API_MODE) await loadData(); render(); }
+  catch (error) { $('list').replaceChildren(); pager.replaceChildren(); toast(error.detail, 'error'); }
+});
+query = (new URLSearchParams(location.search).get('q') || '').trim().slice(0, 100);
+if (query) search.set(query);
 
 loadData()
   .then(render)

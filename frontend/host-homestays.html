@@ -44,6 +44,17 @@
     </a>
   </div>
 
+  <!-- THANH TÌM KIẾM -->
+  <div class="list-toolbar">
+    <label class="searchbar" id="homestay-search">
+      <svg class="searchbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="sr-only">Tìm homestay</span>
+      <input class="input" type="search" placeholder="Tìm theo tên homestay hoặc địa chỉ…" autocomplete="off">
+      <button type="button" class="searchbar__clear" aria-label="Xóa tìm kiếm">×</button>
+    </label>
+    <span class="list-toolbar__count" id="search-count" aria-live="polite"></span>
+  </div>
+
   <!-- DANH SÁCH HOMESTAY -->
   <section class="host-homestays-section">
     <div id="list" class="host-homestays-grid"></div>

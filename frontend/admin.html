@@ -85,6 +85,12 @@
         <h2>Đơn xin làm host chờ duyệt</h2>
         <p>Duyệt hoặc từ chối đơn đăng ký trở thành host (BR-10).</p>
       </div>
+      <label class="searchbar" id="application-search">
+        <svg class="searchbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span class="sr-only">Tìm đơn xin làm host</span>
+        <input class="input" type="search" placeholder="Tìm người nộp, email, homestay…" autocomplete="off">
+        <button type="button" class="searchbar__clear" aria-label="Xóa tìm kiếm">×</button>
+      </label>
     </div>
 
     <div class="stack" id="application-list"></div>
@@ -115,9 +121,11 @@
         <h2 id="host-title">Danh sách host <span id="host-count"></span></h2>
         <p>Những người đang là host trên hệ thống và thông tin của họ.</p>
       </div>
-      <label class="field host-search">
-        <span class="field__label sr-only">Tìm host</span>
-        <input class="input" type="search" id="host-search" placeholder="Tìm theo tên, email, số điện thoại" autocomplete="off">
+      <label class="searchbar" id="host-searchbar">
+        <svg class="searchbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span class="sr-only">Tìm host</span>
+        <input class="input" type="search" id="host-search" placeholder="Tìm tên host, email, SĐT hoặc homestay…" autocomplete="off">
+        <button type="button" class="searchbar__clear" aria-label="Xóa tìm kiếm">×</button>
       </label>
     </div>
     <div class="stack" id="host-list"></div>
