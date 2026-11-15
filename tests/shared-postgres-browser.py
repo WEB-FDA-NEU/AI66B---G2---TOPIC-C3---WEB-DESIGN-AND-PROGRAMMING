@@ -497,6 +497,18 @@ def main():
                     "postgres" not in configuration.lower() and password not in configuration,
                     "browser runtime configuration contains no database credentials",
                 )
+                for route in ["gioi-thieu.html", "dieu-khoan.html", "lien-he.html"]:
+                    navigate(
+                        b,
+                        route,
+                        "!!document.querySelector('site-header header') && !!document.querySelector('main h1')",
+                    )
+                    check(
+                        b.js(
+                            "import('./js/config.js').then(config=>config.ACCOUNT_API_MODE && config.supportedApiRoute(location.pathname))"
+                        ),
+                        "shared deployment supports public page " + route,
+                    )
                 # Simulate API failure while frontend configuration and assets remain available.
                 a.call("Network.setBlockedURLs", urls=["*/api/me/bookings*", "*/mock/*"])
                 navigate(a, "booking-list.html", "!!document.querySelector('#booking-list .empty')")

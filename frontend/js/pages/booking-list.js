@@ -107,8 +107,8 @@ function renderList() {
     listEl.hidden = true;
     emptyEl.hidden = false;
     const isAll = currentFilter === 'all';
-    emptyEl.querySelector('.empty__title').textContent = isAll ? 'Bạn chưa có đặt phòng nào' : `Không có đặt phòng ở trạng thái ${STATUS_LABEL[currentFilter] || currentFilter}`;
-    emptyEl.querySelector('.empty__hint').textContent = isAll ? 'Tìm một homestay ưng ý và đặt phòng ngay hôm nay.' : 'Chọn Tất cả để xem những đặt phòng khác.';
+    emptyEl.querySelector('.empty__title').textContent = isAll ? (ACCOUNT_API_MODE ? 'Bạn chưa có đặt phòng nào trên máy chủ' : 'Chưa tìm thấy đặt phòng của bạn trong trình duyệt này') : `Không có đặt phòng ở trạng thái ${STATUS_LABEL[currentFilter] || currentFilter}`;
+    emptyEl.querySelector('.empty__hint').textContent = isAll ? (ACCOUNT_API_MODE ? 'Tìm một homestay ưng ý và đặt phòng ngay hôm nay.' : `Bạn đang xem dữ liệu mô phỏng tại ${location.origin}. Đơn đặt qua API được lưu trên máy chủ.`) : 'Chọn Tất cả để xem những đặt phòng khác.';
     const action = emptyEl.querySelector('.empty__action');
     action.textContent = isAll ? 'Tìm homestay' : 'Xem tất cả đặt phòng';
     action.href = accountHref(isAll ? 'search.html' : 'booking-list.html');

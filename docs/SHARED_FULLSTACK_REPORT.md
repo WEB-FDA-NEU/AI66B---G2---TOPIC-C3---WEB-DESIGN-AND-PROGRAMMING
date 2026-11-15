@@ -74,3 +74,25 @@ Phát hiện chính nằm trong migration đầu module api.js. Khi mock_version
 Kết quả chạy trong lượt sửa này gồm 17 assertion lịch sử Mock PASS, 32 assertion shared PostgreSQL PASS, 44 assertion tài khoản Mock PASS và UI smoke 72 tổ hợp/240 assertion PASS với 0 overflow/runtime error. Regression backend liên quan booking/shared configuration và snapshot đạt 37 pass. Bộ backend đầy đủ 548 pass/4 skip phía trên là kết quả của lượt bàn giao shared trước đó. Lượt sửa lịch sử này chỉ chỉnh frontend và chạy thêm regression backend có liên quan.
 
 Các đơn đã bị code cũ xóa khỏi localStorage không thể khôi phục tự động nếu không còn bản sao. Bản sửa bảo toàn bản ghi đang còn và đơn mới. Không xóa/reset localStorage cá nhân để xử lý. Lịch sử ở Mock Mode và PostgreSQL vẫn là hai nguồn tách biệt theo cấu hình, truy cập shared server để đọc lịch sử backend.
+
+## Làm rõ mục tiêu kiểm thử chéo máy
+
+Người dùng đã xác nhận mục tiêu là kiểm tra dữ liệu của một người có dùng được trên máy khác, và nhóm đã có URL backend/server chung. Đây là yêu cầu kết nối cả hai frontend tới cùng backend. Hai máy tự mở `127.0.0.1:5500/frontend/booking-list.html` ở static Mock Mode tiếp tục có hai kho localStorage riêng. Các sửa lỗi lịch sử mock ở trên chỉ bảo toàn dữ liệu cục bộ.
+
+Đã phát hiện thêm lịch sử cũ có thể còn ở khóa `bookings`, trong khi trang khách chỉ đọc `customerBookings`. Đã bổ sung đọc tương thích cả hai, loại trùng theo chủ sở hữu/code/homestay/ngày, dùng trạng thái có updatedAt mới hơn, giữ ID định tuyến riêng cho bản ghi cũ. Mở chi tiết và hủy đơn cũ cập nhật đúng kho gốc. Đơn không có userId hoặc của người khác không xuất hiện trong lịch sử cá nhân. Kiểm tra tồn phòng mock cũng đọc cùng tập dữ liệu tương thích. Không chuyển các bản ghi này lên PostgreSQL.
+
+Regression mới đạt 22 assertion lịch sử mock, 44 assertion tài khoản mock, 32 assertion shared PostgreSQL và 72 tổ hợp UI/240 assertion. Chưa kiểm chứng hai máy vật lý của nhóm. Công cụ trình duyệt không tìm thấy tab LuxStay đang dùng, và cổng Live Server 5500 chưa truy cập được từ process kiểm tra.
+
+Người dùng sau đó xác nhận nhóm chưa có backend public, hiện chỉ chạy localhost và muốn chuẩn bị triển khai Render/Railway. Chưa có endpoint đích để cấu hình hoặc xác minh Internet. Cần người vận hành tạo dịch vụ theo hướng dẫn dưới đây, rồi xác minh trên hai máy.
+
+## Chuẩn bị triển khai Internet
+
+Đã thêm Dockerfile dùng Python 3.12 với production/shared mode, PORT do provider cấp, frontend và backend cùng image. `.dockerignore` loại secrets, database local, test fixtures, upload cá nhân và frontend/mock khỏi build context. `.gitignore` bổ sung bảo vệ các file .env cục bộ.
+
+`render.yaml` mô tả web Docker, PostgreSQL 17 private, secret JWT do nền tảng sinh, disk upload và pre-deploy Alembic. Cấu hình này dùng tài nguyên trả phí, cần người vận hành kiểm tra chi phí trước khi tạo. `railway.toml` là phương án thay thế với cùng Dockerfile, migration và readiness; PostgreSQL, reference variables, upload volume và domain được tạo trong dashboard.
+
+Đã bổ sung các trang công khai hiện có vào route allowlist API để footer và redirect chọn phòng cũ hoạt động khi chạy shared. Không đổi layout/CSS. Hướng dẫn tạo account dịch vụ, database, environment variables, migration, bootstrap admin, public URL và test chéo máy nằm trong INTERNET_DEPLOYMENT.md. Các nguồn giá/giới hạn đều dẫn tài liệu chính thức và cần kiểm tra dashboard trước khi trả phí.
+
+Đã kiểm tra cú pháp Render YAML, Railway TOML, Docker CMD và các mục loại secrets/mock bằng parser cục bộ. Máy kiểm tra chưa có Docker nên chưa build/chạy image Linux. Chưa gọi API tạo tài nguyên cloud, deploy, commit/push, seed hoặc migrate database đích. Trạng thái Internet staging và production vẫn chưa đạt. Các lệnh migration trong config chỉ chạy khi người vận hành chủ động triển khai.
+
+Kiểm tra cuối của lượt chuẩn bị cloud đạt 35 assertion PostgreSQL browser ở hai context, gồm ba trang thông tin công khai trong shared mode, và 4 test backend cho cấu hình shared/bootstrap/snapshot. Ruff và git diff --check đều đạt. Kết quả này xác minh source và runtime local, chưa xác minh cấu hình với API của nhà cung cấp hoặc public URL.

@@ -1,0 +1,11 @@
+# PostgreSQL, secret variables, a persistent upload volume and a public domain
+# must be created and reviewed by the operator in Railway's dashboard.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+preDeployCommand = ["python -m alembic -c backend/alembic.ini upgrade head"]
+healthcheckPath = "/api/ready"
+healthcheckTimeout = 300
+numReplicas = 1

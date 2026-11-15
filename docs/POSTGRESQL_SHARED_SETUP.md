@@ -1,5 +1,7 @@
 # Chạy LuxStay với PostgreSQL dùng chung
 
+Hướng dẫn thao tác dashboard Render/Railway, cấu hình Docker, migration, admin đầu tiên và lấy public HTTPS URL nằm trong [INTERNET_DEPLOYMENT.md](INTERNET_DEPLOYMENT.md).
+
 ## Mô hình triển khai
 
 Các thiết bị truy cập một origin LuxStay. Reverse proxy HTTPS chuyển frontend, `/js/runtime-config.js`, `/uploads` và `/api` đến một FastAPI. FastAPI dùng một DATABASE_URL PostgreSQL. SQLite tiếp tục phục vụ development/test riêng.

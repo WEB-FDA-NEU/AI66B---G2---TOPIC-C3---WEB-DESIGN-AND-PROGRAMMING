@@ -1,6 +1,6 @@
 {
   "status": "PASS",
-  "count": 32,
+  "count": 35,
   "checks": [
     "shared mode uses same-origin API without query parameters",
     "browser B logs in to browser A registered PostgreSQL user",
@@ -32,6 +32,9 @@
     "shared mode leaves local mock data untouched",
     "no uncaught browser errors during shared workflows",
     "browser runtime configuration contains no database credentials",
+    "shared deployment supports public page gioi-thieu.html",
+    "shared deployment supports public page dieu-khoan.html",
+    "shared deployment supports public page lien-he.html",
     "API network failure displays error without local/mock fallback",
     "stopped backend returns connection error without mock fallback"
   ],

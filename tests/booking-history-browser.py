@@ -171,6 +171,40 @@ def main():
             )
             c.until("document.querySelectorAll('#booking-list .row').length===2")
             check(c.js(visible), "retry reloads restored booking history")
+            c.js(
+                "const oldRows=JSON.parse(localStorage.getItem('customerBookings'));localStorage.setItem('bookings',JSON.stringify([oldRows[0]]));localStorage.setItem('customerBookings','[]')"
+            )
+            c.call("Page.reload")
+            c.until(
+                "document.body.hasAttribute('data-guard-ok') && !document.querySelector('#booking-list .skeleton-card')"
+            )
+            check(c.js(visible), "customer sees owned legacy booking stored under bookings key")
+            legacy_id = c.js("import('./js/api.js').then(async api=>(await api.getBookings())[0].id)")
+            check(
+                c.js(
+                    "import('./js/api.js').then(async api=>(await api.getBooking("
+                    + json.dumps(legacy_id)
+                    + ")).userId===1)"
+                ),
+                "legacy history opens its own booking detail",
+            )
+            c.js("import('./js/api.js').then(api=>api.cancelBooking(" + json.dumps(legacy_id) + "))")
+            check(
+                c.js("JSON.parse(localStorage.getItem('bookings'))[0].status==='cancelled'"),
+                "legacy cancellation updates original booking record",
+            )
+            c.js("localStorage.setItem('customerBookings',localStorage.getItem('bookings'))")
+            check(
+                c.js("import('./js/api.js').then(async api=>(await api.getBookings()).length===1)"),
+                "same booking in both old stores is shown only once",
+            )
+            c.js(
+                "localStorage.setItem('bookings',JSON.stringify([{...JSON.parse(localStorage.getItem('bookings'))[0],userId:'someone-else',code:'PRIVATE-OTHER'}]));localStorage.setItem('customerBookings','[]')"
+            )
+            check(
+                c.js("import('./js/api.js').then(async api=>(await api.getBookings()).length===0)"),
+                "legacy records of another user are excluded",
+            )
             check(not c.errors, "no uncaught browser errors")
             print(json.dumps({"status": "PASS", "count": len(checks), "checks": checks}))
         finally:

@@ -21,7 +21,7 @@ export const API_SCOPE = SHARED_MODE || new URLSearchParams(location.search).get
 export const ACCOUNT_API_MODE = API_SCOPE !== 'mock';
 export const apiModuleEnabled = module => module === 'accounts' || (API_SCOPE === 'customer' && ['catalog','bookings','host-bookings','host-properties','host-rooms','host-dashboard','admin'].includes(module));
 const accountRoutes = new Set(['login.html', 'register.html', 'profile.html', 'host-register.html']);
-const customerRoutes = new Set([...accountRoutes, 'index.html','search.html','shop.html','detail.html','booking-page.html','booking-list.html','booking-detail.html','booking-confirmed.html','host-bookings.html','host-homestays.html','host-homestay-form.html','host-rooms.html','host-dashboard.html','admin.html','404.html']);
+const customerRoutes = new Set([...accountRoutes, 'index.html','search.html','shop.html','detail.html','booking-select.html','booking-page.html','booking-list.html','booking-detail.html','booking-confirmed.html','host-bookings.html','host-homestays.html','host-homestay-form.html','host-rooms.html','host-dashboard.html','admin.html','gioi-thieu.html','dieu-khoan.html','lien-he.html','404.html']);
 export const supportedApiRoute = path => (API_SCOPE === 'customer' ? customerRoutes : accountRoutes).has(path.split('/').pop() || 'index.html');
 export const accountHref = path => {
   const url = new URL(path, location.href);
