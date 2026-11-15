@@ -15,9 +15,9 @@ const TEMPLATE = /* html */ `
     <nav class="site-footer__col" aria-labelledby="ft-about">
       <h3 class="site-footer__title" id="ft-about">Về chúng tôi</h3>
       <ul>
-        <li><a href="#">Giới thiệu</a></li>
-        <li><a href="#">Điều khoản</a></li>
-        <li><a href="#">Liên hệ</a></li>
+        <li><a href="gioi-thieu.html">Giới thiệu</a></li>
+        <li><a href="dieu-khoan.html">Điều khoản</a></li>
+        <li><a href="lien-he.html">Liên hệ</a></li>
       </ul>
     </nav>
 

@@ -90,6 +90,6 @@ document.addEventListener('click', e => {
   if (!input) return;
   const show = input.type === 'password';
   input.type = show ? 'text' : 'password';
-  btn.textContent = show ? '👁' : '👁';
+  btn.textContent = show ? '🙈' : '👁';
   btn.setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
 });
