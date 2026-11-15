@@ -422,7 +422,9 @@
       "amenities": [
         "Wi-fi",
         "Bãi đỗ xe",
-        "Bếp"
+        "Bếp",
+        "Bữa sáng",
+        "Điều hòa"
       ],
       "rating": 4.7,
       "price": 520000,
@@ -461,7 +463,10 @@
       "room_type": "Phòng riêng",
       "amenities": [
         "Wi-fi",
-        "Bếp"
+        "Bếp",
+        "Bãi đỗ xe",
+        "Bữa sáng",
+        "Máy sưởi"
       ],
       "rating": 4.6,
       "price": 340000,
@@ -500,7 +505,9 @@
       "amenities": [
         "Wi-fi",
         "Hồ bơi",
-        "Bãi đỗ xe"
+        "Bãi đỗ xe",
+        "Điều hòa",
+        "Thú cưng"
       ],
       "rating": 4.8,
       "price": 480000,
@@ -540,7 +547,9 @@
       "amenities": [
         "Wi-fi",
         "Bếp",
-        "Bãi đỗ xe"
+        "Bãi đỗ xe",
+        "Bữa sáng",
+        "Máy sưởi"
       ],
       "rating": 4.4,
       "price": 430000,
@@ -580,7 +589,9 @@
         "Wi-fi",
         "Hồ bơi",
         "Bếp",
-        "Bãi đỗ xe"
+        "Bãi đỗ xe",
+        "Bữa sáng",
+        "Thú cưng"
       ],
       "rating": 4.9,
       "price": 890000,
@@ -619,7 +630,10 @@
       "room_type": "Phòng riêng",
       "amenities": [
         "Wi-fi",
-        "Hồ bơi"
+        "Hồ bơi",
+        "Bãi đỗ xe",
+        "Bữa sáng",
+        "Điều hòa"
       ],
       "rating": 4.3,
       "price": 410000,
@@ -657,7 +671,11 @@
       "room_type": "Phòng chung",
       "amenities": [
         "Wi-fi",
-        "Bếp"
+        "Bếp",
+        "Bãi đỗ xe",
+        "Bữa sáng",
+        "Máy sưởi",
+        "Thú cưng"
       ],
       "rating": 4.5,
       "price": 220000,
@@ -696,7 +714,9 @@
       "amenities": [
         "Wi-fi",
         "Bãi đỗ xe",
-        "Hồ bơi"
+        "Hồ bơi",
+        "Bếp",
+        "Máy sưởi"
       ],
       "rating": 4.2,
       "price": 460000,
@@ -735,7 +755,10 @@
       "room_type": "Toàn bộ homestay",
       "amenities": [
         "Wi-fi",
-        "Bếp"
+        "Bếp",
+        "Bãi đỗ xe",
+        "Điều hòa",
+        "Thú cưng"
       ],
       "rating": 4.6,
       "price": 520000,
@@ -774,7 +797,10 @@
       "amenities": [
         "Wi-fi",
         "Hồ bơi",
-        "Bãi đỗ xe"
+        "Bãi đỗ xe",
+        "Bữa sáng",
+        "Máy sưởi",
+        "Bếp"
       ],
       "rating": 4.5,
       "price": 600000,
@@ -814,7 +840,10 @@
       "amenities": [
         "Wi-fi",
         "Bãi đỗ xe",
-        "Bếp"
+        "Bếp",
+        "Bữa sáng",
+        "Hồ bơi",
+        "Thú cưng"
       ],
       "rating": 4.4,
       "price": 330000,
@@ -853,7 +882,9 @@
       "amenities": [
         "Wi-fi",
         "Bếp",
-        "Bãi đỗ xe"
+        "Bãi đỗ xe",
+        "Bữa sáng",
+        "Điều hòa"
       ],
       "rating": 4.1,
       "price": 380000,

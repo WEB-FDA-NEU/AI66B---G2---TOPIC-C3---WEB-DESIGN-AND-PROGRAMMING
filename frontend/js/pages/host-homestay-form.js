@@ -23,6 +23,8 @@ const $ = id => document.getElementById(id);
 initHostDashboardReturn();
 
 const id = new URLSearchParams(location.search).get('id');
+const amenityAliases = new Map([['Wifi', 'Wi-fi'], ['Bếp chung', 'Bếp']]);
+const canonicalAmenity = value => amenityAliases.get(value) || value;
 if (ACCOUNT_API_MODE) {
   $('images').accept = 'image/jpeg,image/png,image/webp';
   $('images').closest('.uploader').querySelector('.field__hint').textContent = 'Tối đa 12 ảnh JPEG, PNG hoặc WebP, mỗi ảnh không quá 5 MB. Ảnh được tải lên máy chủ; lưu homestay để gắn ảnh vào hồ sơ.';
@@ -136,7 +138,8 @@ async function loadForEdit() {
 
     renderPreview();
 
-    for (const checkbox of $('amenities').querySelectorAll('input')) checkbox.checked = (h.amenities || []).includes(checkbox.value);
+    const amenities = new Set((h.amenities || []).map(canonicalAmenity));
+    for (const checkbox of $('amenities').querySelectorAll('input')) checkbox.checked = amenities.has(checkbox.value);
     loaded = true; submitButton.disabled = false;
 
   } catch (e) {
@@ -202,7 +205,7 @@ $('form').addEventListener('submit', async e => {
     name: $('name').value.trim(),
     address: $('address').value.trim(),
     description: $('description').value.trim(),
-    amenities: [...new Set([...amenities, ...(ACCOUNT_API_MODE && original ? original.amenities.filter(value => ![...$('amenities').querySelectorAll('input')].some(input => input.value === value)) : [])])],
+    amenities: [...new Set([...amenities, ...(ACCOUNT_API_MODE && original ? original.amenities.filter(value => ![...$('amenities').querySelectorAll('input')].some(input => input.value === canonicalAmenity(value))) : [])])],
     images: images.length
       ? images
       : ['img/placeholder.svg']

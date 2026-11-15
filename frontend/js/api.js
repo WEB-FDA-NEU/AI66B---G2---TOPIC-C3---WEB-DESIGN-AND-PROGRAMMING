@@ -12,7 +12,7 @@ import { roomTypesFor } from './pricing.js';
 // ---- Phiên bản dữ liệu mock ----
 // Dữ liệu mock được copy vào localStorage lần đầu đọc. Tăng phiên bản để dọn dữ liệu mẫu cũ
 // trên máy người dùng nhưng giữ lại các homestay và booking do họ tự tạo.
-const MOCK_DATA_VERSION = '2026-11-14-host-seed-owner';
+const MOCK_DATA_VERSION = '2026-11-15-amenity-filters';
 const HOST_SEED_VERSION = '2026-11-14-host001-seed';
 if (USE_MOCK && !ACCOUNT_API_MODE && localStorage.getItem('host_seed_version') !== HOST_SEED_VERSION) {
   localStorage.setItem('mock_seed_restore_homestays', '1');
@@ -963,6 +963,13 @@ export async function updateBookingStatus(id, status, reason = '') {
   if (!BOOKING_STATUSES.includes(status)) throw new ApiError(400, 'Trạng thái không hợp lệ.');
   if (status === 'rejected' && !reason.trim()) throw new ApiError(400, 'Vui lòng nhập lý do từ chối.');
   if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const todayInBusinessTimezone = () => {
+      const parts = new Intl.DateTimeFormat('en', {
+        timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
+      }).formatToParts(new Date());
+      const dateParts = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+      return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+    };
     if (String(id).startsWith('customer-')) {
       const customerId = String(id).slice('customer-'.length);
       const catalogIds = new Set((await getHostHomestays())
@@ -973,6 +980,10 @@ export async function updateBookingStatus(id, status, reason = '') {
       const customerIndex = customerBookings.findIndex(booking =>
         String(booking.id) === customerId && catalogIds.has(String(booking.homestayId)));
       if (customerIndex === -1) throw new ApiError(404, 'Không tìm thấy đặt phòng.');
+      const booking = customerBookings[customerIndex];
+      if (status === 'checked_in' && todayInBusinessTimezone() < booking.checkIn) {
+        throw new ApiError(409, `Chưa đến ngày nhận phòng (${booking.checkIn}).`);
+      }
       customerBookings[customerIndex].status = status;
       customerBookings[customerIndex].rejectReason = status === 'rejected' ? reason.trim() : '';
       if (status === 'completed') {
@@ -987,6 +998,9 @@ export async function updateBookingStatus(id, status, reason = '') {
     const list = await readTable('bookings', 'host-bookings.json');
     const i = list.findIndex(b => String(b.id) === String(id) && roomIds.has(String(b.roomId)));
     if (i === -1) throw new ApiError(404, 'Không tìm thấy đặt phòng.');
+    if (status === 'checked_in' && todayInBusinessTimezone() < list[i].checkIn) {
+      throw new ApiError(409, `Chưa đến ngày nhận phòng (${list[i].checkIn}).`);
+    }
     list[i].status = status;
     list[i].rejectReason = status === 'rejected' ? reason.trim() : '';
     writeTable('bookings', list);

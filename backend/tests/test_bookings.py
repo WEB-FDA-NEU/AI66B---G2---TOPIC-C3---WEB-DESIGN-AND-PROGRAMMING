@@ -142,6 +142,10 @@ def test_status_machine_and_review_eligibility(client, headers, booking_payload,
     assert client.patch(url, json={"status": "confirmed"}, headers=headers(3)).status_code == 409
     assert client.patch(url, json={"status": "checked_in"}, headers=headers(3)).status_code == 409
     checkin = date.fromisoformat(booking_payload["checkIn"])
+    monkeypatch.setattr("backend.booking_service.business_today", lambda: checkin - timedelta(days=1))
+    early_checkin = client.patch(url, json={"status": "checked_in"}, headers=headers(3))
+    assert early_checkin.status_code == 409
+    assert "Chưa đến ngày nhận phòng" in early_checkin.json()["detail"]
     monkeypatch.setattr("backend.booking_service.business_today", lambda: checkin)
     assert client.patch(url, json={"status": "checked_in"}, headers=headers(3)).status_code == 200
     assert client.post(f"/api/me/bookings/{booking['id']}/cancel", headers=headers()).status_code == 409

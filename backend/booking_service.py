@@ -327,8 +327,10 @@ def change_status(db, booking, status, actor, reason=""):
     today = business_today()
     if status == "confirmed" and today >= booking.check_out:
         raise HTTPException(409, "Không thể xác nhận đặt phòng đã hết thời gian lưu trú.")
-    if status == "checked_in" and not booking.check_in <= today < booking.check_out:
-        raise HTTPException(409, "Nhận phòng chỉ được thực hiện trong ngày lưu trú.")
+    if status == "checked_in" and today < booking.check_in:
+        raise HTTPException(409, f"Chưa đến ngày nhận phòng ({booking.check_in.isoformat()}).")
+    if status == "checked_in" and today >= booking.check_out:
+        raise HTTPException(409, "Đã quá ngày nhận phòng của đặt phòng.")
     db.add(
         BookingStatusHistory(
             booking_id=booking.id,
