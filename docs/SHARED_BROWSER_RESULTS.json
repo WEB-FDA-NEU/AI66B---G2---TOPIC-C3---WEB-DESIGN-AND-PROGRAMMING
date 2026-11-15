@@ -1,6 +1,6 @@
 {
   "status": "PASS",
-  "count": 30,
+  "count": 32,
   "checks": [
     "shared mode uses same-origin API without query parameters",
     "browser B logs in to browser A registered PostgreSQL user",
@@ -17,6 +17,8 @@
     "current backend confirms saved booking with manual payment pending",
     "shared booking does not fabricate paid status",
     "second customer context reloads history containing the shared booking",
+    "shared history row is visible to the user",
+    "slow previous status response cannot hide current booking history",
     "customer cannot access admin API",
     "PostgreSQL contains one booking and exactly two reserved nights",
     "customer refresh reads host check-in from the same PostgreSQL booking",

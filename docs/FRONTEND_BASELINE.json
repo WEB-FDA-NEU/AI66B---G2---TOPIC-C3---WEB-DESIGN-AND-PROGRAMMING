@@ -1,6 +1,6 @@
 {
   "audited_date": "2026-11-15",
-  "phase": "Latest user frontend retained; shared runtime configuration and booking API error state",
+  "phase": "Booking history preservation, legacy cache compatibility and latest-request rendering",
   "previous_baseline": "FRONTEND_BASELINE_PRE_SHARED.json",
   "files": {
     "frontend/404.html": "e623a378369e15d77b4d74ac5d48fc3cc1717e954ba6163b379af953e32a2a05",
@@ -65,7 +65,7 @@
     "frontend/img/homestays/22/pexels-stayhereforu-216201233-15113972.jpg": "d936678cc920d151efe2482b0ae02bafaa9b5d8d28593b54542cb8c3c09802bb",
     "frontend/img/placeholder.svg": "53944f97fc7ff14130cfddae8cf081d1385f3cb0d4df389d5c7fdad3701b6a04",
     "frontend/index.html": "3f6bd4b27d5f68c0776d3f670bddba0bb096f009cd6b2f610c06f3860ff990af",
-    "frontend/js/api.js": "5d1d25eb5bdc5ebb13acede4d2a2b30c5c164bb9a9c78d048e2690d2fa469bed",
+    "frontend/js/api.js": "699047c388fd68c14efa1a2c305a07dde0ea1f77317f662f0363015837f7ac80",
     "frontend/js/auth.js": "df60b42d0503e44b694d598409fa9438b6a16e2cdc14f19d4acbaa7f28f3bf59",
     "frontend/js/charts.js": "da306ddd948fdc8e8174f6da6c165d70d97b0e18f7b7d70459c28df7234fbe18",
     "frontend/js/components/home-carousels.js": "a0d2177cc1c42cca54e68e5cf67b67f394b2d9f619ec87bde816c4a219347424",
@@ -82,7 +82,7 @@
     "frontend/js/pages/api-host-rooms.js": "5a72a7bb25fd7f64697ae334896f0bf23e36ef0330aaafccf3f1496aeee64875",
     "frontend/js/pages/booking-confirmed.js": "d5939ebecd1a97fca890ab6f2d92287ebe9f28cdf624acc17d5d742f50bc7f82",
     "frontend/js/pages/booking-detail.js": "60b9661c06b0fe9339afa9c1f8dc5418f86d8899c1ca6b9894c505705420782e",
-    "frontend/js/pages/booking-list.js": "7a6d50cda30cba43f1590a425adb5aa7e91c05d0cb567751c362f9d6f867f6f0",
+    "frontend/js/pages/booking-list.js": "17340d90c16fcbdd3a40effdee1d8e5bc5fddd8ce507adaaf0989503e5d19ce0",
     "frontend/js/pages/booking-page.js": "5c7b4c46cd1b2bd80197a7f158f47577a6f0cdff20d6a607f8983290cf1c07eb",
     "frontend/js/pages/detail.js": "ff06f50abcd9d36c474f615fdbb7a05ff8ed0020d0140001765ecdf05c68e078",
     "frontend/js/pages/home.js": "6cd56c41ca07b8edf0bc8975355ffa2b0a46821a0e3868d497ce26cf65267fe6",

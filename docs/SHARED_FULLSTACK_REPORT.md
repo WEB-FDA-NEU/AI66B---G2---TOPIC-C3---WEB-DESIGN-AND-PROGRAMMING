@@ -56,3 +56,21 @@ Head Alembic thực tế là 0007_booking_holds. Suite kiểm tra migrate databa
 ## Vấn đề còn lại
 
 Website mở từ static server riêng vẫn là demo theo thiết kế. Muốn dữ liệu chung phải truy cập shared server đã cấu hình, hoặc reverse proxy đúng runtime module/API/upload. Không có cơ chế biến tài khoản mock cục bộ thành tài khoản PostgreSQL. Account trùng và booking cũ cần quy trình import có kiểm soát. Không có server/domain/tài khoản dịch vụ đích trong phiên này, vì vậy chưa có URL Internet để bàn giao.
+
+## Sửa lịch sử đặt phòng sau phản hồi người dùng
+
+URL người dùng cung cấp là `http://127.0.0.1:5500/frontend/booking-list.html`, đang dùng static Mock Mode. Đã tái hiện checkout thật trong Chrome profile riêng, cùng tiền tố `/frontend/`, trên HTTP server test với cổng tạm. Live Server cổng 5500 chưa truy cập được từ process kiểm tra, nên không tuyên bố đã đọc dữ liệu trình duyệt cá nhân của người dùng.
+
+Phát hiện chính nằm trong migration đầu module api.js. Khi mock_version thay đổi, code cũ xóa customerBookings có ID 1–4 và userId=1, đồng thời xóa host booking dựa trên roomId. Các ID này cũng được cấp cho đơn khách đặt thật. Regression test đã tái hiện đơn của Huy biến mất sau đổi version dù checkout và reload bình thường vẫn thành công.
+
+Đã sửa các phần sau
+
+- `frontend/js/api.js` tăng MOCK_DATA_VERSION, bỏ việc suy luận dữ liệu mẫu bằng ID để xóa lịch sử, hỗ trợ cache dạng mảng và hai wrapper customerBookings/bookings cũ. Cache sai cú pháp trả lỗi có thể xử lý, giữ nguyên dữ liệu để sao lưu. ID/userId/status của booking lấy từ phiên và hệ thống, giữ quyền đọc/hủy theo chủ sở hữu.
+- `frontend/js/pages/booking-list.js` chỉ render response mới nhất khi đổi bộ lọc nhanh, reload khi quay lại bằng browser back-forward cache. Tab trạng thái rỗng có thông báo riêng và nút quay về Tất cả.
+- `tests/booking-history-browser.py` bổ sung checkout thật → confirmation → history, kiểm tra visibility, reload, nâng version, hai dạng cache cũ, đổi tài khoản, chống giả owner và retry cache hỏng.
+- `tests/shared-postgres-browser.py` bổ sung đo visibility thật và mô phỏng response bộ lọc về sai thứ tự. Test cũ chỉ kiểm tra row tồn tại trong DOM nên chưa bao phủ đầy đủ các tình huống này.
+- `docs/FRONTEND_BASELINE.json` cập nhật checksum đúng hai file JavaScript được sửa, giữ nguyên assertion SHA-256 và giao diện hiện tại.
+
+Kết quả chạy trong lượt sửa này gồm 17 assertion lịch sử Mock PASS, 32 assertion shared PostgreSQL PASS, 44 assertion tài khoản Mock PASS và UI smoke 72 tổ hợp/240 assertion PASS với 0 overflow/runtime error. Regression backend liên quan booking/shared configuration và snapshot đạt 37 pass. Bộ backend đầy đủ 548 pass/4 skip phía trên là kết quả của lượt bàn giao shared trước đó. Lượt sửa lịch sử này chỉ chỉnh frontend và chạy thêm regression backend có liên quan.
+
+Các đơn đã bị code cũ xóa khỏi localStorage không thể khôi phục tự động nếu không còn bản sao. Bản sửa bảo toàn bản ghi đang còn và đơn mới. Không xóa/reset localStorage cá nhân để xử lý. Lịch sử ở Mock Mode và PostgreSQL vẫn là hai nguồn tách biệt theo cấu hình, truy cập shared server để đọc lịch sử backend.

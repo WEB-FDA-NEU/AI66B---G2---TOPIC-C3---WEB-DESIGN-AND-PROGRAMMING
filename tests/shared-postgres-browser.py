@@ -368,6 +368,23 @@ def main():
                     "second customer context reloads history containing the shared booking",
                 )
                 check(
+                    b.js(
+                        "(()=>{const row=document.querySelector('#booking-list .row');return getComputedStyle(row).visibility==='visible' && row.getBoundingClientRect().height>0 && !document.querySelector('#booking-list').hidden})()"
+                    ),
+                    "shared history row is visible to the user",
+                )
+                b.js(
+                    "window.originalHistoryFetch=window.fetch;window.fetch=async(...args)=>{const response=await originalHistoryFetch(...args);const url=String(args[0]);if(url.includes('/me/bookings?'))await new Promise(resolve=>setTimeout(resolve,url.includes('status=cancelled')?400:20));return response};document.querySelector('[data-filter=cancelled]').click();document.querySelector('[data-filter=all]').click()"
+                )
+                b.js("new Promise(resolve=>setTimeout(resolve,650))")
+                check(
+                    b.js(
+                        "document.querySelector('[data-filter=all]').classList.contains('is-active') && !!document.querySelector('#booking-list .row') && !document.querySelector('#booking-list').hidden"
+                    ),
+                    "slow previous status response cannot hide current booking history",
+                )
+                b.js("window.fetch=window.originalHistoryFetch;delete window.originalHistoryFetch")
+                check(
                     api(a, "try{await api.getAdminUsers();return 200}catch(e){return e.status}") == 403,
                     "customer cannot access admin API",
                 )

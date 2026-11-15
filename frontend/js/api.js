@@ -10,9 +10,9 @@ import { getToken, getUser, saveSession, clearSession, updateSessionUser } from 
 import { roomTypesFor } from './pricing.js';
 
 // ---- Phiên bản dữ liệu mock ----
-// Dữ liệu mock được copy vào localStorage lần đầu đọc. Tăng phiên bản để dọn dữ liệu mẫu cũ
-// trên máy người dùng nhưng giữ lại các homestay và booking do họ tự tạo.
-const MOCK_DATA_VERSION = '2026-11-15-amenity-filters';
+// Dữ liệu mock được copy vào localStorage lần đầu đọc. Khi tăng phiên bản,
+// chỉ bổ sung seed còn thiếu, giữ nguyên dữ liệu người dùng và lịch sử đặt phòng.
+const MOCK_DATA_VERSION = '2026-11-15-booking-history-preserved-v2';
 const HOST_SEED_VERSION = '2026-11-14-host001-seed';
 if (USE_MOCK && !ACCOUNT_API_MODE && localStorage.getItem('host_seed_version') !== HOST_SEED_VERSION) {
   localStorage.setItem('mock_seed_restore_homestays', '1');
@@ -20,18 +20,8 @@ if (USE_MOCK && !ACCOUNT_API_MODE && localStorage.getItem('host_seed_version') !
   localStorage.setItem('host_seed_version', HOST_SEED_VERSION);
 }
 if (USE_MOCK && !ACCOUNT_API_MODE && localStorage.getItem('mock_version') !== MOCK_DATA_VERSION) {
-  const demoHomestayIds = new Set(Array.from({ length: 22 }, (_, i) => `hs${String(i + 1).padStart(3, '0')}`));
-  const demoRoomIds = new Set(Array.from({ length: 48 }, (_, i) => `rm${String(i + 1).padStart(3, '0')}`));
-  const demoBookingIds = new Set(['1', '2', '3', '4']);
-  const removeDemoRows = (key, isDemo) => {
-    const cached = localStorage.getItem(key);
-    if (cached === null) return;
-    const rows = JSON.parse(cached);
-    if (!Array.isArray(rows)) throw new Error(`Dữ liệu mock "${key}" không hợp lệ.`);
-    localStorage.setItem(key, JSON.stringify(rows.filter(row => !isDemo(row))));
-  };
-  removeDemoRows('customerBookings', row => demoBookingIds.has(String(row.id)) && String(row.userId) === '1');
-  removeDemoRows('bookings', row => demoRoomIds.has(String(row.roomId)));
+  // IDs overlap real customer-created records. A version bump must never infer
+  // demo provenance from an ID or remove booking history from either table.
   localStorage.setItem('mock_seed_restore_homestays', '1');
   localStorage.setItem('mock_seed_restore_rooms', '1');
   localStorage.setItem('mock_version', MOCK_DATA_VERSION);
@@ -678,9 +668,10 @@ export async function cancelHost(reason) {
 export async function getBookings(params = {}) {
   blockUnintegratedBusiness('bookings');
   if (USE_MOCK && !ACCOUNT_API_MODE) {
-    const list = await readTable('customerBookings', 'bookings.json');
     const me = getUser();
-    return (me ? list.filter(b => String(b.userId) === String(me.id)) : list)
+    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để xem lịch sử đặt phòng.');
+    const list = await readTable('customerBookings', 'bookings.json');
+    return list.filter(b => String(b.userId) === String(me.id))
       .sort((a, b) => {
         const createdAt = booking => Date.parse(booking.createdAt || '') || 0;
         return createdAt(b) - createdAt(a)
@@ -729,9 +720,9 @@ export async function createBooking(payload, key) {
     }
     const id = list.reduce((m, b) => Math.max(m, Number(b.id) || 0), 0) + 1;
     const booking = {
+      ...payload,
       id, userId: me.id, status: 'confirmed', createdAt: new Date().toISOString(),
       code: 'BK' + String(id).padStart(6, '0'),   // cùng định dạng mã với booking-detail
-      ...payload,
     };
     list.push(booking);
     writeTable('customerBookings', list);
@@ -745,9 +736,12 @@ export async function createBooking(payload, key) {
 export async function cancelBooking(id) {
   blockUnintegratedBusiness('bookings');
   if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const me = getUser();
+    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để hủy đặt phòng.');
     const list = await readTable('customerBookings', 'bookings.json');
-    const idx = list.findIndex(b => String(b.id) === String(id));
+    const idx = list.findIndex(b => String(b.id) === String(id) && String(b.userId) === String(me.id));
     if (idx === -1) throw new ApiError(404, 'Không tìm thấy booking.');
+    if (!['pending', 'confirmed', 'cancelled'].includes(list[idx].status)) throw new ApiError(409, 'Không thể hủy đặt phòng ở trạng thái hiện tại.');
     list[idx].status = 'cancelled';
     writeTable('customerBookings', list);
     return list[idx];
@@ -770,7 +764,14 @@ async function readTable(key, file) {
   const restoreKey = `mock_seed_restore_${key}`;
   let list;
   if (cached) {
-    list = JSON.parse(cached);
+    try {
+      const value = JSON.parse(cached);
+      list = Array.isArray(value) ? value : value?.[key];
+      if (!Array.isArray(list) && key === 'customerBookings') list = value?.bookings;
+      if (!Array.isArray(list)) throw new Error();
+    } catch {
+      throw new ApiError(0, `Dữ liệu ${key} trong trình duyệt không hợp lệ. Hãy sao lưu dữ liệu để kiểm tra.`);
+    }
     if (localStorage.getItem(restoreKey) === '1') {
       const seed = await request(`${MOCK_BASE}/${file}`);
       const seedRows = seed[key] ?? seed;
@@ -781,6 +782,7 @@ async function readTable(key, file) {
     const seed = await request(`${MOCK_BASE}/${file}`);
     list = seed[key] ?? seed;
   }
+  if (!Array.isArray(list)) throw new ApiError(0, `Nguồn dữ liệu ${key} không hợp lệ.`);
   localStorage.setItem(key, JSON.stringify(list));
   localStorage.removeItem(restoreKey);
   return list;

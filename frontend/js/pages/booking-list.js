@@ -30,6 +30,7 @@ const tplRow  = document.getElementById('tpl-booking-row');
 let bookings = [];
 let currentFilter = 'all';
 let page = 1;
+let loadGeneration = 0;
 const pager = document.createElement('div'); pager.className='row__actions'; pager.id='booking-pages';
 if(ACCOUNT_API_MODE) listEl.after(pager);
 function renderPages() {
@@ -105,6 +106,13 @@ function renderList() {
   if (filtered.length === 0) {
     listEl.hidden = true;
     emptyEl.hidden = false;
+    const isAll = currentFilter === 'all';
+    emptyEl.querySelector('.empty__title').textContent = isAll ? 'Bạn chưa có đặt phòng nào' : `Không có đặt phòng ở trạng thái ${STATUS_LABEL[currentFilter] || currentFilter}`;
+    emptyEl.querySelector('.empty__hint').textContent = isAll ? 'Tìm một homestay ưng ý và đặt phòng ngay hôm nay.' : 'Chọn Tất cả để xem những đặt phòng khác.';
+    const action = emptyEl.querySelector('.empty__action');
+    action.textContent = isAll ? 'Tìm homestay' : 'Xem tất cả đặt phòng';
+    action.href = accountHref(isAll ? 'search.html' : 'booking-list.html');
+    action.onclick = isAll ? null : event => { event.preventDefault(); document.querySelector('[data-filter="all"]').click(); };
   } else {
     listEl.hidden = false;
     emptyEl.hidden = true;
@@ -157,12 +165,17 @@ listEl.addEventListener('click', async e => {
 });
 
 async function load() {
+  const generation = ++loadGeneration;
   showLoadingSkeleton();
+  pager.replaceChildren();
   try {
-    bookings = await getBookings(ACCOUNT_API_MODE ? {page,page_size:20,...(currentFilter==='all'?{}:{status:currentFilter})} : {});
+    const result = await getBookings(ACCOUNT_API_MODE ? {page,page_size:20,...(currentFilter==='all'?{}:{status:currentFilter})} : {});
+    if (generation !== loadGeneration) return;
+    bookings = result;
     renderList();
     renderPages();
   } catch (err) {
+    if (generation !== loadGeneration) return;
     if(ACCOUNT_API_MODE && err.status===401){requireLogin();return;}
     listEl.hidden = false;
     emptyEl.hidden = true;
@@ -172,4 +185,5 @@ async function load() {
   }
 }
 
+window.addEventListener('pageshow', event => { if (event.persisted) load(); });
 load();
