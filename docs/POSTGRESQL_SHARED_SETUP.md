@@ -80,7 +80,7 @@ luxstay.example.org {
 
 Ví dụ này cần được kiểm tra trên server đích. Caddy quản lý chứng chỉ khi đáp ứng điều kiện DNS/ACME. Dùng service manager để tự khởi động lại Uvicorn. Chỉ tin forwarded headers từ reverse proxy loopback, ví dụ `--proxy-headers --forwarded-allow-ips 127.0.0.1`. Không công khai port Uvicorn/5432. Tắt access log có dữ liệu nhạy cảm, không log Authorization/request body hoặc URL kết nối. Thiết lập giới hạn request/rate/concurrency tại proxy theo tải thực tế. CORS dùng origin chính xác. Khi cùng origin, frontend không cần cross-origin CORS.
 
-Giữ `FRONTEND_MODE=shared` và phục vụ tất cả đường dẫn qua FastAPI. Nếu tách static frontend sang dịch vụ khác, reverse proxy vẫn phải chuyển `/js/runtime-config.js`, `/api` và `/uploads` đến backend. Phục vụ module runtime tĩnh của bản demo sẽ làm trang chọn mock. Không đưa file cấu hình bí mật, `.env` hoặc thư mục backend lên static hosting.
+Giữ `FRONTEND_MODE=shared` và phục vụ tất cả đường dẫn qua FastAPI. Nếu tách static frontend sang dịch vụ khác, reverse proxy phải chuyển `/api` và `/uploads` đến backend hoặc cấu hình URL API công khai trước khi tải module. Runtime tĩnh hiện cũng mặc định dùng API; không còn tự chuyển sang mock. Không đưa file cấu hình bí mật, `.env` hoặc thư mục backend lên static hosting.
 
 ## Backup, restart và cập nhật
 

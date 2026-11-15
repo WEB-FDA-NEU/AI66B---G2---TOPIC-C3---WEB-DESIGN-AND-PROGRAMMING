@@ -1,23 +1,18 @@
-// ============================================================
-//  Giữ mock mặc định để bảo toàn các luồng chưa tích hợp.
-//  Phase 8 chuyển từng nhóm qua cờ route ?accounts=api.
-//  Chưa được đổi USE_MOCK=false cho toàn ứng dụng trước gate tích hợp.
-// ============================================================
-
+// Booking and account data always use the authenticated server API.
 import { deployment } from './runtime-config.js';
 
-export const USE_MOCK = true;
+export const USE_MOCK = false;
 export const SHARED_MODE = deployment.mode === 'shared';
 
 // Same-origin Uvicorn/staging by default; standard Live Server ports target the same loopback host.
 // A deployment may supply a non-secret global LUXSTAY_CONFIG.apiBase before module loading.
 const loopback = ['localhost', '127.0.0.1'].includes(location.hostname);
-const configuredBase = SHARED_MODE ? deployment.apiBase : globalThis.LUXSTAY_CONFIG?.apiBase;
+const configuredBase = deployment.apiBase || globalThis.LUXSTAY_CONFIG?.apiBase;
 export const API_BASE = new URL(configuredBase || (loopback && ['5500', '5501'].includes(location.port)
   ? `http://${location.hostname}:8000/api` : '/api'), location.origin).href.replace(/\/$/, '');
 if (!['http:', 'https:'].includes(new URL(API_BASE).protocol) || new URL(API_BASE).username || new URL(API_BASE).password) throw Error('Invalid API origin');
 export const API_SCOPE = SHARED_MODE || new URLSearchParams(location.search).get('mode') === 'api' ? 'customer'
-  : new URLSearchParams(location.search).get('accounts') === 'api' ? 'accounts' : 'mock';
+  : new URLSearchParams(location.search).get('accounts') === 'api' ? 'accounts' : 'customer';
 export const ACCOUNT_API_MODE = API_SCOPE !== 'mock';
 export const apiModuleEnabled = module => module === 'accounts' || (API_SCOPE === 'customer' && ['catalog','bookings','host-bookings','host-properties','host-rooms','host-dashboard','admin'].includes(module));
 const accountRoutes = new Set(['login.html', 'register.html', 'profile.html', 'host-register.html']);

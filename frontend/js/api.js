@@ -665,114 +665,24 @@ export async function cancelHost(reason) {
 
 // ══════════ NGƯỜI 3 — TODO: thêm vùng của em ở đây ══════════
 
-async function mockCustomerHistory() {
-  const [current, legacy] = await Promise.all([
-    readTable('customerBookings', 'bookings.json'),
-    readTable('bookings', 'host-bookings.json'),
-  ]);
-  const records = new Map();
-  for (const [rows, isLegacy] of [[current, false], [legacy, true]]) {
-    for (const row of rows) {
-      // Host seed rows without an explicit customer identity are never private history.
-      if (row.userId == null) continue;
-      const identity = JSON.stringify([String(row.userId), row.code || String(row.id),
-        String(row.homestayId), row.checkIn, row.checkOut]);
-      const previous = records.get(identity);
-      const modified = value => Date.parse(value.updatedAt || value.createdAt || '') || 0;
-      if (previous && modified(row) <= modified(previous)) continue;
-      records.set(identity, { ...row, id: isLegacy ? `legacy:${row.id}` : row.id });
-    }
-  }
-  return [...records.values()];
-}
-
 export async function getBookings(params = {}) {
   blockUnintegratedBusiness('bookings');
-  if (USE_MOCK && !ACCOUNT_API_MODE) {
-    const me = getUser();
-    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để xem lịch sử đặt phòng.');
-    const list = await mockCustomerHistory();
-    return list.filter(b => String(b.userId) === String(me.id))
-      .sort((a, b) => {
-        const createdAt = booking => Date.parse(booking.createdAt || '') || 0;
-        return createdAt(b) - createdAt(a)
-          || String(b.id).localeCompare(String(a.id), undefined, { numeric: true });
-      });
-  }
   return request(`${API_BASE}/me/bookings?${new URLSearchParams(params)}`);
 }
 
 export async function getBooking(id) {
   blockUnintegratedBusiness('bookings');
-  if (USE_MOCK && !ACCOUNT_API_MODE) {
-    const b = (await getBookings()).find(x => String(x.id) === String(id));
-    if (!b) throw new ApiError(404, 'Không tìm thấy đặt phòng này.');
-    return b;
-  }
   return request(`${API_BASE}/me/bookings/${id}`);
 }
 
 export async function createBooking(payload, key) {
   blockUnintegratedBusiness('bookings');
-  if (USE_MOCK && !ACCOUNT_API_MODE) {
-    const me = getUser();
-    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để đặt phòng.');
-    const list = await readTable('customerBookings', 'bookings.json');
-    const holds = readMockHolds();
-    const hold = holds.find(row => String(row.userId) === String(me.id));
-    if (!hold) throw new ApiError(409, 'Thời gian giữ chỗ đã hết. Vui lòng quay lại lịch và chọn phòng lại.');
-    const roomSignature = rooms => (rooms || []).map(room => ({
-      key: room.key || null,
-      roomId: room.roomId ? String(room.roomId) : null,
-      qty: Number(room.qty),
-    })).sort((a, b) => String(a.key || a.roomId).localeCompare(String(b.key || b.roomId)));
-    if (hold && (
-      String(hold.homestayId) !== String(payload.homestayId)
-      || hold.checkIn !== payload.checkIn
-      || hold.checkOut !== payload.checkOut
-      || JSON.stringify(roomSignature(hold.rooms)) !== JSON.stringify(roomSignature(payload.rooms))
-    )) throw new ApiError(409, 'Ngày hoặc phòng đã thay đổi. Vui lòng giữ chỗ lại trước khi đặt.');
-    const inventory = await mockAvailability(payload.homestayId, payload.checkIn, payload.checkOut, me.id);
-    for (const selection of payload.rooms) {
-      const room = inventory.find(candidate => selection.key
-        ? candidate.key === selection.key : candidate.id === String(selection.roomId));
-      if (!room || room.available < selection.qty)
-        throw new ApiError(409, 'Phòng không khả dụng (Lý do: Phòng đang được thuê hoặc giữ chỗ trong khoảng thời gian này).');
-    }
-    const history = await mockCustomerHistory();
-    const id = history.reduce((maximum, row) => Math.max(maximum,
-      Number(String(row.id).replace(/^legacy:/, '')) || 0), 0) + 1;
-    const booking = {
-      ...payload,
-      id, userId: me.id, status: 'confirmed', createdAt: new Date().toISOString(),
-      code: 'BK' + String(id).padStart(6, '0'),   // cùng định dạng mã với booking-detail
-    };
-    list.push(booking);
-    writeTable('customerBookings', list);
-    writeMockHolds(holds.filter(row => String(row.userId) !== String(me.id)));
-    return booking;
-  }
   if (!key) throw new ApiError(400, 'Stable Idempotency-Key required');
   return request(`${API_BASE}/me/bookings`, { method: 'POST', body: payload, headers:{'Idempotency-Key':key} });
 }
 
 export async function cancelBooking(id) {
   blockUnintegratedBusiness('bookings');
-  if (USE_MOCK && !ACCOUNT_API_MODE) {
-    const me = getUser();
-    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để hủy đặt phòng.');
-    const legacy = String(id).startsWith('legacy:');
-    const key = legacy ? 'bookings' : 'customerBookings';
-    const originalId = legacy ? String(id).slice('legacy:'.length) : String(id);
-    const list = await readTable(key, legacy ? 'host-bookings.json' : 'bookings.json');
-    const idx = list.findIndex(b => String(b.id) === originalId && String(b.userId) === String(me.id));
-    if (idx === -1) throw new ApiError(404, 'Không tìm thấy booking.');
-    if (!['pending', 'confirmed', 'cancelled'].includes(list[idx].status)) throw new ApiError(409, 'Không thể hủy đặt phòng ở trạng thái hiện tại.');
-    list[idx].status = 'cancelled';
-    list[idx].updatedAt = new Date().toISOString();
-    writeTable(key, list);
-    return { ...list[idx], id };
-  }
   return request(`${API_BASE}/me/bookings/${id}/cancel`, { method: 'POST' });
 }
 

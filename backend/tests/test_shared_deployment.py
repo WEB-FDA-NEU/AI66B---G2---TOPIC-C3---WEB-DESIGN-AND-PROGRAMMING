@@ -12,7 +12,7 @@ from backend.schemas import RegisterIn
 
 
 def test_shared_runtime_configuration_contains_only_public_values(setup):
-    settings = replace(setup["settings"], frontend_mode="shared", serve_frontend=True)
+    settings = replace(setup["settings"], serve_frontend=True)
     with TestClient(create_app(settings, setup["engine"])) as client:
         response = client.get("/js/runtime-config.js")
         assert response.status_code == 200
@@ -30,7 +30,7 @@ def test_deployment_validation(setup):
     with pytest.raises(ValueError, match="FRONTEND_MODE"):
         replace(setup["settings"], frontend_mode="typo")
     with pytest.raises(ValueError, match="FRONTEND_MODE=shared"):
-        replace(setup["settings"], environment="production", serve_frontend=True)
+        replace(setup["settings"], environment="production", serve_frontend=True, frontend_mode="mock")
 
 
 def test_bootstrap_first_admin_does_not_overwrite_accounts(empty_engine):

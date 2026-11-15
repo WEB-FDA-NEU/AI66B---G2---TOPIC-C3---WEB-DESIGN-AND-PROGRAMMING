@@ -1,2 +1,2 @@
-// Static hosting keeps the isolated UI demo. Shared FastAPI overrides this module.
-export const deployment = { mode: 'mock' };
+// Public configuration only; FastAPI overrides apiBase for same-origin hosting.
+export const deployment = { mode: 'shared' };

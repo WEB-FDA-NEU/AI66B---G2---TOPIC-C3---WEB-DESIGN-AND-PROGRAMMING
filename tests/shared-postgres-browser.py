@@ -84,11 +84,11 @@ def main():
             port = free_port()
             origin = f"http://127.0.0.1:{port}"
             environment = os.environ.copy()
+            environment.pop("FRONTEND_MODE", None)
             environment.update(
                 APP_ENV="test",
                 DATABASE_URL=database_url,
                 JWT_SECRET=secrets.token_urlsafe(48),
-                FRONTEND_MODE="shared",
                 SERVE_FRONTEND="true",
                 AUTH_RATE_LIMIT="1000",
                 UPLOAD_DIR=str(work / "uploads"),
@@ -374,9 +374,9 @@ def main():
                     "shared history row is visible to the user",
                 )
                 b.js(
-                    "window.originalHistoryFetch=window.fetch;window.fetch=async(...args)=>{const response=await originalHistoryFetch(...args);const url=String(args[0]);if(url.includes('/me/bookings?'))await new Promise(resolve=>setTimeout(resolve,url.includes('status=cancelled')?400:20));return response};document.querySelector('[data-filter=cancelled]').click();document.querySelector('[data-filter=all]').click()"
+                    "window.historyCompleted=0;window.originalHistoryFetch=window.fetch;window.fetch=async(...args)=>{const response=await originalHistoryFetch(...args);const url=String(args[0]);if(url.includes('/me/bookings?')){await new Promise(resolve=>setTimeout(resolve,url.includes('status=cancelled')?400:20));window.historyCompleted++}return response};document.querySelector('[data-filter=cancelled]').click();document.querySelector('[data-filter=all]').click()"
                 )
-                b.js("new Promise(resolve=>setTimeout(resolve,650))")
+                b.until("window.historyCompleted===2 && !!document.querySelector('#booking-list .row')")
                 check(
                     b.js(
                         "document.querySelector('[data-filter=all]').classList.contains('is-active') && !!document.querySelector('#booking-list .row') && !document.querySelector('#booking-list').hidden"
@@ -393,6 +393,24 @@ def main():
                         len(db.scalars(select(Booking)).all()) == 1
                         and len(db.scalars(select(RoomNight)).all()) == 2,
                         "PostgreSQL contains one booking and exactly two reserved nights",
+                    )
+                register(b, "unrelated-customer@example.com", "Unrelated Customer")
+                check(
+                    api(b, "return api.getBookings();") == [],
+                    "unrelated customer history excludes another customer booking",
+                )
+                for operation in ("getBooking", "cancelBooking"):
+                    check(
+                        api(
+                            b,
+                            "try{await api."
+                            + operation
+                            + "("
+                            + str(booking["id"])
+                            + ");return 200}catch(e){return e.status}",
+                        )
+                        == 404,
+                        "unrelated customer cannot " + operation + " another customer booking",
                     )
                 # A different approved host must not obtain the first host property.
                 today_payload = {
@@ -456,8 +474,8 @@ def main():
                 with factory() as db:
                     stored_ids = set(db.scalars(select(User.id)))
                 check(
-                    {row["id"] for row in actual_users} == stored_ids and len(stored_ids) == 4,
-                    "admin lists exactly the four PostgreSQL test accounts",
+                    {row["id"] for row in actual_users} == stored_ids and len(stored_ids) == 5,
+                    "admin lists exactly the five PostgreSQL test accounts",
                 )
                 login(a, "shared-customer@example.com")
                 api(a, "return api.cancelBooking(" + str(booking["id"]) + ");")
@@ -470,6 +488,12 @@ def main():
                     )["status"]
                     == "cancelled",
                     "host refresh observes customer cancellation",
+                )
+                login(b, "shared-customer@example.com")
+                navigate(b, "booking-list.html", "!!document.querySelector('#booking-list .row')")
+                check(
+                    api(b, "return api.getBooking(" + str(booking["id"]) + ");")["status"] == "cancelled",
+                    "second customer context reload sees cancellation from context A",
                 )
                 server.terminate()
                 server.wait(timeout=20)
@@ -518,9 +542,12 @@ def main():
                     ),
                     "API network failure displays error without local/mock fallback",
                 )
+                b.js("import('./js/api.js').then(api=>{window.failureTestAPI=api})")
                 server.terminate()
                 server.wait(timeout=20)
-                error = api(b, "try{await api.getHostBookings();return 200}catch(e){return e.status}")
+                error = b.js(
+                    "(async()=>{try{await window.failureTestAPI.getHostBookings();return 200}catch(e){return e.status}})()"
+                )
                 check(error == 0, "stopped backend returns connection error without mock fallback")
                 report = {
                     "status": "PASS",

@@ -1,3 +1,7 @@
+# Cập nhật sau audit
+
+Đã chuyển frontend sang API mặc định và bỏ nhánh localStorage khỏi CRUD booking customer. Các nhận định mock mặc định bên dưới mô tả nguyên nhân ở phiên bản trước. Xem [BOOKING_SYNC_FIX.md](BOOKING_SYNC_FIX.md) cho trạng thái hiện tại và giới hạn triển khai.
+
 # Audit dữ liệu dùng chung
 
 Audit ngày 2026-11-15 trên source hiện tại, trước khi sửa cấu hình shared. Các kết luận dưới đây dựa vào code. Chưa có thông tin server của nhóm hoặc bằng chứng từ hai máy vật lý.

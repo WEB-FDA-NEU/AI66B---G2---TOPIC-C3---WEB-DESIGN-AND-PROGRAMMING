@@ -1,3 +1,7 @@
+# Cập nhật luồng mặc định
+
+Frontend hiện dùng API thật mặc định, `USE_MOCK=false`, không cần `?mode=api`. Các mô tả mock mặc định bên dưới là lịch sử trước bản sửa này. Kết quả và hướng dẫn mới nhất: [BOOKING_SYNC_FIX.md](BOOKING_SYNC_FIX.md).
+
 # Bàn giao chế độ shared Fullstack
 
 Source được audit ngày 2026-11-15. Root cause và mapping nghiệp vụ ở SHARED_DATABASE_AUDIT, hướng dẫn vận hành ở POSTGRESQL_SHARED_SETUP, bằng chứng browser ở SHARED_BROWSER_RESULTS.json.

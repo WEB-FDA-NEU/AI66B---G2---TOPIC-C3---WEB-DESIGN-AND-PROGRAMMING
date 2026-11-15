@@ -4,7 +4,7 @@
 
 Để cả nhóm truy cập qua Internet, làm theo [hướng dẫn Render/Railway từng bước](docs/INTERNET_DEPLOYMENT.md). Dockerfile, render.yaml và railway.toml đã được chuẩn bị để phục vụ frontend/API cùng một HTTPS origin, kết nối PostgreSQL chung. Người vận hành cần review chi phí và chủ động tạo dịch vụ, cấu hình secrets, chạy migration và lấy public URL.
 
-Một máy server chạy FastAPI với `FRONTEND_MODE=shared`, `SERVE_FRONTEND=true` và `DATABASE_URL` trỏ đến PostgreSQL chung. Mọi thành viên mở cùng URL của server. Chế độ này tự dùng API trên tất cả trang, kể cả URL thiếu `?mode=api`. Mở frontend bằng static server riêng tiếp tục là bản demo mock trên từng trình duyệt.
+Frontend hiện mặc định dùng API thật (`USE_MOCK=false`), kể cả URL thiếu `?mode=api`. Một server chạy FastAPI với `FRONTEND_MODE=shared`, `SERVE_FRONTEND=true` và `DATABASE_URL` trỏ đến PostgreSQL chung. Mọi thành viên mở cùng URL của server. Live Server không còn là bản demo độc lập: nó cần backend đang chạy; mỗi máy gọi localhost riêng vẫn không thể đồng bộ. Xem [bản sửa và cách xác minh đồng bộ](docs/BOOKING_SYNC_FIX.md).
 
 Thiết lập PostgreSQL, migration, tạo admin đầu tiên, LAN và staging HTTPS được mô tả trong [POSTGRESQL_SHARED_SETUP.md](docs/POSTGRESQL_SHARED_SETUP.md). Nguyên nhân dữ liệu tách giữa các máy xem [SHARED_DATABASE_AUDIT.md](docs/SHARED_DATABASE_AUDIT.md). Kết quả kiểm thử và các bước vận hành còn lại xem [SHARED_FULLSTACK_REPORT.md](docs/SHARED_FULLSTACK_REPORT.md).
 
@@ -18,12 +18,12 @@ Thiết lập PostgreSQL, migration, tạo admin đầu tiên, LAN và staging H
 
 | Hạng mục | Tình trạng |
 |----------|------------|
-| Giao diện (frontend) | Hoàn thành 19 màn hình, chạy ổn định bằng dữ liệu mock |
+| Giao diện (frontend) | Giữ nguyên UI, mặc định đọc/ghi API thật |
 | Phân quyền theo role (user / host / admin) trên giao diện | Hoàn thành (`js/guard.js`) |
 | Dashboard có biểu đồ cho Host và Admin | Hoàn thành (Chart.js) |
 | Kiểm thử giao diện tự động | Có (`tests/`) |
 | Backend FastAPI | Có migrations, JWT thu hồi được, profile, duyệt host, catalog, giữ phòng 10 phút, booking xác nhận ngay và API host/admin; hoàn tất sớm sẽ mở lại tồn chưa dùng. Migration head hiện tại: `0007_booking_holds`; xem [runbook](docs/BACKEND_RUNBOOK.md) |
-| Nối frontend với backend thật | Đã nối customer/host/admin qua `?mode=api`; mock mặc định vẫn được giữ, `USE_MOCK=true` |
+| Nối frontend với backend thật | Customer/host/admin dùng API mặc định, `USE_MOCK=false`; không dùng localStorage làm nguồn booking |
 | QA | Báo cáo Phase 9/10 là snapshot trước tính năng hủy quyền Host mới nhất; dùng các lệnh kiểm thử bên dưới để xác minh source hiện tại |
 | Triển khai production | Chưa sẵn sàng: gateway/email, TLS/deployment, backup/restore và kiểm thử vận hành còn thiếu |
 
@@ -37,7 +37,7 @@ LuxStay là nền tảng đặt homestay trực tuyến, kết nối du khách v
 - **Host:** gửi đơn đăng ký làm host, quản lý homestay, phòng, giá và lịch trống, xử lý các đơn đặt phòng, xem dashboard doanh thu và công suất phòng.
 - **Admin:** xem dashboard tăng trưởng người dùng và đơn đặt theo tỉnh, duyệt hoặc từ chối đơn xin làm host, xem danh sách host.
 
-Không có cờ URL: giao diện dùng mock. Mở `http://127.0.0.1:8000/index.html?mode=api` để dùng FastAPI và database thật trong development. Các luồng customer/host/admin ở API mode dùng cùng DB; localStorage không quyết định booking/phòng/homestay/review/payment. API session riêng trong sessionStorage, backend kiểm tra quyền. Không dùng tài khoản mock đang đăng nhập để thay phiên API.
+Mở `http://127.0.0.1:8000/index.html` để dùng FastAPI và database thật. Các luồng customer/host/admin dùng cùng DB; localStorage không quyết định booking/phòng/homestay/review/payment. API session riêng trong sessionStorage, backend kiểm tra quyền. Tài khoản mock cũ không thay thế tài khoản đã đăng ký trên server.
 
 ---
 
@@ -84,7 +84,7 @@ Tất cả file giao diện nằm trong `frontend/`.
 
 > Không mở `index.html` bằng cách nhấp đúp. Trang dùng ES module và đọc file mock bằng `fetch`, mà trình duyệt chặn cả hai khi mở qua `file://`. Cần chạy qua một máy chủ cục bộ.
 
-**Cách 1 — Chỉ chạy giao diện (không cần cài gì thêm, cần Python)**
+**Cách 1 — Phục vụ frontend riêng (vẫn cần backend cổng 8000)**
 
 ```bash
 cd frontend
@@ -101,17 +101,16 @@ backend/.venv/Scripts/Activate.ps1  # macOS/Linux: source backend/.venv/bin/acti
 python -m pip install -r backend/requirements-dev.txt
 # Chỉ copy .env.example nếu chưa có backend/.env; xem runbook để cấu hình.
 python -m alembic -c backend/alembic.ini upgrade head
-python -m backend.seed             # development-only, hỏi password bằng getpass
 python -m uvicorn backend.main:app --reload --port 8000
 ```
 
-Mở http://localhost:8000/index.html?mode=api để dùng backend; bỏ `mode=api` để dùng mock. Swagger tại http://localhost:8000/docs. `USE_MOCK=true` vẫn giữ; không cần sửa source để chuyển mode. Hướng dẫn .env, PostgreSQL, backup/migration và QA tại [BACKEND_RUNBOOK.md](docs/BACKEND_RUNBOOK.md).
+Mở http://localhost:8000/index.html. Swagger tại http://localhost:8000/docs. Không cần cờ URL. Hướng dẫn .env, PostgreSQL, backup/migration và QA tại [BACKEND_RUNBOOK.md](docs/BACKEND_RUNBOOK.md). Không chạy seed cho database chung; tạo admin đầu tiên bằng `python -m backend.bootstrap_admin`, đăng ký customer, duyệt host rồi tạo phòng thật.
 
 Seed chỉ dùng development và hỏi mật khẩu ẩn do bạn chọn; không có mật khẩu backend hardcode. Email seed: `huy@test.com` (customer), `host@test.com` (host), `admin@test.com` (admin); mật khẩu chính là giá trị nhập lúc seed, khác verifier demo mock. Seed từ chối ghi đè DB đã có dữ liệu; không reset DB để chạy lại. Khách đăng ký host mới phải chờ admin duyệt và đăng nhập lại.
 
 Chạy frontend riêng: `python -m http.server 5500 --directory frontend`, mở `http://localhost:5500/index.html?mode=api`, backend ở cùng hostname cổng 8000. Dùng nhất quán localhost hoặc 127.0.0.1; CORS allowlist phải đúng origin. Port khác hoặc reverse proxy: cung cấp `globalThis.LUXSTAY_CONFIG = {apiBase: 'https://your-api.example/api'}` trước các module; đây chỉ là cấu hình URL, không chứa secret. Sandbox `?accounts=api` chỉ tài khoản và cố ý chặn nghiệp vụ khác.
 
-**Tài khoản demo (mock)**
+**Tài khoản mock cũ (không dùng để đăng nhập server)**
 
 | Role | Email |
 |------|-------|
@@ -121,7 +120,7 @@ Chạy frontend riêng: `python -m http.server 5500 --directory frontend`, mở 
 
 <!-- Nhóm bổ sung mật khẩu demo vào đây (không ghi plaintext trong mock/users.json, chỉ có hash PBKDF2). -->
 
-Có thể tự đăng ký tài khoản mới. Tài khoản mock được lưu trong `localStorage` (khóa `luxstay_mock_users_v1`) và không bị mất khi cập nhật dữ liệu mock.
+Cần đăng ký tài khoản trên server. Tài khoản và đơn mock cũ vẫn được giữ nguyên trong trình duyệt, không tự nhập lên database chung. Các test mock lịch sử không còn là kiểm thử luồng mặc định; dùng `python tools/test_backend_postgres.py --browser-only` để kiểm tra hai phiên với PostgreSQL thật.
 
 **Luồng thử nhanh**
 
@@ -133,7 +132,7 @@ Có thể tự đăng ký tài khoản mới. Tài khoản mock được lưu tr
 **Lưu ý**
 
 - Biểu đồ dùng Chart.js nạp từ CDN. Mất mạng thì trang vẫn chạy nhưng không có biểu đồ.
-- Dữ liệu mock được sao chép vào `localStorage` ở lần đọc đầu. Khi sửa `mock/*.json`, hãy **tăng `MOCK_DATA_VERSION` trong `js/api.js`** để mọi máy tự xóa cache cũ (phiên đăng nhập không bị ảnh hưởng).
+- API lỗi sẽ báo lỗi, không chuyển sang dữ liệu mock. Không xóa localStorage để chữa lỗi lịch sử; cần kiểm tra backend, tài khoản server và DATABASE_URL.
 
 ---
 

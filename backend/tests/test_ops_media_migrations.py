@@ -237,7 +237,7 @@ def test_migrated_metadata_is_in_sync(tmp_path):
         engine.dispose()
 
 
-def test_frontend_baseline_matches_current_mock_mode():
+def test_frontend_baseline_matches_server_mode():
     baseline = json.loads((ROOT / "docs/FRONTEND_BASELINE.json").read_text(encoding="utf-8"))
     current = {
         path.as_posix().removeprefix(ROOT.as_posix() + "/"): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -245,7 +245,7 @@ def test_frontend_baseline_matches_current_mock_mode():
         if path.is_file()
     }
     assert current == baseline["files"]
-    assert "export const USE_MOCK = true;" in (ROOT / "frontend/js/config.js").read_text(encoding="utf-8")
+    assert "export const USE_MOCK = false;" in (ROOT / "frontend/js/config.js").read_text(encoding="utf-8")
 
 
 def test_both_database_engines_pass_alembic_check_and_foreign_keys(setup):

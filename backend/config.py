@@ -24,7 +24,7 @@ class Settings:
     auth_rate_window: int = 300
     max_body_bytes: int = 12 * 1024 * 1024
     serve_frontend: bool = True
-    frontend_mode: str = "mock"
+    frontend_mode: str = "shared"
 
     def __post_init__(self):
         if self.frontend_mode not in {"mock", "shared"}:
@@ -103,5 +103,5 @@ class Settings:
             auth_rate_window=int(os.getenv("AUTH_RATE_WINDOW", "300")),
             max_body_bytes=int(os.getenv("MAX_BODY_BYTES", str(12 * 1024 * 1024))),
             serve_frontend=serve_frontend.lower() == "true",
-            frontend_mode=os.getenv("FRONTEND_MODE", "shared" if environment == "production" else "mock"),
+            frontend_mode=os.getenv("FRONTEND_MODE", "shared"),
         )
