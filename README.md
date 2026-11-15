@@ -1,5 +1,9 @@
 # LuxStay — Homestay Booking Website
 
+## Sửa lỗi kết nối local (15/11/2026)
+
+Mở **http://127.0.0.1:8000/index.html?mode=api**, không cần Live Server 5500. Xem [lệnh PowerShell, kiểm tra SQLite và báo cáo request/test](docs/LOCAL_API_FIX.md). Chạy ackend/.venv/Scripts/python.exe tools/run_local.py với DB hiện có; nếu chưa có DB, dùng --init-demo một lần rồi --demo để chạy database dev riêng. Launcher không tự seed/migrate DB cũ. Hướng dẫn PostgreSQL/deploy bên dưới là phương án triển khai riêng, không bắt buộc để chạy local SQLite.
+
 ## Chạy chung cho nhiều thiết bị
 
 Để cả nhóm truy cập qua Internet, làm theo [hướng dẫn Render/Railway từng bước](docs/INTERNET_DEPLOYMENT.md). Dockerfile, render.yaml và railway.toml đã được chuẩn bị để phục vụ frontend/API cùng một HTTPS origin, kết nối PostgreSQL chung. Người vận hành cần review chi phí và chủ động tạo dịch vụ, cấu hình secrets, chạy migration và lấy public URL.

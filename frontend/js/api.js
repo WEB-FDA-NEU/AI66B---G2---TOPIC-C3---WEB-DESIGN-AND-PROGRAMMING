@@ -54,7 +54,10 @@ async function request(url, options = {}) {
     if (res.status === 401 && backend && !/\/auth\/(login|register)$/.test(target.pathname)) clearSession();
     if (res.status === 204) return null;
     let data = null;
-    try { data = await res.json(); } catch (error) { if (controller.signal.aborted) throw error; }
+    try { data = await res.json(); } catch (error) {
+      if (controller.signal.aborted) throw error;
+      throw new ApiError(res.status, `Máy chủ trả dữ liệu không phải JSON (${res.status}). Kiểm tra API URL: ${target.origin}${target.pathname}`);
+    }
     if (!res.ok) {
       const error = new ApiError(res.status, normalizeDetail(data?.detail));
       error.code = data?.code; error.errors = data?.errors; error.retryAfter = res.headers.get('Retry-After');
@@ -64,7 +67,7 @@ async function request(url, options = {}) {
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (controller.signal.aborted) throw new ApiError(408, 'Yêu cầu quá thời gian chờ. Chưa xác định kết quả; không gửi lại thao tác đặt phòng bằng key mới.');
-    throw new ApiError(0, 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.');
+    throw new ApiError(0, `Không kết nối được máy chủ API tại ${base.origin}. Kiểm tra backend đang chạy và CORS cho ${location.origin}.`);
   } finally { clearTimeout(timer); }
 }
 

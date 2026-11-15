@@ -1,4 +1,4 @@
-"""Two isolated Chrome contexts, one real FastAPI and a dedicated PostgreSQL test schema."""
+"""Two isolated Chrome contexts and real FastAPI; --sqlite uses a disposable SQLite file."""
 
 import importlib.util
 import json
@@ -37,21 +37,45 @@ def free_port():
         return listener.getsockname()[1]
 
 
+def stop_process(process):
+    if process.poll() is not None:
+        return
+    if os.name == "nt":
+        subprocess.run(
+            ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+            capture_output=True,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+    else:
+        process.terminate()
+    process.wait(timeout=20)
+
+
 def main():
+    sqlite = "--sqlite" in sys.argv[1:]
     url = make_url(os.environ.get("TEST_POSTGRES_URL", "sqlite://"))
-    if url.get_backend_name() != "postgresql" or not (url.database or "").endswith("_test"):
+    if not sqlite and (url.get_backend_name() != "postgresql" or not (url.database or "").endswith("_test")):
         raise SystemExit("TEST_POSTGRES_URL must point to a dedicated PostgreSQL database ending in _test")
     browser = shutil.which("google-chrome") or os.path.join(
         os.environ.get("PROGRAMFILES", ""), "Google/Chrome/Application/chrome.exe"
     )
     if not Path(browser).is_file():
         raise SystemExit("Chrome is required")
-    schema = "luxstay_shared_" + secrets.token_hex(12)
-    admin_engine = make_engine(url.render_as_string(hide_password=False))
-    with admin_engine.begin() as connection:
-        connection.execute(CreateSchema(schema))
-    isolated = url.set(query={**url.query, "options": "-csearch_path=" + schema})
-    database_url = isolated.render_as_string(hide_password=False)
+    parent = ROOT / "backend/.test-tmp"
+    parent.mkdir(exist_ok=True)
+    database_directory = None
+    admin_engine = None
+    schema = None
+    if sqlite:
+        database_directory = tempfile.TemporaryDirectory(prefix="shared-sqlite-", dir=parent)
+        database_url = "sqlite:///" + (Path(database_directory.name) / "shared.db").as_posix()
+    else:
+        schema = "luxstay_shared_" + secrets.token_hex(12)
+        admin_engine = make_engine(url.render_as_string(hide_password=False))
+        with admin_engine.begin() as connection:
+            connection.execute(CreateSchema(schema))
+        isolated = url.set(query={**url.query, "options": "-csearch_path=" + schema})
+        database_url = isolated.render_as_string(hide_password=False)
     engine = make_engine(database_url)
     factory = make_session_factory(engine)
     processes = []
@@ -92,7 +116,7 @@ def main():
                 SERVE_FRONTEND="true",
                 AUTH_RATE_LIMIT="1000",
                 UPLOAD_DIR=str(work / "uploads"),
-                CORS_ORIGINS=origin,
+                CORS_ORIGINS=origin + ",http://localhost:5500,http://127.0.0.1:5500",
             )
             with (work / "server.log").open("w", encoding="utf-8") as log:
 
@@ -222,14 +246,14 @@ def main():
                         + pollution
                         + ").forEach(([key,value])=>localStorage.setItem(key,value))"
                     )
-                customer = register(a, "shared-customer@example.com", "Shared Customer")
-                remote = login(b, "shared-customer@example.com")
+                customer = register(a, "huy@test.com", "Shared Customer")
+                remote = login(b, "huy@test.com")
                 with factory() as db:
                     check(
                         customer["id"]
                         == remote["id"]
-                        == db.scalar(select(User.id).where(User.email == "shared-customer@example.com")),
-                        "browser B logs in to browser A registered PostgreSQL user",
+                        == db.scalar(select(User.id).where(User.email == "huy@test.com")),
+                        "browser B logs in to browser A registered database user",
                     )
                 check(
                     a.js('sessionStorage.getItem("luxstay_api_access_token")!==null')
@@ -257,7 +281,7 @@ def main():
                 applications = api(b, "return api.getAdminApplications();")
                 check(
                     any(row["id"] == application["id"] for row in applications),
-                    "admin context reads actual pending PostgreSQL application",
+                    "admin context reads actual pending database application",
                 )
                 api(b, "return api.decideHostApplication(" + str(application["id"]) + ",'approve');")
                 check(
@@ -281,7 +305,7 @@ def main():
                     "return api.saveHostHomestay("
                     + json.dumps(
                         {
-                            "name": "Shared PostgreSQL Stay",
+                            "name": "Shared Database Stay",
                             "description": "Shared property created through the real frontend adapter.",
                             "address": "123 Shared Street, Da Lat",
                             "amenities": [],
@@ -316,7 +340,20 @@ def main():
                     api(a, "try{await api.getAdminUsers();return 200}catch(e){return e.status}") == 403,
                     "host cannot access admin API",
                 )
-                login(a, "shared-customer@example.com")
+                login(a, "huy@test.com")
+                navigate(a, "index.html?mode=api", "!!document.querySelector('#hero-slides article') && !!document.querySelector('#results .card')")
+                check(
+                    a.js("!!document.querySelector('#results .card')"),
+                    "homepage renders homestays from the real API",
+                )
+                navigate(b, "search.html?mode=api", "!!document.querySelector('#results .card')")
+                check(True, "homestay search renders catalog from the same API")
+                response = httpx.get(origin + "/api/items")
+                check(response.status_code == 200 and response.json()["total"] > 0, "catalog HTTP response is JSON with actual database rows")
+                print(json.dumps({"catalog_request": str(response.url), "status": response.status_code, "content_type": response.headers.get("content-type"), "total": response.json()["total"], "first_id": response.json()["items"][0]["id"]}), flush=True)
+                for allowed_origin in ("http://localhost:5500", "http://127.0.0.1:5500"):
+                    preflight = httpx.options(origin + "/api/me/bookings", headers={"Origin": allowed_origin, "Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "authorization,content-type,idempotency-key"})
+                    check(preflight.status_code == 200 and preflight.headers.get("access-control-allow-origin") == allowed_origin, "real HTTP CORS preflight permits " + allowed_origin)
                 from datetime import timedelta
 
                 from backend.booking_service import business_today
@@ -330,7 +367,7 @@ def main():
                     "children": 0,
                     "rooms": [{"roomId": room["id"], "qty": 1}],
                     "guestName": "Shared Customer",
-                    "guestEmail": "shared-customer@example.com",
+                    "guestEmail": "huy@test.com",
                 }
                 key = secrets.token_urlsafe(24)
                 booking = api(
@@ -357,7 +394,7 @@ def main():
                     payments["status"] == "pending",
                     "shared booking does not fabricate paid status",
                 )
-                login(b, "shared-customer@example.com")
+                login(b, "huy@test.com")
                 navigate(b, "booking-list.html", "!!document.querySelector('#booking-list .row')")
                 check(
                     b.js(
@@ -392,7 +429,7 @@ def main():
                     check(
                         len(db.scalars(select(Booking)).all()) == 1
                         and len(db.scalars(select(RoomNight)).all()) == 2,
-                        "PostgreSQL contains one booking and exactly two reserved nights",
+                        "Database contains one booking and exactly two reserved nights",
                     )
                 register(b, "unrelated-customer@example.com", "Unrelated Customer")
                 check(
@@ -431,7 +468,7 @@ def main():
                 check(
                     api(a, "return api.getBooking(" + str(today_booking["id"]) + ");")["status"]
                     == "checked_in",
-                    "customer refresh reads host check-in from the same PostgreSQL booking",
+                    "customer refresh reads host check-in from the same database booking",
                 )
                 api(b, "return api.updateBookingStatus(" + str(today_booking["id"]) + ",'completed');")
                 api(
@@ -475,9 +512,9 @@ def main():
                     stored_ids = set(db.scalars(select(User.id)))
                 check(
                     {row["id"] for row in actual_users} == stored_ids and len(stored_ids) == 5,
-                    "admin lists exactly the five PostgreSQL test accounts",
+                    "admin lists exactly the five database test accounts",
                 )
-                login(a, "shared-customer@example.com")
+                login(a, "huy@test.com")
                 api(a, "return api.cancelBooking(" + str(booking["id"]) + ");")
                 login(b, "shared-host@example.com")
                 check(
@@ -489,14 +526,13 @@ def main():
                     == "cancelled",
                     "host refresh observes customer cancellation",
                 )
-                login(b, "shared-customer@example.com")
+                login(b, "huy@test.com")
                 navigate(b, "booking-list.html", "!!document.querySelector('#booking-list .row')")
                 check(
                     api(b, "return api.getBooking(" + str(booking["id"]) + ");")["status"] == "cancelled",
                     "second customer context reload sees cancellation from context A",
                 )
-                server.terminate()
-                server.wait(timeout=20)
+                stop_process(server)
                 server = start_server()
                 navigate(a, "booking-list.html", "!!document.querySelector('#booking-list .row')")
                 check(
@@ -504,7 +540,7 @@ def main():
                         str(row["id"]) == str(booking["id"]) and row["status"] == "cancelled"
                         for row in api(a, "return api.getBookings();")
                     ),
-                    "backend restart and frontend reload preserve PostgreSQL booking and session",
+                    "backend restart and frontend reload preserve database booking and session",
                 )
                 for tab in (a, b):
                     check(
@@ -533,6 +569,43 @@ def main():
                         ),
                         "shared deployment supports public page " + route,
                     )
+                # Exercise the actual checkout UI in addition to the frontend adapter checks.
+                login(a, "huy@test.com")
+                navigate(
+                    a,
+                    f"detail.html?id={stay['id']}&checkin={payload['checkIn']}&checkout={payload['checkOut']}&adults=2&children=0",
+                    "document.querySelector('.room-pick')?.disabled===false",
+                )
+                a.js("document.querySelector('.room-pick').click()")
+                a.until("!document.querySelector('#book-btn').disabled")
+                a.js("document.querySelector('#book-btn').click()")
+                a.until("location.pathname.endsWith('/booking-page.html') && document.querySelector('#btnSubmit')?.disabled===false")
+                a.js("(()=>{const original=window.fetch.bind(window);window.fetch=async(...args)=>{const response=await original(...args);if(new URL(args[0]).pathname==='/api/me/bookings' && args[1]?.method==='POST' && response.ok){window.checkoutReplyHeld=true;await new Promise(resolve=>{window.releaseCheckoutReply=resolve})}return response}})()")
+                a.js("document.querySelector('#checkoutForm').requestSubmit()")
+                a.until("window.checkoutReplyHeld===true")
+                check(
+                    a.js("location.pathname.endsWith('/booking-page.html') && document.querySelector('#btnSubmit').disabled"),
+                    "checkout does not show success before receiving the backend confirmation",
+                )
+                a.js("window.releaseCheckoutReply()")
+                a.until("location.pathname.endsWith('/booking-confirmed.html') && !!document.querySelector('#booking-server-state')")
+                ui_booking_id = int(a.js("new URLSearchParams(location.search).get('id')"))
+                with factory() as db:
+                    check(db.get(Booking, ui_booking_id).customer_id == customer["id"], "checkout UI saved booking owned by the authenticated server user")
+                login(b, "huy@test.com")
+                navigate(b, "booking-list.html", "!!document.querySelector('#booking-list .row')")
+                check(
+                    any(str(row["id"]) == str(ui_booking_id) for row in api(b, "return api.getBookings();")),
+                    "browser B reloads history with the booking submitted through browser A checkout UI",
+                )
+                navigate(a, f"booking-detail.html?id={ui_booking_id}", "!!document.querySelector('#bd-cancel')")
+                a.js("document.querySelector('#bd-cancel').click()")
+                a.until("document.querySelector('#confirm-dialog')?.open")
+                a.js("document.querySelector('#confirm-dialog [data-confirm]').click()")
+                a.until("document.querySelector('#bd-status')?.classList.contains('badge--danger')")
+                b.call("Page.reload")
+                b.until("!!document.querySelector('#booking-list .row')")
+                check(api(b, "return api.getBooking(" + str(ui_booking_id) + ");")["status"] == "cancelled", "cancellation through browser A UI appears in browser B after reload")
                 # Simulate API failure while frontend configuration and assets remain available.
                 a.call("Network.setBlockedURLs", urls=["*/api/me/bookings*", "*/mock/*"])
                 navigate(a, "booking-list.html", "!!document.querySelector('#booking-list .empty')")
@@ -543,8 +616,7 @@ def main():
                     "API network failure displays error without local/mock fallback",
                 )
                 b.js("import('./js/api.js').then(api=>{window.failureTestAPI=api})")
-                server.terminate()
-                server.wait(timeout=20)
+                stop_process(server)
                 error = b.js(
                     "(async()=>{try{await window.failureTestAPI.getHostBookings();return 200}catch(e){return e.status}})()"
                 )
@@ -553,28 +625,30 @@ def main():
                     "status": "PASS",
                     "count": len(checks),
                     "checks": checks,
-                    "database": "isolated PostgreSQL schema",
+                    "database": "isolated SQLite file" if sqlite else "isolated PostgreSQL schema",
                     "contexts": 2,
                     "physical_devices": False,
                     "lan_verified": False,
                     "internet_verified": False,
                 }
-                (ROOT / "docs/SHARED_BROWSER_RESULTS.json").write_text(
+                (ROOT / ("docs/LOCAL_SQLITE_BROWSER_RESULTS.json" if sqlite else "docs/SHARED_BROWSER_RESULTS.json")).write_text(
                     json.dumps(report, indent=2) + "\n", encoding="utf-8"
                 )
                 print(json.dumps(report))
     finally:
         for process in reversed(processes):
             if process.poll() is None:
-                process.terminate()
-                process.wait(timeout=20)
+                stop_process(process)
         for connection in sockets:
             connection.close()
         engine.dispose()
-        with admin_engine.begin() as connection:
-            assert schema.startswith("luxstay_shared_") and len(schema) == 39
-            connection.execute(DropSchema(schema, cascade=True))
-        admin_engine.dispose()
+        if admin_engine:
+            with admin_engine.begin() as connection:
+                assert schema.startswith("luxstay_shared_") and len(schema) == 39
+                connection.execute(DropSchema(schema, cascade=True))
+            admin_engine.dispose()
+        if database_directory:
+            database_directory.cleanup()
 
 
 if __name__ == "__main__":

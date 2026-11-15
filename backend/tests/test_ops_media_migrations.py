@@ -81,18 +81,19 @@ def test_upload_requires_auth_and_image_urls_are_not_executable(client, headers)
         assert response.status_code in {415, 422}
 
 
-def test_cors_allowlist_and_safe_error_response(client):
+@pytest.mark.parametrize("origin", ["http://localhost:5500", "http://127.0.0.1:5500"])
+def test_cors_allowlist_and_safe_error_response(client, origin):
     allowed = client.options(
         "/api/auth/login",
         headers={
-            "Origin": "http://localhost:5500",
+            "Origin": origin,
             "Access-Control-Request-Method": "POST",
             "Access-Control-Request-Headers": "content-type",
         },
     )
     assert (
         allowed.status_code == 200
-        and allowed.headers["access-control-allow-origin"] == "http://localhost:5500"
+        and allowed.headers["access-control-allow-origin"] == origin
     )
     denied = client.options(
         "/api/auth/login",

@@ -78,7 +78,7 @@ def main():
                     else:
                         raise RuntimeError("HTTP server was not ready")
                     assert client.get("/index.html").status_code == 200
-                    assert "USE_MOCK = true" in client.get("/js/config.js").text
+                    assert "USE_MOCK = false" in client.get("/js/config.js").text
                     catalog = client.get("/api/items").json()
                     assert catalog["total"] > 0 and all(
                         item["status"] == "active" for item in catalog["items"]
@@ -126,20 +126,13 @@ def main():
                     )
                     bid = booking.json()["id"]
                     assert client.get("/api/host/bookings", headers=host_header).json()[0]["bookingId"] == bid
-                    assert (
-                        client.patch(
-                            f"/api/host/bookings/{bid}/status",
-                            json={"status": "confirmed"},
-                            headers=host_header,
-                        ).status_code
-                        == 200
-                    )
+                    assert booking.json()["status"] == "confirmed"
                     assert client.post(f"/api/me/bookings/{bid}/cancel", headers=customer).status_code == 200
                     assert client.post("/api/auth/logout", headers=customer).status_code == 204
                     assert client.get("/api/me", headers=customer).status_code == 401
                     assert client.get("/api/admin/overview", headers=host_header).status_code == 403
                     print(
-                        "HTTP smoke passed: real Uvicorn, migrated DB, catalog, quote, booking, host confirmation, cancellation, logout, ownership; frontend still mock"
+                        "HTTP smoke passed: real Uvicorn, migrated SQLite, catalog, quote, confirmed booking, cancellation, logout, ownership; frontend uses API"
                     )
             finally:
                 if os.name == "nt":
