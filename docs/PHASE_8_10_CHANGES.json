@@ -1,0 +1,353 @@
+{
+  "date": "2026-11-14",
+  "scope": "Phase 8–10 changes only; prior Phase 1–7 worktree changes are not attributed to this integration",
+  "unchanged": [
+    "All frontend CSS",
+    "frontend/js/motion.js",
+    "frontend/js/charts.js",
+    "frontend/host-homestay-form.html",
+    "frontend/mock/*",
+    "frontend/img/*",
+    "USE_MOCK=true",
+    "Database schema and revision head 0005_pay_events"
+  ],
+  "files": [
+    {
+      "path": "frontend/admin.html",
+      "kind": "modified",
+      "before_sha256": "b63e0e7856907f912156a6bd8237300990039af9f815b9f4314e6c6b710ce5c2",
+      "after_sha256": "5d397ed56e16d13e7fef8a2f40e158ae65ec608654baa6923bd6f353f4cc4b31",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/booking-page.html",
+      "kind": "modified",
+      "before_sha256": "4e5026546f61bcd559235e7e7959af87f2a71414179305e8282ee37b690d62dc",
+      "after_sha256": "60cd1ed8288e3f190b66e6239df9cf9ec5cd86c1320ab5d2b967775aba4b3aba",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/api.js",
+      "kind": "modified",
+      "before_sha256": "a12a7abbd91b11d586a697121bfe7079258791d1f587d4da28bc2d1f0c1e5285",
+      "after_sha256": "5dec0acf3024da1426eba28300498628e06f25bf0aab78cf62b9a40af6121bc9",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/auth.js",
+      "kind": "modified",
+      "before_sha256": "49ce79055eea222703d634546a89bd43d157d23e28ec52cdf2fcda16c5e7eff1",
+      "after_sha256": "2bfd1de19b1f911d6c559d79f279bd85191c7ccfa09f5b800e3c5fa085453782",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/config.js",
+      "kind": "modified",
+      "before_sha256": "dc584efff874e66214702d6a74b3fd42838a5e83e70cde3fcf9d27995232cba6",
+      "after_sha256": "2ebcf807b7b3de54168ad64e4fb19d6b9452c448ab9aa8e9b5063ef13b8512a9",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/guard.js",
+      "kind": "modified",
+      "before_sha256": "9b297de9fd4d458447f53bd7cb48dc83185f52ca51fbe0c16523b7ec1cd2f9fd",
+      "after_sha256": "c208b8bed541a40fcd4e3a20313b23968f8d0cc65a4b3bd072fa9e32ba21e7e0",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pricing.js",
+      "kind": "modified",
+      "before_sha256": "8cf55a24b0cf070555259772e0df05944b0c719d188f5bd3d5da44b69dc968d2",
+      "after_sha256": "a386b0cf4a8b069c3062ff69f8cd20f56b767b477cc320f8ff622bad39a8e3be",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/render.js",
+      "kind": "modified",
+      "before_sha256": "c713db35e5ea6415e3d127a0f760c917b7d500a44743f195d5335222a7701f94",
+      "after_sha256": "f53efd7c04229bde7eeae7fdf048e6645bbd0b440d28b87313d125cc8ae36bc2",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/components/home-carousels.js",
+      "kind": "modified",
+      "before_sha256": "448695507eccde3c091c2acfd853def3c55901a176ca22f4b8f5ee3d5c0ba67a",
+      "after_sha256": "08df7dd33a996d3db888c8064b81b6f67549c4087d8790f2c56797b35dcd4d6e",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/admin-dashboard.js",
+      "kind": "modified",
+      "before_sha256": "6b3f9fe5fb846d27f46675ba3c74cf8010b9a7a025f9953efc68f779ce73f884",
+      "after_sha256": "d685ea076f8182c4e89cea9309484a11021117d9b38af024185ab31dfcf69521",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/admin-hosts.js",
+      "kind": "modified",
+      "before_sha256": "dbe5ae4f2690aaba6ef6c78edbdd4899d0816e5ab9ecf200449e296508858e92",
+      "after_sha256": "0cc59013ad3cb1f57c443d8b1faa77345f43af75b284e4626541fc8754f20e1d",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/api-admin.js",
+      "kind": "added",
+      "before_sha256": null,
+      "after_sha256": "b188107fdaf5cab9e9bc9fbdbd05a12ee08abe7ece18c306321555681150e318",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/api-checkout.js",
+      "kind": "added",
+      "before_sha256": null,
+      "after_sha256": "48759371c96bf5f4f93eea7c0f97770c527ab4ed205f39a263aba214e3e7559f",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/api-host-rooms.js",
+      "kind": "added",
+      "before_sha256": null,
+      "after_sha256": "324524865a4b8d449ba386a0d519b595b20c445a823b7df333311983a26cd1af",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/booking-confirmed.js",
+      "kind": "modified",
+      "before_sha256": "e7195aaa4b36b9f970426df44db2f67e46347648d0123da7c938b96b368da765",
+      "after_sha256": "0f7f04d6dbe1615b7e14f1b6a5b983cebd9893a41724788263f063a01c4d727f",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/booking-detail.js",
+      "kind": "modified",
+      "before_sha256": "d3a8cf3795a417797dbb26a9c110165d8e884aebcdbc0e95e8434dbe3192a812",
+      "after_sha256": "7f3173c45f3161dd191bcb7892866dbba6195a085da2a25bbf18c3c5898f63d7",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/booking-list.js",
+      "kind": "modified",
+      "before_sha256": "9cb993782309e58be7d899215d603c0567d65b78e5359d89ff7e34dfba9a37d5",
+      "after_sha256": "76bb8d05eb0f03065fda22e2564b11955a47b02fe1e2f72a0b264d3d5e105c38",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/booking-page.js",
+      "kind": "modified",
+      "before_sha256": "2cdc2dd670ac1586c59bfd4997ece02be2753d2b135d9af93c45f7f664175864",
+      "after_sha256": "d80c4b88b5f408da88ae884103d17a4ffa7163f65d52307e29baaf2949e1abb1",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/detail.js",
+      "kind": "modified",
+      "before_sha256": "64bfca6cf48640b629b2082d024cb33cb046fd6aa1924864a5c741b3ed97e28c",
+      "after_sha256": "1c7d1bf090c726145b359a2308969ad4df8f2a0d97192adc480bbd7ff9705cbf",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/home.js",
+      "kind": "modified",
+      "before_sha256": "048493f8cc004440e469c28c3723d58265ac90714718e394ff00387ce4d12ad6",
+      "after_sha256": "6cd56c41ca07b8edf0bc8975355ffa2b0a46821a0e3868d497ce26cf65267fe6",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/host-bookings.js",
+      "kind": "modified",
+      "before_sha256": "42fdb1cd5c2eb3873b04c65cffd30fa63a5d4e0da591b9fd11fbdc1adc3c6cf5",
+      "after_sha256": "7301f9e3ec030b6ab3e8c186f45c7362310951628cc91a143c77360aa31d2e5b",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/host-dashboard.js",
+      "kind": "modified",
+      "before_sha256": "2f3cecf4452dacc69f81cf647735f5ce5b4ccecc2bd531cac67883454deb2f3b",
+      "after_sha256": "19f3f5acb36abca7acea4c8f5805719db8f7eae7db68d9787832c4ad75da289d",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/host-homestay-form.js",
+      "kind": "modified",
+      "before_sha256": "71c405074d6621d19d1f07a06a0255f15729e3a65a534380b4cf1719c78616b6",
+      "after_sha256": "24346035874f0beaccec8bec5ed31c89a5def8b40e51bf337124abeaa89f3f6a",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/host-homestays.js",
+      "kind": "modified",
+      "before_sha256": "e4bc75b026a5f0c9e78a49f47ac8ddeaea261f9afdbb290c90b898668c72b26d",
+      "after_sha256": "3db8cc1963da3e749f0ac1bade622f83d7cd136725ce7351b58eecc351e9f5eb",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/host-register.js",
+      "kind": "modified",
+      "before_sha256": "2afc9c6f125f89c07f672114e591e9a0fd228299fd5303e03c5678b6fb99aceb",
+      "after_sha256": "5ee55a0ac4e3b60e476d2c11628261a5e95919e48c8cddc0306aa2c3f87a6ef4",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/host-rooms.js",
+      "kind": "modified",
+      "before_sha256": "ff114924d5f022bbdf72842585f8df2d906c82dc240840312c6032e508066515",
+      "after_sha256": "5a43907f083f442e51fad60e5d456b495f490c338db2181f9516afddb7c150a5",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/list.js",
+      "kind": "modified",
+      "before_sha256": "fbdfdc241547ad09ab5437f8c7a4a41ee3bb969f58a54193327dc8fd6db21e35",
+      "after_sha256": "811a3aff7b7c57b7a28a0fc9a7991acd38c3202c7c0c481611c735aa47ce5870",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/login.js",
+      "kind": "modified",
+      "before_sha256": "3d146980d06e5ffef8e8bab917129febd3d0287645f13ab1bea3d3bc0728df7f",
+      "after_sha256": "9e005c859bdebbe4009adde31c681039e42604e42cc3941bcbf3baf20047e083",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/profile.js",
+      "kind": "modified",
+      "before_sha256": "79e6c564cd73178aa40eb4ae249956121ec92195f0661bb40c161f29f451a197",
+      "after_sha256": "5d4da07828eb22d345811713a5d687dc8a69261b18285c8015e55a2b072c6434",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "frontend/js/pages/shop.js",
+      "kind": "modified",
+      "before_sha256": "7cc3979e015167db70e13300081f2a56184443ba41536fd49dff7b776aeba466",
+      "after_sha256": "ad53972b5ce1d0d8f141813c9ffc242dce1a3d186e071e7ba566ed28916f394a",
+      "reason": "API adapter, safe DOM/session/request handling and regression fixes; details in PHASE_8_REVIEW.md"
+    },
+    {
+      "path": "backend/reporting.py",
+      "kind": "modified",
+      "before_sha256": "afd5e987db02a7d6815ba730f98a3a9a0b9b9f1e4835da8fed3b8d4dcf318db7",
+      "after_sha256": "8063fa889c8a33d032429be8e8f51e97c5fed04a1ffcb23bfd8a914fca0850e7",
+      "reason": "Extend existing SQL reporting for complete chart cohorts and total occupancy"
+    },
+    {
+      "path": "backend/migrations/env.py",
+      "kind": "modified",
+      "before_sha256": "e529e2a892142a594f1e029e286eafd7d7fc745dabda6a27496c4cd3a9b4468b",
+      "after_sha256": "d9cd2ef91bb0b98d64f192c69f160c40c7f597d1120ebfea0b361d8fdf431a97",
+      "reason": "Formatting/import separation only; no migration/test behavior change"
+    },
+    {
+      "path": "backend/routers/admin.py",
+      "kind": "modified",
+      "before_sha256": "043f5d623820f7e4a078801e3ee3cb9a887ad5566e54ae8361ba79925d1dcf5a",
+      "after_sha256": "4a30a48effee0d5a7997fcecc4bb9279ffe31bee42cf86aa65a4ac2cd2b950f4",
+      "reason": "Extend existing SQL reporting for complete chart cohorts and total occupancy"
+    },
+    {
+      "path": "backend/routers/host.py",
+      "kind": "modified",
+      "before_sha256": "42d5a52f96d9ab5acac1dcddee7fac5ccd9a0521f8f6eeb85b7850b00570de23",
+      "after_sha256": "7e29b93a1bb53d52b8eb5a667484a29df903688978bf9da77e2800fcf89697d8",
+      "reason": "Extend existing SQL reporting for complete chart cohorts and total occupancy"
+    },
+    {
+      "path": "backend/tests/test_ops_media_migrations.py",
+      "kind": "modified",
+      "before_sha256": "bfff316210ae8aac7770ef7031748b42ecdb8112d1c48e06ec640d0b74e3429c",
+      "after_sha256": "26ac4452dc405147eaed3a7b200cd7594c605f769124b2f546777ba0a69959bb",
+      "reason": "Formatting/import separation only; no migration/test behavior change"
+    },
+    {
+      "path": "backend/tests/test_phase8_reporting.py",
+      "kind": "added",
+      "before_sha256": null,
+      "after_sha256": "a7e235a910220b6f4b1ff53cf6a2d6caedb96bf39ff7b271fa2d605853e5ca40",
+      "reason": "SQL reporting regression tests on SQLite/PostgreSQL"
+    },
+    {
+      "path": "tests/api-accounts-browser.py",
+      "kind": "added",
+      "reason": "Real browser API/cross-role/security/DB persistence regression with disposable fixtures"
+    },
+    {
+      "path": "README.md",
+      "kind": "updated",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/API_CONTRACT.md",
+      "kind": "updated",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/BACKEND_ISSUES.md",
+      "kind": "updated",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/BACKEND_ROADMAP.md",
+      "kind": "updated",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/BACKEND_RUNBOOK.md",
+      "kind": "updated",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/BACKEND_TEST_REPORT.md",
+      "kind": "updated",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/DATABASE_SCHEMA.md",
+      "kind": "updated",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/FRONTEND_BASELINE.json",
+      "kind": "updated",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/FRONTEND_BASELINE_PHASE7.json",
+      "kind": "added",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/PHASE_8_INTEGRATION_MAP.md",
+      "kind": "added",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/PHASE_8_REVIEW.md",
+      "kind": "added",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/PHASE_9_REVIEW.md",
+      "kind": "added",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/PHASE_9_BROWSER_RESULTS.json",
+      "kind": "added",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/PHASE_10_DELIVERY.md",
+      "kind": "added",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/FULLSTACK_FINAL_REPORT.md",
+      "kind": "added",
+      "reason": "Current integration contract, QA evidence, exact baseline provenance or delivery instructions"
+    },
+    {
+      "path": "docs/PHASE_8_10_CHANGES.json",
+      "kind": "added",
+      "reason": "Change manifest and hash provenance for Phase 8-10; excludes prior backend work"
+    }
+  ]
+}

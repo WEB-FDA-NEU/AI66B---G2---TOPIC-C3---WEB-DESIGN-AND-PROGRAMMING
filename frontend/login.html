@@ -37,7 +37,10 @@
         <!-- Field Mật khẩu -->
         <div class="field">
           <label class="field__label" for="password">Mật khẩu</label>
-          <input class="input" id="password" name="password" type="password" required minlength="8" autocomplete="current-password">
+          <div class="field__input-wrapper">
+            <input class="input" id="password" name="password" type="password" required minlength="8" autocomplete="current-password">
+            <button type="button" class="field__toggle-password" data-target="password" aria-label="Hiện mật khẩu">👁</button>
+          </div>
           <p class="field__error"></p>
         </div>
 

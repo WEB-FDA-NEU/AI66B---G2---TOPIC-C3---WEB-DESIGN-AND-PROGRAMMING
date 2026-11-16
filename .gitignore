@@ -1,0 +1,17 @@
+backend/.venv/
+backend/.env
+.venv/
+# Local deployment credentials, including root .env files.
+.env
+.env.*
+!.env.example
+backend/.local-secret
+backend/*.db
+backend/*.db-*
+backend/uploads/
+backend/.test-tmp/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/

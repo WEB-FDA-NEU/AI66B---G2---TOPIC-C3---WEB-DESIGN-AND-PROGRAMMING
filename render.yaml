@@ -1,0 +1,42 @@
+# Review paid compute, database and disk costs in Render before creating this Blueprint.
+services:
+  - type: web
+    name: luxstay-web
+    runtime: docker
+    plan: 0.5c-512mb
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: "off"
+    preDeployCommand: python -m alembic -c backend/alembic.ini upgrade head
+    healthCheckPath: /api/ready
+    disk:
+      name: luxstay-uploads
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: FRONTEND_MODE
+        value: shared
+      - key: SERVE_FRONTEND
+        value: "true"
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: DATABASE_URL
+        fromDatabase:
+          name: luxstay-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      # Empty allows same-origin use. Add the actual HTTPS website origin after creation.
+      - key: CORS_ORIGINS
+        value: ""
+
+databases:
+  - name: luxstay-db
+    plan: 0.1c-256mb
+    region: singapore
+    postgresMajorVersion: "17"
+    databaseName: luxstay
+    user: luxstay_app

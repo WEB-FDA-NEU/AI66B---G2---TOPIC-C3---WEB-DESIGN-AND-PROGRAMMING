@@ -27,7 +27,19 @@ export function showEmpty(container, opts) {
 }
 
 export function showError(container, err, onRetry) {
-  const node = document.getElementById('tpl-empty-state').content.cloneNode(true);
+  const template = document.getElementById('tpl-empty-state');
+  let node;
+  if (template) node = template.content.cloneNode(true);
+  else {
+    node = document.createElement('section');
+    node.className = 'empty';
+    node.setAttribute('role', 'alert');
+    for (const [tag, className] of [['p','empty__title'], ['p','empty__hint'], ['a','empty__action btn']]) {
+      const element = document.createElement(tag);
+      element.className = className;
+      node.append(element);
+    }
+  }
   node.querySelector('.empty__title').textContent = 'Không tải được dữ liệu';
   node.querySelector('.empty__hint').textContent  = err?.detail ?? 'Vui lòng thử lại.';
   const btn = node.querySelector('.empty__action');
@@ -90,6 +102,6 @@ document.addEventListener('click', e => {
   if (!input) return;
   const show = input.type === 'password';
   input.type = show ? 'text' : 'password';
-  btn.textContent = show ? '👁' : '👁';
+  btn.textContent = show ? '🙈' : '👁';
   btn.setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
 });

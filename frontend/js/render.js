@@ -1,3 +1,4 @@
+import { accountHref, safeImageURL } from './config.js';
 // ============================================================
 //  Biến JSON thành DOM, dựa trên <template> viết sẵn trong HTML.
 //
@@ -41,10 +42,10 @@ export function renderCard(item) {
     const adults = search.get('adults') || search.get('guests');
     if (adults) params.set('adults', adults);
   }
-  link.href = `detail.html?${params}`;
+  link.href = accountHref(`detail.html?${params}`);
 
   const img = node.querySelector('.card__img');
-  img.src = item.cover_url;
+  img.src = safeImageURL(item.cover_url);
   img.alt = item.title;
   img.addEventListener('error', () => {
     if (img.dataset.fallback) return;

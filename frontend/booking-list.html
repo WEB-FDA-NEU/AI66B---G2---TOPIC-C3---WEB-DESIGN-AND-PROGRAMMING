@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/motion.css">
 </head>
-<body>
+<body data-require-role="user">
 
 <site-header active="bookings"></site-header>
 
@@ -33,7 +33,7 @@
     </button>
 
     <button class="btn" type="button" data-filter="pending">
-      Chờ xác nhận <span class="tab-count"></span>
+      Đang xử lý <span class="tab-count"></span>
     </button>
 
     <button class="btn" type="button" data-filter="confirmed">
@@ -50,6 +50,10 @@
 
     <button class="btn" type="button" data-filter="cancelled">
       Đã huỷ <span class="tab-count"></span>
+    </button>
+
+    <button class="btn" type="button" data-filter="rejected">
+      Bị từ chối <span class="tab-count"></span>
     </button>
 
   </div>
@@ -84,6 +88,7 @@
       <div class="booking-list-item__info">
         <a class="row__title" href="#"></a>
         <p class="row__meta"></p>
+        <p class="row__meta text-danger booking-reject-reason" hidden></p>
         <p class="row__price"></p>
       </div>
 

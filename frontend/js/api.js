@@ -5,17 +5,25 @@
 //  CHIA VÙNG THEO NGƯỜI để tránh conflict Git — mỗi người chỉ
 //  thêm hàm vào vùng của mình.
 // ============================================================
-import { USE_MOCK, API_BASE, MOCK_BASE } from './config.js';
-import { getToken, getUser, saveSession } from './auth.js';
+import { USE_MOCK, API_BASE, MOCK_BASE, ACCOUNT_API_MODE, apiModuleEnabled, safeImageURL } from './config.js';
+import { getToken, getUser, saveSession, clearSession, updateSessionUser } from './auth.js';
+import { roomTypesFor } from './pricing.js';
 
 // ---- Phiên bản dữ liệu mock ----
-// Dữ liệu mock được copy vào localStorage lần đầu đọc, nên khi ai đó sửa mock/*.json mà máy các bạn
-// vẫn giữ bản cũ thì sẽ thấy dữ liệu "không đổi". TĂNG số này mỗi khi sửa mock/*.json:
-// lần mở trang kế tiếp, mọi máy tự xóa cache mock cũ (không đụng tới phiên đăng nhập).
-const MOCK_DATA_VERSION = '2026-11-13-b';
-if (USE_MOCK && localStorage.getItem('mock_version') !== MOCK_DATA_VERSION) {
-  ['customerBookings', 'homestays', 'rooms', 'bookings'].forEach(k => localStorage.removeItem(k));
-  Object.keys(localStorage).filter(k => k.startsWith('reviews_')).forEach(k => localStorage.removeItem(k));
+// Dữ liệu mock được copy vào localStorage lần đầu đọc. Khi tăng phiên bản,
+// chỉ bổ sung seed còn thiếu, giữ nguyên dữ liệu người dùng và lịch sử đặt phòng.
+const MOCK_DATA_VERSION = '2026-11-15-booking-history-preserved-v2';
+const HOST_SEED_VERSION = '2026-11-14-host001-seed';
+if (USE_MOCK && !ACCOUNT_API_MODE && localStorage.getItem('host_seed_version') !== HOST_SEED_VERSION) {
+  localStorage.setItem('mock_seed_restore_homestays', '1');
+  localStorage.setItem('mock_seed_restore_rooms', '1');
+  localStorage.setItem('host_seed_version', HOST_SEED_VERSION);
+}
+if (USE_MOCK && !ACCOUNT_API_MODE && localStorage.getItem('mock_version') !== MOCK_DATA_VERSION) {
+  // IDs overlap real customer-created records. A version bump must never infer
+  // demo provenance from an ID or remove booking history from either table.
+  localStorage.setItem('mock_seed_restore_homestays', '1');
+  localStorage.setItem('mock_seed_restore_rooms', '1');
   localStorage.setItem('mock_version', MOCK_DATA_VERSION);
 }
 
@@ -28,26 +36,247 @@ export class ApiError extends Error {
 }
 
 async function request(url, options = {}) {
-  const headers = { ...(options.headers || {}) };
+  const target = new URL(url, location.href), base = new URL(API_BASE);
+  const backend = target.origin === base.origin && target.pathname.startsWith(base.pathname + '/');
+  const { timeoutMs = 15000, ...init } = options;
+  const headers = new Headers(init.headers || {});
   const token = getToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  if (options.body && !(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-    options.body = JSON.stringify(options.body);
+  if (backend && token && token !== 'mock-token') headers.set('Authorization', `Bearer ${token}`);
+  else headers.delete('Authorization');
+  if (init.body && !(init.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+    init.body = JSON.stringify(init.body);
   }
-
-  let res;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    res = await fetch(url, { ...options, headers });
-  } catch {
-    throw new ApiError(0, 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.');
-  }
+    const res = await fetch(target.href, { ...init, headers, signal: controller.signal, credentials: 'omit' });
+    if (res.status === 401 && backend && !/\/auth\/(login|register)$/.test(target.pathname)) clearSession();
+    if (res.status === 204) return null;
+    let data = null;
+    try { data = await res.json(); } catch (error) {
+      if (controller.signal.aborted) throw error;
+      throw new ApiError(res.status, `Máy chủ trả dữ liệu không phải JSON (${res.status}). Kiểm tra API URL: ${target.origin}${target.pathname}`);
+    }
+    if (!res.ok) {
+      const error = new ApiError(res.status, normalizeDetail(data?.detail));
+      error.code = data?.code; error.errors = data?.errors; error.retryAfter = res.headers.get('Retry-After');
+      throw error;
+    }
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    if (controller.signal.aborted) throw new ApiError(408, 'Yêu cầu quá thời gian chờ. Chưa xác định kết quả; không gửi lại thao tác đặt phòng bằng key mới.');
+    throw new ApiError(0, `Không kết nối được máy chủ API tại ${base.origin}. Kiểm tra backend đang chạy và CORS cho ${location.origin}.`);
+  } finally { clearTimeout(timer); }
+}
 
-  if (res.status === 204) return null;
-  let data = null;
-  try { data = await res.json(); } catch { /* body rỗng */ }
-  if (!res.ok) throw new ApiError(res.status, normalizeDetail(data?.detail));
-  return data;
+function blockUnintegratedBusiness(module = 'unavailable') {
+  if (ACCOUNT_API_MODE && !apiModuleEnabled(module)) throw new ApiError(503, 'Nhóm nghiệp vụ này chưa được kết nối máy chủ. Không ghi dữ liệu mock trong chế độ tài khoản API.');
+}
+
+const mediaItem = item => ({ ...item, cover_url: safeImageURL(item.cover_url), images: (item.images || []).map(safeImageURL),
+  roomTypes: (item.roomTypes || []).map(r => ({ ...r, image: safeImageURL(r.image), images: (r.images || []).map(safeImageURL) })) });
+const MOCK_HOLDS_KEY = 'luxstay_mock_booking_holds_v1';
+const MOCK_HOLD_MS = 10 * 60 * 1000;
+const mockOverlap = (aStart, aEnd, bStart, bEnd) => aStart < bEnd && bStart < aEnd;
+function readMockHolds() {
+  try {
+    const holds = JSON.parse(localStorage.getItem(MOCK_HOLDS_KEY) || '[]');
+    if (!Array.isArray(holds)) throw new Error();
+    return holds.filter(hold => Number(hold.expiresAt) > Date.now());
+  } catch {
+    throw new ApiError(0, 'Dữ liệu giữ phòng mock bị hỏng. Hãy sao lưu rồi xóa riêng luxstay_mock_booking_holds_v1.');
+  }
+}
+function writeMockHolds(holds) {
+  try { localStorage.setItem(MOCK_HOLDS_KEY, JSON.stringify(holds)); }
+  catch { throw new ApiError(0, 'Không lưu được giữ phòng mock. Bộ nhớ trình duyệt có thể đã đầy hoặc bị chặn.'); }
+}
+async function mockAvailability(id, checkin, checkout, excludingUserId = getUser()?.id) {
+  const [item, bookings] = await Promise.all([
+    getItem(id),
+    mockCustomerHistory(),
+  ]);
+  const types = roomTypesFor(item);
+  const holds = readMockHolds().filter(hold => String(hold.homestayId) === String(id));
+  const occupiedByKey = new Map(types.map(type => [type.key, new Map()]));
+  const addRange = (from, to, rooms) => {
+    if (!mockOverlap(from, to, checkin, checkout)) return;
+    for (const room of rooms || []) {
+      const byNight = occupiedByKey.get(room.key);
+      if (!byNight) continue;
+      const start = from > checkin ? from : checkin;
+      const end = to < checkout ? to : checkout;
+      for (let day = start; day < end; ) {
+        byNight.set(day, (byNight.get(day) || 0) + Number(room.qty || 0));
+        const next = new Date(`${day}T00:00:00Z`);
+        next.setUTCDate(next.getUTCDate() + 1);
+        day = next.toISOString().slice(0, 10);
+      }
+    }
+  };
+  for (const booking of bookings) {
+    if (String(booking.homestayId ?? booking.itemId) !== String(id)
+      || ['cancelled', 'rejected'].includes(booking.status)) continue;
+    const checkoutDate = booking.releasedAfter && booking.releasedAfter < booking.checkOut
+      ? booking.releasedAfter : booking.checkOut;
+    addRange(booking.checkIn, checkoutDate, booking.rooms);
+  }
+  for (const hold of holds) {
+    if (String(hold.userId) === String(excludingUserId)) continue;
+    addRange(hold.checkIn, hold.checkOut, hold.rooms);
+  }
+  const requestedNights = [];
+  for (let day = checkin; day < checkout; ) {
+    requestedNights.push(day);
+    const next = new Date(`${day}T00:00:00Z`);
+    next.setUTCDate(next.getUTCDate() + 1);
+    day = next.toISOString().slice(0, 10);
+  }
+  return types.map(type => {
+    const occupied = occupiedByKey.get(type.key);
+    return {
+      ...type,
+      available: Math.max(0, Math.min(1, ...requestedNights.map(day => 1 - (occupied.get(day) || 0)))),
+    };
+  });
+}
+export async function getAvailability(id, stay) {
+  blockUnintegratedBusiness('catalog');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const rooms = await mockAvailability(id, stay.checkin, stay.checkout);
+    return { homestayId: id, checkIn: stay.checkin, checkOut: stay.checkout, rooms };
+  }
+  return request(`${API_BASE}/items/${encodeURIComponent(id)}/availability?${new URLSearchParams(stay)}`);
+}
+export async function getCalendar(id, start, days = 366) {
+  blockUnintegratedBusiness('catalog');
+  if (!(USE_MOCK && !ACCOUNT_API_MODE))
+    return request(`${API_BASE}/items/${encodeURIComponent(id)}/calendar?${new URLSearchParams({ start, days })}`);
+  const [item, bookings] = await Promise.all([
+    getItem(id),
+    mockCustomerHistory(),
+  ]);
+  const types = roomTypesFor(item);
+  const holds = readMockHolds().filter(hold => String(hold.homestayId) === String(id));
+  const rooms = types.map(type => {
+    const dates = [];
+    for (let offset = 0; offset < days; offset++) {
+      const date = new Date(`${start}T00:00:00Z`);
+      date.setUTCDate(date.getUTCDate() + offset);
+      const day = date.toISOString().slice(0, 10);
+      let occupied = 0;
+      for (const booking of bookings) {
+        if (String(booking.homestayId ?? booking.itemId) !== String(id)
+          || ['cancelled', 'rejected'].includes(booking.status)) continue;
+        const checkout = booking.releasedAfter && booking.releasedAfter < booking.checkOut
+          ? booking.releasedAfter : booking.checkOut;
+        if (booking.checkIn <= day && day < checkout)
+          occupied += Number((booking.rooms || []).find(room => room.key === type.key)?.qty || 0);
+      }
+      for (const hold of holds) {
+        if (String(hold.userId) === String(getUser()?.id) || hold.checkIn > day || day >= hold.checkOut) continue;
+        occupied += Number((hold.rooms || []).find(room => room.key === type.key)?.qty || 0);
+      }
+      dates.push({ date: day, available: Math.max(0, 1 - occupied) });
+    }
+    return { ...type, days: dates };
+  });
+  return {
+    homestayId: id,
+    start,
+    days: Array.from({ length: days }, (_, offset) => {
+      const date = new Date(`${start}T00:00:00Z`);
+      date.setUTCDate(date.getUTCDate() + offset);
+      const day = date.toISOString().slice(0, 10);
+      return { date: day, available: rooms.some(room => room.days[offset].available > 0) };
+    }),
+    rooms,
+  };
+}
+export async function getBookingHold() {
+  if (!(USE_MOCK && !ACCOUNT_API_MODE)) return request(`${API_BASE}/me/booking-hold`);
+  const user = getUser();
+  const hold = user ? readMockHolds().find(row => String(row.userId) === String(user.id)) : null;
+  return hold ? { ...hold, expiresAt: new Date(hold.expiresAt).toISOString(),
+    remainingSeconds: Math.max(0, Math.ceil((hold.expiresAt - Date.now()) / 1000)) } : null;
+}
+export async function reserveBookingHold(payload) {
+  if (!(USE_MOCK && !ACCOUNT_API_MODE))
+    return request(`${API_BASE}/me/booking-hold`, { method: 'POST', body: payload });
+  const user = getUser();
+  if (!user) throw new ApiError(401, 'Bạn cần đăng nhập để giữ phòng.');
+  const rooms = await mockAvailability(payload.homestayId, payload.checkIn, payload.checkOut, user.id);
+  for (const selection of payload.rooms) {
+    const room = rooms.find(candidate => selection.key ? candidate.key === selection.key : candidate.id === String(selection.roomId));
+    if (!room || room.available < selection.qty)
+      throw new ApiError(409, 'Phòng không khả dụng (Lý do: Phòng đang được thuê hoặc giữ chỗ trong khoảng thời gian này).');
+  }
+  const holds = readMockHolds().filter(hold => String(hold.userId) !== String(user.id));
+  const hold = {
+    userId: user.id, homestayId: payload.homestayId, checkIn: payload.checkIn,
+    checkOut: payload.checkOut, rooms: payload.rooms, expiresAt: Date.now() + MOCK_HOLD_MS,
+  };
+  holds.push(hold);
+  writeMockHolds(holds);
+  return { ...hold, expiresAt: new Date(hold.expiresAt).toISOString(), remainingSeconds: 600 };
+}
+export async function releaseBookingHold() {
+  if (!(USE_MOCK && !ACCOUNT_API_MODE)) return request(`${API_BASE}/me/booking-hold`, { method: 'DELETE' });
+  const user = getUser();
+  if (user) writeMockHolds(readMockHolds().filter(hold => String(hold.userId) !== String(user.id)));
+}
+export function getQuote(payload) {
+  blockUnintegratedBusiness('catalog');
+  return request(`${API_BASE}/bookings/quote`, { method: 'POST', body: payload });
+}
+export function getPayment(id) {
+  blockUnintegratedBusiness('bookings');
+  return request(`${API_BASE}/me/bookings/${encodeURIComponent(id)}/payments`).then(rows => rows[0] || null);
+}
+
+export async function revokeSession() {
+  try { await request(`${API_BASE}/auth/logout`, { method: 'POST' }); }
+  catch (error) { if (error.status !== 401) throw error; }
+}
+export async function getHostApplication() {
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const user = currentMockUser(await loadMockUsers());
+    if (!['user', 'host'].includes(user.role)) throw new ApiError(403, 'Tài khoản này không thể xem đơn đăng ký host.');
+    const applications = await loadMockApplications();
+    const application = applications.find(row => String(row.userId) === String(user.id));
+    if (!application) throw new ApiError(404, 'Bạn chưa gửi đơn đăng ký host.');
+    return application;
+  }
+  if (!ACCOUNT_API_MODE) throw new ApiError(400, 'Chức năng này yêu cầu chế độ tài khoản API.');
+  return request(`${API_BASE}/me/host-application`);
+}
+export async function applyHost(application_data) {
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const user = currentMockUser(await loadMockUsers());
+    if (user.role !== 'user') throw new ApiError(403, 'Chỉ khách hàng mới có thể đăng ký làm host.');
+    const data = validateHostApplication(application_data);
+    const applications = await loadMockApplications();
+    const existing = applications.find(row => String(row.userId) === String(user.id));
+    if (existing && !['rejected', 'approved'].includes(existing.status))
+      throw new ApiError(409, 'Bạn đã có đơn đăng ký host.');
+    const application = {
+      id: existing?.id ?? `app${Date.now()}`,
+      userId: user.id,
+      status: 'pending',
+      application_data: data,
+      rejectReason: '',
+      createdAt: new Date().toISOString(),
+      history: existing?.history ?? [],
+    };
+    if (existing) applications[applications.indexOf(existing)] = application;
+    else applications.push(application);
+    saveMockApplications(applications);
+    return application;
+  }
+  if (!ACCOUNT_API_MODE) throw new ApiError(400, 'Chức năng này yêu cầu chế độ tài khoản API.');
+  return request(`${API_BASE}/host/apply`, { method: 'POST', body: { application_data } });
 }
 
 /** FastAPI trả 422 dạng MẢNG, các mã khác trả CHUỖI.
@@ -63,7 +292,8 @@ function normalizeDetail(detail) {
 //       (getListings / getConcerts / getHomestays / getRecipes …)
 
 export function getItems(params = {}) {
-  if (USE_MOCK) return request(`${MOCK_BASE}/items.json`).then(d => filterMock(d, params));
+  blockUnintegratedBusiness('catalog');
+  if (USE_MOCK && !ACCOUNT_API_MODE) return request(`${MOCK_BASE}/items.json`).then(d => filterMock(d, params));
   // Một số bộ lọc (room_type, amenity) có thể là MẢNG — mỗi giá trị cần 1 cặp
   // key=value riêng trên querystring, nên không thể đưa thẳng cho URLSearchParams(object).
   const qs = new URLSearchParams();
@@ -72,11 +302,12 @@ export function getItems(params = {}) {
     if (Array.isArray(v)) v.forEach(val => val !== '' && qs.append(k, val));
     else qs.set(k, v);
   }
-  return request(`${API_BASE}/items?${qs}`);
+  return request(`${API_BASE}/items?${qs}`).then(data => ({...data, items:data.items.map(mediaItem)}));
 }
 
 export async function getItem(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('catalog');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const data = await request(`${MOCK_BASE}/items.json`);
 
     const item = data.items.find(
@@ -93,15 +324,16 @@ export async function getItem(id) {
     return item;
   }
 
-  return request(`${API_BASE}/items/${id}`);
+  return request(`${API_BASE}/items/${encodeURIComponent(id)}`).then(mediaItem);
 }
 
 // ---------- Đánh giá (reviews) của trang chi tiết ----------
 // Mock: đọc/ghi vào localStorage, seed lần đầu từ mảng "reviews" có sẵn trong mock/item-<id>.json.
 const reviewsKey = id => `reviews_${id}`;
 
-export async function getReviews(itemId) {
-  if (USE_MOCK) {
+export async function getReviews(itemId, params = {}) {
+  blockUnintegratedBusiness('catalog');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const cached = localStorage.getItem(reviewsKey(itemId));
     if (cached) return JSON.parse(cached);
     const item = await getItem(itemId);
@@ -109,11 +341,12 @@ export async function getReviews(itemId) {
     localStorage.setItem(reviewsKey(itemId), JSON.stringify(seed));
     return seed;
   }
-  return request(`${API_BASE}/items/${itemId}/reviews`);
+  return request(`${API_BASE}/items/${encodeURIComponent(itemId)}/reviews?${new URLSearchParams({page:1,page_size:20,...params})}`);
 }
 
 export async function addReview(itemId, review) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('catalog');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const list = await getReviews(itemId);
     const entry = { id: `rv${Date.now()}`, created_at: new Date().toISOString(), ...review };
     list.unshift(entry);
@@ -127,6 +360,8 @@ export async function addReview(itemId, review) {
 // Chỉ mô phỏng trên thiết bị này. Người dùng có thể sửa localStorage để giả phiên/quyền.
 // Chỉ lưu hồ sơ + PBKDF2 verifier có salt; không lưu mật khẩu thô hay verifier vào app_user.
 const MOCK_USERS_KEY = 'luxstay_mock_users_v1';
+const MOCK_HOST_APPLICATIONS_KEY = 'luxstay_mock_host_applications_v1';
+const MOCK_HOST_CANCELLATIONS_KEY = 'luxstay_mock_host_cancellations_v1';
 const PASSWORD_ITERATIONS = 600000;
 const publicUser = u => Object.fromEntries(
   ['id', 'display_name', 'email', 'phone', 'role', 'avatar', 'createdAt'].map(k => [k, u[k]])
@@ -137,6 +372,45 @@ const normalizeEmail = email => String(email ?? '').trim().toLowerCase();
 function writeMockUsers(users) {
   try { localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users)); }
   catch { throw new ApiError(0, 'Không lưu được tài khoản mock. Bộ nhớ trình duyệt có thể đã đầy hoặc bị chặn.'); }
+}
+
+async function loadMockApplications() {
+  const cached = localStorage.getItem(MOCK_HOST_APPLICATIONS_KEY);
+  if (cached === null) return [];
+  try {
+    const applications = JSON.parse(cached);
+    if (!Array.isArray(applications)) throw new Error();
+    return applications;
+  } catch {
+    throw new ApiError(0, 'Dữ liệu đơn đăng ký host mock bị hỏng.');
+  }
+}
+
+function saveMockApplications(applications) {
+  try { localStorage.setItem(MOCK_HOST_APPLICATIONS_KEY, JSON.stringify(applications)); }
+  catch { throw new ApiError(0, 'Không lưu được đơn đăng ký host mock. Bộ nhớ trình duyệt có thể đã đầy hoặc bị chặn.'); }
+}
+
+function validateHostApplication(data) {
+  const value = {
+    homestay_name: String(data?.homestay_name ?? '').trim(),
+    address: String(data?.address ?? '').trim(),
+    province: String(data?.province ?? '').trim(),
+    room_count: Number(data?.room_count),
+    description: String(data?.description ?? '').trim(),
+    experience: String(data?.experience ?? '').trim(),
+    phone: String(data?.phone ?? '').trim(),
+    accept_terms: data?.accept_terms,
+  };
+  if (value.homestay_name.length < 2 || value.homestay_name.length > 160) throw new ApiError(422, 'Tên homestay phải có từ 2 đến 160 ký tự.');
+  if (value.address.length < 5 || value.address.length > 300) throw new ApiError(422, 'Địa chỉ phải có từ 5 đến 300 ký tự.');
+  if (value.province.length < 2 || value.province.length > 120) throw new ApiError(422, 'Tỉnh/thành phố không hợp lệ.');
+  if (!Number.isInteger(value.room_count) || value.room_count < 1 || value.room_count > 100) throw new ApiError(422, 'Số phòng phải từ 1 đến 100.');
+  if (value.description.length < 10 || value.description.length > 1000) throw new ApiError(422, 'Mô tả phải có từ 10 đến 1000 ký tự.');
+  if (value.experience.length > 1000) throw new ApiError(422, 'Kinh nghiệm không được vượt quá 1000 ký tự.');
+  if (!/^(0|\+84)[35789][0-9]{8}$/.test(value.phone)) throw new ApiError(422, 'Số điện thoại không hợp lệ.');
+  if (value.accept_terms !== true) throw new ApiError(422, 'Bạn cần đồng ý với điều khoản dành cho Host.');
+  return value;
 }
 
 async function loadMockUsers() {
@@ -201,7 +475,7 @@ function currentMockUser(users) {
 }
 
 export async function login(email, password) {
-  if (USE_MOCK) {
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
     const users = await loadMockUsers();
     const found = users.find(u => normalizeEmail(u.email) === normalizeEmail(email));
     validatePassword(password);
@@ -213,7 +487,8 @@ export async function login(email, password) {
 }
 
 export async function register(payload) {
-  if (USE_MOCK) {
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    if (payload.role && payload.role !== 'user') throw new ApiError(422, 'Chỉ được tạo tài khoản khách hàng. Đăng ký làm Host từ hồ sơ cá nhân.');
     const profile = validateProfile(payload);
     const credential = await makeCredential(payload.password);
     const users = await loadMockUsers();
@@ -223,7 +498,7 @@ export async function register(payload) {
     const user = {
       id: Math.max(0, ...users.map(u => Number(u.id) || 0)) + 1,
       ...profile,
-      role: payload.role === 'host' ? 'host' : 'user',
+      role: 'user',
       avatar: 'img/placeholder.svg',
       createdAt: new Date().toISOString(),
       credential,
@@ -236,14 +511,20 @@ export async function register(payload) {
 }
 
 export async function getProfile() {
-  if (!USE_MOCK) throw new ApiError(400, 'Hồ sơ hiện chỉ hỗ trợ chế độ mock.');
+  if (ACCOUNT_API_MODE || !USE_MOCK) {
+    const user = await request(`${API_BASE}/me/profile`);
+    updateSessionUser(user); return user;
+  }
   const user = currentMockUser(await loadMockUsers());
   saveSession(mockSession(user));
   return publicUser(user);
 }
 
 export async function updateProfile(payload) {
-  if (!USE_MOCK) throw new ApiError(400, 'Hồ sơ hiện chỉ hỗ trợ chế độ mock.');
+  if (ACCOUNT_API_MODE || !USE_MOCK) {
+    const user = await request(`${API_BASE}/me/profile`, { method: 'PATCH', body: payload });
+    updateSessionUser(user); return user;
+  }
   const profile = validateProfile(payload);
   const users = await loadMockUsers();
   const user = currentMockUser(users);
@@ -259,7 +540,10 @@ export async function updateProfile(payload) {
 }
 
 export async function changePassword(currentPassword, newPassword) {
-  if (!USE_MOCK) throw new ApiError(400, 'Đổi mật khẩu hiện chỉ hỗ trợ chế độ mock.');
+  if (ACCOUNT_API_MODE || !USE_MOCK) {
+    await request(`${API_BASE}/me/password`, { method: 'POST', body: { current_password: currentPassword, new_password: newPassword } });
+    clearSession(); return;
+  }
   validatePassword(newPassword);
   const user = currentMockUser(await loadMockUsers());
   if (!(await verifyCredential(currentPassword, user.credential))) throw new ApiError(400, 'Mật khẩu hiện tại không đúng.');
@@ -274,87 +558,195 @@ export async function changePassword(currentPassword, newPassword) {
   writeMockUsers(users);
 }
 
+export async function deleteAccount() {
+  if (ACCOUNT_API_MODE || !USE_MOCK) {
+    await request(`${API_BASE}/me/account`, { method: 'DELETE' });
+    clearSession();
+    return;
+  }
+
+  const users = await loadMockUsers();
+  const user = currentMockUser(users);
+  if (user.role === 'admin') throw new ApiError(403, 'Quản trị viên không thể xóa tài khoản tại đây.');
+
+  const activeStatuses = new Set(['pending', 'confirmed', 'checked_in']);
+  const customerBookings = await readTable('customerBookings', 'bookings.json');
+  if (customerBookings.some(booking =>
+    String(booking.userId) === String(user.id) && activeStatuses.has(booking.status)
+  )) {
+    throw new ApiError(409, 'Không thể xóa tài khoản khi bạn còn đặt phòng đang chờ, đã xác nhận hoặc đang lưu trú.');
+  }
+  if (user.role === 'host') {
+    const hostBookings = await readTable('bookings', 'host-bookings.json');
+    if (hostBookings.some(booking => activeStatuses.has(booking.status))) {
+      throw new ApiError(409, 'Không thể xóa tài khoản khi homestay của bạn còn khách đang thuê.');
+    }
+  }
+
+  writeMockUsers(users.filter(candidate => String(candidate.id) !== String(user.id)));
+  clearSession();
+}
+
+async function loadMockHostCancellations() {
+  const cached = localStorage.getItem(MOCK_HOST_CANCELLATIONS_KEY);
+  if (cached === null) return [];
+  try {
+    const records = JSON.parse(cached);
+    if (!Array.isArray(records)) throw new Error();
+    return records;
+  } catch {
+    throw new ApiError(0, 'Dữ liệu thông báo hủy Host mock bị hỏng.');
+  }
+}
+
+function saveMockHostCancellations(records) {
+  try { localStorage.setItem(MOCK_HOST_CANCELLATIONS_KEY, JSON.stringify(records)); }
+  catch { throw new ApiError(0, 'Không lưu được thông báo hủy Host mock. Bộ nhớ trình duyệt có thể đã đầy hoặc bị chặn.'); }
+}
+
+async function assertMockHostHasNoActiveBookings(stays) {
+  const activeStatuses = new Set(['pending', 'confirmed', 'checked_in']);
+  const stayIds = new Set(stays.map(stay => String(stay.id)));
+  const itemIds = new Set(stays.filter(stay => stay.itemId != null).map(stay => String(stay.itemId)));
+  const [rooms, hostBookings, customerBookings] = await Promise.all([
+    readTable('rooms', 'host-rooms.json'),
+    readTable('bookings', 'host-bookings.json'),
+    readTable('customerBookings', 'bookings.json'),
+  ]);
+  const roomIds = new Set(rooms
+    .filter(room => stayIds.has(String(room.homestayId)))
+    .map(room => String(room.id)));
+  const hasHostBooking = hostBookings.some(booking =>
+    roomIds.has(String(booking.roomId)) && activeStatuses.has(booking.status));
+  const hasCustomerBooking = customerBookings.some(booking =>
+    (stayIds.has(String(booking.homestayId)) || itemIds.has(String(booking.homestayId)))
+      && activeStatuses.has(booking.status));
+  if (hasHostBooking || hasCustomerBooking)
+    throw new ApiError(409, 'Không thể hủy quyền Host khi homestay còn booking đang chờ, đã xác nhận hoặc đang lưu trú.');
+}
+
+function pauseMockHostStays(stays, owned) {
+  const ownedIds = new Set(owned.map(stay => String(stay.id)));
+  for (const stay of stays) {
+    if (ownedIds.has(String(stay.id)) && stay.status === 'active') stay.status = 'inactive';
+  }
+  writeTable('homestays', stays);
+}
+
+export async function cancelHost(reason) {
+  const trimmedReason = String(reason ?? '').trim();
+  if (trimmedReason.length < 3 || trimmedReason.length > 1000)
+    throw new ApiError(422, 'Lý do hủy Host phải có từ 3 đến 1000 ký tự.');
+  if (ACCOUNT_API_MODE || !USE_MOCK) {
+    await request(`${API_BASE}/me/host/cancel`, { method: 'POST', body: { reason: trimmedReason } });
+    clearSession();
+    return;
+  }
+  const users = await loadMockUsers();
+  const host = currentMockUser(users);
+  if (host.role !== 'host') throw new ApiError(409, 'Tài khoản này hiện không có quyền Host.');
+  const stays = await readTable('homestays', 'host-homestays.json');
+  const owned = stays.filter(stay => String(stay.hostId) === String(host.id));
+  await assertMockHostHasNoActiveBookings(owned);
+  const records = await loadMockHostCancellations();
+  records.push({
+    id: `hc${Date.now()}`,
+    hostId: host.id,
+    hostName: host.display_name,
+    hostEmail: host.email,
+    actorId: host.id,
+    source: 'host',
+    reason: trimmedReason,
+    createdAt: new Date().toISOString(),
+  });
+  host.role = 'user';
+  pauseMockHostStays(stays, owned);
+  writeMockUsers(users);
+  saveMockHostCancellations(records);
+  clearSession();
+}
+
 // ══════════ NGƯỜI 3 — TODO: thêm vùng của em ở đây ══════════
 
-export async function getBookings() {
-  if (USE_MOCK) {
-    const list = await readTable('customerBookings', 'bookings.json');
-    const me = getUser();
-    return me ? list.filter(b => String(b.userId) === String(me.id)) : list;
-  }
-  return request(`${API_BASE}/me/bookings`);
+export async function getBookings(params = {}) {
+  blockUnintegratedBusiness('bookings');
+  return request(`${API_BASE}/me/bookings?${new URLSearchParams(params)}`);
 }
 
 export async function getBooking(id) {
-  if (USE_MOCK) {
-    const b = (await getBookings()).find(x => String(x.id) === String(id));
-    if (!b) throw new ApiError(404, 'Không tìm thấy đặt phòng này.');
-    return b;
-  }
+  blockUnintegratedBusiness('bookings');
   return request(`${API_BASE}/me/bookings/${id}`);
 }
 
-export async function createBooking(payload) {
-  if (USE_MOCK) {
-    const me = getUser();
-    if (!me) throw new ApiError(401, 'Bạn cần đăng nhập để đặt phòng.');
-    const list = await readTable('customerBookings', 'bookings.json');
-    const id = list.reduce((m, b) => Math.max(m, Number(b.id) || 0), 0) + 1;
-    const booking = {
-      id, userId: me.id, status: 'pending', createdAt: new Date().toISOString(),
-      code: 'BK' + String(id).padStart(6, '0'),   // cùng định dạng mã với booking-detail
-      ...payload,
-    };
-    list.push(booking);
-    writeTable('customerBookings', list);
-    return booking;
-  }
-  return request(`${API_BASE}/me/bookings`, { method: 'POST', body: payload });
+export async function createBooking(payload, key) {
+  blockUnintegratedBusiness('bookings');
+  if (!key) throw new ApiError(400, 'Stable Idempotency-Key required');
+  return request(`${API_BASE}/me/bookings`, { method: 'POST', body: payload, headers:{'Idempotency-Key':key} });
 }
 
 export async function cancelBooking(id) {
-  if (USE_MOCK) {
-    const list = await readTable('customerBookings', 'bookings.json');
-    const idx = list.findIndex(b => String(b.id) === String(id));
-    if (idx === -1) throw new ApiError(404, 'Không tìm thấy booking.');
-    list[idx].status = 'cancelled';
-    writeTable('customerBookings', list);
-    return list[idx];
-  }
+  blockUnintegratedBusiness('bookings');
   return request(`${API_BASE}/me/bookings/${id}/cancel`, { method: 'POST' });
 }
 
 // ══════════ NGƯỜI 4 — quản lý của host: homestay, phòng, đặt phòng ══════════
-// TODO: khi có đăng nhập thật cho role host, lấy HOST_ID từ getUser().id
-const HOST_ID = 'host001';
 const BOOKING_STATUSES = ['pending', 'confirmed', 'checked_in', 'completed', 'cancelled', 'rejected'];
+function currentMockHostId() {
+  const user = getUser();
+  if (!user || user.role !== 'host') throw new ApiError(403, 'Chỉ Host mới được quản lý homestay, phòng và đặt phòng.');
+  return String(user.id);
+}
 
 /** Đọc "bảng" mock có thể sửa được: lần đầu load từ file JSON trong mock/,
  *  các lần sau đọc/ghi vào localStorage (giả lập backend cho tới khi nối API thật). */
 async function readTable(key, file) {
   const cached = localStorage.getItem(key);
-  if (cached) return JSON.parse(cached);
-  const seed = await request(`${MOCK_BASE}/${file}`);
-  const list = seed[key] ?? seed;
+  const restoreKey = `mock_seed_restore_${key}`;
+  let list;
+  if (cached) {
+    try {
+      const value = JSON.parse(cached);
+      list = Array.isArray(value) ? value : value?.[key];
+      if (!Array.isArray(list) && key === 'customerBookings') list = value?.bookings;
+      if (!Array.isArray(list)) throw new Error();
+    } catch {
+      throw new ApiError(0, `Dữ liệu ${key} trong trình duyệt không hợp lệ. Hãy sao lưu dữ liệu để kiểm tra.`);
+    }
+    if (localStorage.getItem(restoreKey) === '1') {
+      const seed = await request(`${MOCK_BASE}/${file}`);
+      const seedRows = seed[key] ?? seed;
+      const ids = new Set(list.map(row => String(row.id)));
+      list = [...seedRows.filter(row => !ids.has(String(row.id))), ...list];
+    }
+  } else {
+    const seed = await request(`${MOCK_BASE}/${file}`);
+    list = seed[key] ?? seed;
+  }
+  if (!Array.isArray(list)) throw new ApiError(0, `Nguồn dữ liệu ${key} không hợp lệ.`);
   localStorage.setItem(key, JSON.stringify(list));
+  localStorage.removeItem(restoreKey);
   return list;
 }
 function writeTable(key, list) { localStorage.setItem(key, JSON.stringify(list)); }
 const newId = prefix => `${prefix}${Date.now()}${Math.floor(Math.random() * 100)}`;
 
 // ---------- Homestay ----------
-export async function getHostHomestays() {
-  if (USE_MOCK) {
+export async function getHostHomestays(params = {}) {
+  blockUnintegratedBusiness('host-properties');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const hostId = currentMockHostId();
     const list = await readTable('homestays', 'host-homestays.json');
-    return list.filter(h => h.hostId === HOST_ID && h.status !== 'deleted');
+    return list.filter(h => String(h.hostId) === hostId && h.status !== 'deleted');
   }
-  return request(`${API_BASE}/host/homestays`);
+  return request(`${API_BASE}/host/homestays?${new URLSearchParams(params)}`);
 }
 
 export async function getHostHomestay(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-properties');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const hostId = currentMockHostId();
     const list = await readTable('homestays', 'host-homestays.json');
-    const found = list.find(h => h.id === id);
+    const found = list.find(h => String(h.id) === String(id) && String(h.hostId) === hostId && h.status !== 'deleted');
     if (!found) throw new ApiError(404, 'Không tìm thấy homestay.');
     return found;
   }
@@ -363,17 +755,17 @@ export async function getHostHomestay(id) {
 
 /** Tạo mới (không có id) hoặc cập nhật (có id). */
 export async function saveHostHomestay(data) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-properties');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const hostId = currentMockHostId();
     const list = await readTable('homestays', 'host-homestays.json');
     if (data.id) {
-      const i = list.findIndex(h => h.id === data.id);
+      const i = list.findIndex(h => String(h.id) === String(data.id) && String(h.hostId) === hostId);
       if (i === -1) throw new ApiError(404, 'Không tìm thấy homestay.');
-      list[i] = { ...list[i], ...data };
+      list[i] = { ...list[i], ...data, id: list[i].id, hostId };
+      data = list[i];
     } else {
-      data.id = newId('hs');
-      data.hostId = HOST_ID;
-      data.status = 'active';
-      data.createdAt = new Date().toISOString();
+      data = { ...data, id: newId('hs'), hostId, status: 'active', createdAt: new Date().toISOString() };
       list.push(data);
     }
     writeTable('homestays', list);
@@ -386,9 +778,11 @@ export async function saveHostHomestay(data) {
 
 /** Xóa mềm: chỉ đổi status, không xóa khỏi mảng (giữ lịch sử booking liên kết). */
 export async function deleteHostHomestay(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-properties');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const hostId = currentMockHostId();
     const list = await readTable('homestays', 'host-homestays.json');
-    const i = list.findIndex(h => h.id === id);
+    const i = list.findIndex(h => String(h.id) === String(id) && String(h.hostId) === hostId);
     if (i === -1) throw new ApiError(404, 'Không tìm thấy homestay.');
     list[i].status = 'deleted';
     writeTable('homestays', list);
@@ -398,19 +792,24 @@ export async function deleteHostHomestay(id) {
 }
 
 // ---------- Phòng ----------
-export async function getHostRooms(homestayId) {
-  if (USE_MOCK) {
+export async function getHostRooms(homestayId, params = {}) {
+  blockUnintegratedBusiness('host-rooms');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const homestays = await getHostHomestays();
+    const homestayIds = new Set(homestays.map(h => String(h.id)));
     const list = await readTable('rooms', 'host-rooms.json');
-    return homestayId ? list.filter(r => r.homestayId === homestayId) : list;
+    return list.filter(r => homestayIds.has(String(r.homestayId))
+      && (!homestayId || String(r.homestayId) === String(homestayId)));
   }
-  const qs = homestayId ? `?homestay_id=${homestayId}` : '';
-  return request(`${API_BASE}/host/rooms${qs}`);
+  return request(`${API_BASE}/host/rooms?${new URLSearchParams({ ...params, ...(homestayId ? { homestay_id: homestayId } : {}) })}`);
 }
 
 export async function getHostRoom(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-rooms');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const homestayIds = new Set((await getHostHomestays()).map(h => String(h.id)));
     const list = await readTable('rooms', 'host-rooms.json');
-    const found = list.find(r => r.id === id);
+    const found = list.find(r => String(r.id) === String(id) && homestayIds.has(String(r.homestayId)));
     if (!found) throw new ApiError(404, 'Không tìm thấy phòng.');
     return found;
   }
@@ -418,29 +817,37 @@ export async function getHostRoom(id) {
 }
 
 export async function saveHostRoom(data) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-rooms');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const homestayIds = new Set((await getHostHomestays()).map(h => String(h.id)));
     const list = await readTable('rooms', 'host-rooms.json');
     if (data.id) {
-      const i = list.findIndex(r => r.id === data.id);
+      const i = list.findIndex(r => String(r.id) === String(data.id) && homestayIds.has(String(r.homestayId)));
       if (i === -1) throw new ApiError(404, 'Không tìm thấy phòng.');
-      list[i] = { ...list[i], ...data };
+      if (!homestayIds.has(String(data.homestayId))) throw new ApiError(404, 'Không tìm thấy homestay.');
+      list[i] = { ...list[i], ...data, id: list[i].id };
+      data = list[i];
     } else {
-      data.id = newId('rm');
-      data.blockedDates = data.blockedDates ?? [];
+      if (!homestayIds.has(String(data.homestayId))) throw new ApiError(404, 'Không tìm thấy homestay.');
+      data = { ...data, id: newId('rm'), blockedDates: data.blockedDates ?? [] };
       list.push(data);
     }
     writeTable('rooms', list);
     return data;
   }
+  const { blockedDates: _legacyDates, ...payload } = data;
   return data.id
-    ? request(`${API_BASE}/host/rooms/${data.id}`, { method: 'PUT', body: data })
-    : request(`${API_BASE}/host/rooms`, { method: 'POST', body: data });
+    ? request(`${API_BASE}/host/rooms/${data.id}`, { method: 'PUT', body: payload })
+    : request(`${API_BASE}/host/rooms`, { method: 'POST', body: payload });
 }
 
 export async function deleteHostRoom(id) {
-  if (USE_MOCK) {
+  blockUnintegratedBusiness('host-rooms');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const homestayIds = new Set((await getHostHomestays()).map(h => String(h.id)));
     const list = await readTable('rooms', 'host-rooms.json');
-    const next = list.filter(r => r.id !== id);
+    const next = list.filter(r => !(String(r.id) === String(id) && homestayIds.has(String(r.homestayId))));
+    if (next.length === list.length) throw new ApiError(404, 'Không tìm thấy phòng.');
     writeTable('rooms', next);
     return null;
   }
@@ -448,20 +855,97 @@ export async function deleteHostRoom(id) {
 }
 
 // ---------- Đặt phòng (duyệt / từ chối) ----------
-export async function getHostBookings() {
-  if (USE_MOCK) return readTable('bookings', 'host-bookings.json');
-  return request(`${API_BASE}/host/bookings`);
+export async function getHostBookings(params = {}) {
+  blockUnintegratedBusiness('host-bookings');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const [homestays, rooms, hostBookings, customerBookings, users] = await Promise.all([
+      getHostHomestays(),
+      getHostRooms(),
+      readTable('bookings', 'host-bookings.json'),
+      readTable('customerBookings', 'bookings.json'),
+      loadMockUsers(),
+    ]);
+    const staysByCatalogId = new Map();
+    for (const homestay of homestays) {
+      for (const id of [homestay.itemId, homestay.id]) {
+        if (id != null) staysByCatalogId.set(String(id), homestay);
+      }
+    }
+    const roomsByKey = new Map(rooms.map(room => [String(room.itemRoomId ?? room.key), room]));
+    const roomsById = new Map(rooms.map(room => [String(room.id), room]));
+    const roomIds = new Set(roomsById.keys());
+    const legacy = hostBookings.filter(booking => roomIds.has(String(booking.roomId)));
+    const hostCodes = new Set(legacy.map(booking => booking.code).filter(Boolean));
+    const usersById = new Map(users.map(user => [String(user.id), user]));
+    const customer = customerBookings.flatMap(booking => {
+      const homestay = staysByCatalogId.get(String(booking.homestayId));
+      if (!homestay || (booking.code && hostCodes.has(booking.code))) return [];
+      const firstRoom = roomsByKey.get(String(booking.rooms?.[0]?.key));
+      const customerUser = usersById.get(String(booking.userId));
+      return [{
+        ...booking,
+        id: `customer-${booking.id}`,
+        homestayId: homestay.id,
+        homestayName: booking.homestayName || homestay.name,
+        roomId: firstRoom?.id ?? booking.roomId ?? '',
+        roomName: booking.roomName || booking.rooms?.map(room => `${room.qty} × ${room.name}`).join(', ') || firstRoom?.name || '',
+        customerName: booking.customerName || booking.guestName || customerUser?.display_name || '',
+        customerPhone: booking.customerPhone || customerUser?.phone || '',
+        guests: booking.guests ?? (Number(booking.adults || 0) + Number(booking.children || 0)),
+      }];
+    });
+    return [...legacy, ...customer];
+  }
+  return request(`${API_BASE}/host/bookings?${new URLSearchParams(params)}`);
 }
 
 /** reason bắt buộc khi status = 'rejected' — xem docs/api-contract.md */
 export async function updateBookingStatus(id, status, reason = '') {
+  blockUnintegratedBusiness('host-bookings');
   if (!BOOKING_STATUSES.includes(status)) throw new ApiError(400, 'Trạng thái không hợp lệ.');
   if (status === 'rejected' && !reason.trim()) throw new ApiError(400, 'Vui lòng nhập lý do từ chối.');
-  if (USE_MOCK) {
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const todayInBusinessTimezone = () => {
+      const parts = new Intl.DateTimeFormat('en', {
+        timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
+      }).formatToParts(new Date());
+      const dateParts = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+      return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+    };
+    if (String(id).startsWith('customer-')) {
+      const customerId = String(id).slice('customer-'.length);
+      const catalogIds = new Set((await getHostHomestays())
+        .flatMap(homestay => [homestay.itemId, homestay.id])
+        .filter(value => value != null)
+        .map(String));
+      const customerBookings = await readTable('customerBookings', 'bookings.json');
+      const customerIndex = customerBookings.findIndex(booking =>
+        String(booking.id) === customerId && catalogIds.has(String(booking.homestayId)));
+      if (customerIndex === -1) throw new ApiError(404, 'Không tìm thấy đặt phòng.');
+      const booking = customerBookings[customerIndex];
+      if (status === 'checked_in' && todayInBusinessTimezone() < booking.checkIn) {
+        throw new ApiError(409, `Chưa đến ngày nhận phòng (${booking.checkIn}).`);
+      }
+      customerBookings[customerIndex].status = status;
+      customerBookings[customerIndex].updatedAt = new Date().toISOString();
+      customerBookings[customerIndex].rejectReason = status === 'rejected' ? reason.trim() : '';
+      if (status === 'completed') {
+        const now = new Date();
+        customerBookings[customerIndex].releasedAfter =
+          `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      }
+      writeTable('customerBookings', customerBookings);
+      return { ...customerBookings[customerIndex], id: String(id) };
+    }
+    const roomIds = new Set((await getHostRooms()).map(r => String(r.id)));
     const list = await readTable('bookings', 'host-bookings.json');
-    const i = list.findIndex(b => b.id === id);
+    const i = list.findIndex(b => String(b.id) === String(id) && roomIds.has(String(b.roomId)));
     if (i === -1) throw new ApiError(404, 'Không tìm thấy đặt phòng.');
+    if (status === 'checked_in' && todayInBusinessTimezone() < list[i].checkIn) {
+      throw new ApiError(409, `Chưa đến ngày nhận phòng (${list[i].checkIn}).`);
+    }
     list[i].status = status;
+    list[i].updatedAt = new Date().toISOString();
     list[i].rejectReason = status === 'rejected' ? reason.trim() : '';
     writeTable('bookings', list);
     return list[i];
@@ -473,55 +957,59 @@ export async function updateBookingStatus(id, status, reason = '') {
 //  - users:     [{ id, createdAt, role }]
 //  - bookings:  [{ id, itemId, createdAt, status, totalPrice }]
 //  - homestays: [{ id, title, location }]
-// Mock: mock/admin-overview.json + mock/items.json. Backend thật: GET /admin/overview (cùng dạng).
-export async function getAdminOverview() {
-  if (USE_MOCK) {
-    const [ov, items] = await Promise.all([
-      request(`${MOCK_BASE}/admin-overview.json`),
-      request(`${MOCK_BASE}/items.json`),
+// Mock: tổng hợp từ tài khoản, homestay và booking đang lưu. Backend thật: GET /admin/overview.
+export async function getAdminOverview(params = {}) {
+  blockUnintegratedBusiness('admin');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const [users, bookings, homestays] = await Promise.all([
+      loadMockUsers(),
+      readTable('customerBookings', 'bookings.json'),
+      readTable('homestays', 'host-homestays.json'),
     ]);
     return {
-      users: ov.users,
-      bookings: ov.bookings,
-      homestays: items.items.map(i => ({ id: i.id, title: i.title, location: i.location })),
+      users: users.map(({ id, createdAt, role }) => ({ id, createdAt, role })),
+      bookings: bookings.map(({ id, homestayId, createdAt, status, totalPrice }) => ({
+        id, itemId: homestayId, createdAt, status, totalPrice,
+      })),
+      homestays: homestays.filter(h => h.status !== 'deleted').map(h => ({
+        id: h.itemId ?? h.id, title: h.name, location: h.address,
+      })),
     };
   }
-  return request(`${API_BASE}/admin/overview`);
+  return request(`${API_BASE}/admin/overview?${new URLSearchParams(params)}`);
 }
 
 // ---------- Admin: danh sách host ----------
 // Trả về: [{ id, display_name, email, phone, avatar, createdAt, homestays: [{id,title,location,rating,price}],
 //            bookingCount, revenue }]   (revenue = tổng tiền các đơn đã hoàn thành)
-// Mock: mock/admin-hosts.json + admin-overview.json + items.json, cộng thêm host đăng ký mới trên máy này
-// (role "host" trong localStorage). Backend thật: GET /admin/hosts (cùng dạng).
-export async function getAdminHosts() {
-  if (USE_MOCK) {
-    const [file, ov, items] = await Promise.all([
-      request(`${MOCK_BASE}/admin-hosts.json`),
-      request(`${MOCK_BASE}/admin-overview.json`),
-      request(`${MOCK_BASE}/items.json`),
+// Mock: tổng hợp tài khoản Host và booking đang lưu. Backend thật: GET /admin/hosts.
+export async function getAdminHosts(params = {}) {
+  blockUnintegratedBusiness('admin');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    // Use the actual mock ownership tables; there is no admin-hosts.json fixture.
+    const [users, homestays, rooms, bookings, customerBookings] = await Promise.all([
+      loadMockUsers(), readTable('homestays', 'host-homestays.json'),
+      readTable('rooms', 'host-rooms.json'), readTable('bookings', 'host-bookings.json'),
+      readTable('customerBookings', 'bookings.json'),
     ]);
-    let registered = [];
-    try {
-      const known = new Set(file.hosts.map(h => String(h.id)));
-      registered = (await loadMockUsers())
-        .filter(u => u.role === 'host' && !known.has(String(u.id)))
-        .map(u => ({ id: u.id, display_name: u.display_name, email: u.email, phone: u.phone,
-                     avatar: u.avatar, createdAt: u.createdAt, itemIds: [] }));
-    } catch { /* dữ liệu tài khoản mock hỏng: chỉ hiện host có sẵn trong file */ }
-    const itemById = Object.fromEntries(items.items.map(i => [i.id, i]));
-    return [...file.hosts, ...registered].map(({ itemIds, ...h }) => {
-      const mine = ov.bookings.filter(b => itemIds.includes(b.itemId));
+    return users.filter(user => user.role === 'host').map(user => {
+      const owned = homestays.filter(h => String(h.hostId) === String(user.id) && h.status !== 'deleted');
+      const roomIds = new Set(rooms.filter(r => owned.some(h => String(h.id) === String(r.homestayId))).map(r => String(r.id)));
+      const itemIds = new Set(owned.filter(h => h.itemId != null).map(h => String(h.itemId)));
+      const mine = [...new Map([
+        ...bookings.filter(b => roomIds.has(String(b.roomId))),
+        ...customerBookings.filter(b => itemIds.has(String(b.homestayId))),
+      ].map(b => [String(b.id), b])).values()];
       return {
-        ...h,
-        homestays: itemIds.map(id => itemById[id]).filter(Boolean)
-          .map(i => ({ id: i.id, title: i.title, location: i.location, rating: i.rating, price: i.price })),
+        id: user.id, display_name: user.display_name, email: user.email, phone: user.phone,
+        avatar: user.avatar, createdAt: user.createdAt,
+        homestays: owned.map(h => ({ id: h.id, title: h.name, location: h.address, rating: h.rating ?? null, price: h.price ?? null })),
         bookingCount: mine.length,
-        revenue: mine.filter(b => b.status === 'completed').reduce((sum, b) => sum + b.totalPrice, 0),
+        revenue: mine.filter(b => b.status === 'completed').reduce((sum, b) => sum + Number(b.totalPrice || 0), 0)
       };
     });
   }
-  return request(`${API_BASE}/admin/hosts`);
+  return request(`${API_BASE}/admin/hosts?${new URLSearchParams(params)}`);
 }
 
 // ══════════ NGƯỜI 5 — TODO: thêm vùng của em ở đây ══════════
@@ -555,4 +1043,156 @@ function filterMock(data, { q = '', sort = 'newest', category = '',
   const size  = Number(page_size) || data.page_size || 20;
   const start = (Number(page) - 1) * size;
   return { items: items.slice(start, start + size), total, page: Number(page), page_size: size };
+}
+
+export async function uploadImage(file) {
+  if (!ACCOUNT_API_MODE) throw new ApiError(503, 'Upload requires API mode.');
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) throw new ApiError(422, 'JPEG, PNG, WebP; maximum 5 MB.');
+  const body = new FormData(); body.append('file', file);
+  return request(`${API_BASE}/uploads`, { method: 'POST', body });
+}
+
+export async function getRoomBlocks(roomId) {
+  blockUnintegratedBusiness('host-rooms');
+  return request(`${API_BASE}/host/rooms/${encodeURIComponent(roomId)}/blocks`);
+}
+export async function saveRoomBlock(roomId, block) {
+  blockUnintegratedBusiness('host-rooms');
+  const { id, ...body } = block;
+  return request(`${API_BASE}/host/rooms/${encodeURIComponent(roomId)}/blocks${id ? '/' + encodeURIComponent(id) : ''}`, { method: id ? 'PUT' : 'POST', body });
+}
+export async function deleteRoomBlock(roomId, blockId) {
+  blockUnintegratedBusiness('host-rooms');
+  return request(`${API_BASE}/host/rooms/${encodeURIComponent(roomId)}/blocks/${encodeURIComponent(blockId)}`, { method: 'DELETE' });
+}
+
+export async function getHostDashboard(params = {}) {
+  blockUnintegratedBusiness('host-dashboard');
+  return request(`${API_BASE}/host/dashboard?${new URLSearchParams(params)}`);
+}
+
+export async function getAdminApplications(params = {}) {
+  blockUnintegratedBusiness('admin');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const users = await loadMockUsers();
+    const admin = currentMockUser(users);
+    if (admin.role !== 'admin') throw new ApiError(403, 'Chỉ quản trị viên mới được xem đơn đăng ký Host.');
+    const applications = await loadMockApplications();
+    const usersById = new Map(users.map(user => [String(user.id), user]));
+    const page = Math.max(1, Number(params.page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(params.page_size) || 100));
+    return applications
+      .filter(application => !params.status || application.status === params.status)
+      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+      .slice((page - 1) * pageSize, page * pageSize)
+      .map(application => {
+        const owner = usersById.get(String(application.userId));
+        if (!owner) throw new ApiError(409, 'Không tìm thấy tài khoản của người nộp đơn.');
+        return { ...application, user: publicUser(owner), history: application.history ?? [] };
+      });
+  }
+  return request(`${API_BASE}/admin/host-applications?${new URLSearchParams(params)}`);
+}
+export async function decideHostApplication(id, action, reason = '') {
+  blockUnintegratedBusiness('admin');
+  if (!['approve','reject'].includes(action)) throw new ApiError(422, 'Invalid decision');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const users = await loadMockUsers();
+    const admin = currentMockUser(users);
+    if (admin.role !== 'admin') throw new ApiError(403, 'Chỉ quản trị viên mới được xét duyệt đơn Host.');
+    if (action === 'reject' && (reason.trim().length < 3 || reason.trim().length > 1000))
+      throw new ApiError(422, 'Lý do từ chối phải có từ 3 đến 1000 ký tự.');
+    const applications = await loadMockApplications();
+    const application = applications.find(row => String(row.id) === String(id));
+    if (!application) throw new ApiError(404, 'Không tìm thấy đơn đăng ký Host.');
+    if (application.status !== 'pending') throw new ApiError(409, 'Đơn đã được xử lý.');
+    const owner = users.find(user => String(user.id) === String(application.userId));
+    if (!owner || owner.role !== 'user') throw new ApiError(409, 'Tài khoản không đủ điều kiện xét duyệt.');
+    if (action === 'approve') owner.role = 'host';
+    const reviewedAt = new Date().toISOString();
+    application.status = action === 'approve' ? 'approved' : 'rejected';
+    application.rejectReason = action === 'reject' ? reason.trim() : '';
+    application.reviewedBy = admin.id;
+    application.reviewedAt = reviewedAt;
+    application.history = [...(application.history ?? []), {
+      status: application.status,
+      application_data: { ...application.application_data },
+      rejectReason: application.rejectReason,
+      reviewedBy: admin.id,
+      reviewedAt,
+    }];
+    writeMockUsers(users);
+    saveMockApplications(applications);
+    return application;
+  }
+  return request(`${API_BASE}/admin/host-applications/${encodeURIComponent(id)}/${action}`, { method: 'POST', ...(action === 'reject' ? { body: { reason } } : {}) });
+}
+export async function getAdminUsers(params = {}) {
+  blockUnintegratedBusiness('admin'); return request(`${API_BASE}/admin/users?${new URLSearchParams(params)}`);
+}
+export async function getAdminHostCancellations(params = {}) {
+  blockUnintegratedBusiness('admin');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const users = await loadMockUsers();
+    const admin = currentMockUser(users);
+    if (admin.role !== 'admin') throw new ApiError(403, 'Chỉ quản trị viên mới được xem thông báo hủy Host.');
+    const records = await loadMockHostCancellations();
+    const page = Math.max(1, Number(params.page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(params.page_size) || 100));
+    const usersById = new Map(users.map(user => [String(user.id), user]));
+    return records.filter(record => record.source === 'host')
+      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+      .slice((page - 1) * pageSize, page * pageSize)
+      .map(record => {
+        const owner = usersById.get(String(record.hostId));
+        if (!owner) throw new ApiError(409, 'Không tìm thấy tài khoản của Host đã hủy.');
+        return {
+          id: record.id,
+          host: publicUser(owner),
+          reason: record.reason,
+          createdAt: record.createdAt,
+        };
+      });
+  }
+  return request(`${API_BASE}/admin/host-cancellations?${new URLSearchParams(params)}`);
+}
+export async function cancelAdminHost(id) {
+  blockUnintegratedBusiness('admin');
+  if (USE_MOCK && !ACCOUNT_API_MODE) {
+    const users = await loadMockUsers();
+    const admin = currentMockUser(users);
+    if (admin.role !== 'admin') throw new ApiError(403, 'Chỉ quản trị viên mới được hủy quyền Host.');
+    const host = users.find(user => String(user.id) === String(id));
+    if (!host) throw new ApiError(404, 'Không tìm thấy người dùng.');
+    if (host.role !== 'host') throw new ApiError(409, 'Tài khoản này hiện không có quyền Host.');
+    const stays = await readTable('homestays', 'host-homestays.json');
+    const owned = stays.filter(stay => String(stay.hostId) === String(host.id));
+    await assertMockHostHasNoActiveBookings(owned);
+    const records = await loadMockHostCancellations();
+    records.push({
+      id: `hc${Date.now()}`,
+      hostId: host.id,
+      hostName: host.display_name,
+      hostEmail: host.email,
+      actorId: admin.id,
+      source: 'admin',
+      reason: '',
+      createdAt: new Date().toISOString(),
+    });
+    host.role = 'user';
+    pauseMockHostStays(stays, owned);
+    writeMockUsers(users);
+    saveMockHostCancellations(records);
+    return;
+  }
+  return request(`${API_BASE}/admin/users/${encodeURIComponent(id)}/cancel-host`, { method: 'POST' });
+}
+export async function updateAdminUser(id, body) {
+  blockUnintegratedBusiness('admin'); return request(`${API_BASE}/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body });
+}
+export async function getAdminHomestays(params = {}) {
+  blockUnintegratedBusiness('admin'); return request(`${API_BASE}/admin/homestays?${new URLSearchParams(params)}`);
+}
+export async function moderateHomestay(id, body) {
+  blockUnintegratedBusiness('admin'); return request(`${API_BASE}/admin/homestays/${encodeURIComponent(id)}/status`, { method: 'PATCH', body });
 }

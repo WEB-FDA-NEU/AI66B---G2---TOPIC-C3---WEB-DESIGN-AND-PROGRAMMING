@@ -1,3 +1,7 @@
+import { ACCOUNT_API_MODE, accountHref, safeImageURL } from '../config.js';
+import { initHostDashboardNavigation } from '../host-navigation.js';
+import { getHostDashboard } from '../api.js';
+import { bindSearchbar, matchesQuery } from '../search.js';
 // ============================================================
 //  Host Dashboard: số liệu + biểu đồ tính từ dữ liệu host (getHost*), có bộ lọc kỳ.
 //  Quy ước tính (hiện ngay trên giao diện để người xem hiểu số):
@@ -15,7 +19,7 @@ import '../guard.js';
 
 
 const STATUS_LABEL = {
-  pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', checked_in: 'Đã nhận phòng',
+  pending: 'Đang xử lý', confirmed: 'Đã xác nhận', checked_in: 'Đã nhận phòng',
   completed: 'Hoàn tất', cancelled: 'Đã hủy', rejected: 'Bị từ chối',
 };
 const STATUS_BADGE = {
@@ -29,10 +33,21 @@ const make = (tag, cls, text) => { const e = document.createElement(tag); if (cl
 
 let homestays = [], rooms = [], bookings = [], roomsById = {}, roomsByHs = {}, hsById = {};
 let anchor = 0;
+let requestGeneration = 0;
+let searchQuery = '', searchGeneration = 0;   // ô tìm trong mục "Đặt phòng gần đây"
+const RECENT_LIMIT = 5, SEARCH_LIMIT = 10;
 let tabs;
 
 async function load() {
   try {
+    if (ACCOUNT_API_MODE) {
+      anchor = dayNum(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()));
+      $('kpi-revenue').nextElementSibling.textContent = 'Gi\u00e1 tr\u1ecb booking';
+      $('revenue-title').nextElementSibling.textContent = 'Booking \u0111\u00e3 x\u00e1c nh\u1eadn, \u0111ang \u1edf ho\u1eb7c ho\u00e0n t\u1ea5t; kh\u00f4ng ph\u1ea3i ti\u1ec1n \u0111\u00e3 thu.';
+      $('chart-occupancy').closest('article').querySelector('.dash-note').textContent = 'C\u00f4ng su\u1ea5t d\u1ef1 ki\u1ebfn tr\u00ean t\u1ed3n kho hi\u1ec7n t\u1ea1i; bi\u1ec3u \u0111\u1ed3 t\u1ed1i \u0111a 100 homestay. Ch\u01b0a c\u00f3 l\u1ecbch s\u1eed t\u1ed3n kho.';
+      tabs = periodTabs($('period-tabs'), { initial: 'year', onChange: renderApi });
+      await renderApi(tabs.value); return;
+    }
     [homestays, rooms, bookings] = await Promise.all([getHostHomestays(), getHostRooms(), getHostBookings()]);
     roomsById = Object.fromEntries(rooms.map(r => [r.id, r]));
     hsById = Object.fromEntries(homestays.map(h => [h.id, h]));
@@ -49,6 +64,34 @@ async function load() {
   } catch (e) {
     $('recent').replaceChildren(make('p', 'text-danger', `Không tải được dữ liệu. ${e.detail ?? ''}`));
     console.error(e);
+  } finally {
+    window.dispatchEvent(new Event('host-dashboard-ready'));
+  }
+}
+
+async function renderApi(key) {
+  const generation = ++requestGeneration;
+  const w = getWindow(key, anchor), date = day => new Date(day * 864e5).toISOString().slice(0, 10);
+  $('period-note').textContent = '\u0110ang t\u1ea3i s\u1ed1 li\u1ec7u m\u00e1y ch\u1ee7...';
+  try {
+    const data = await getHostDashboard({ from: date(w.start), to: date(w.end) });
+    if (generation !== requestGeneration) return;
+    const stats = [[data.homestayCounts.active || 0, 'Homestay \u0111ang ho\u1ea1t \u0111\u1ed9ng'], [data.inventoryCount, 'T\u1ed5ng s\u1ed1 ph\u00f2ng'], [data.bookingCount, 'T\u1ed5ng booking'], [data.periodBookingCount, 'Booking trong k\u1ef3']];
+    $('stats').replaceChildren(...stats.map(([value, label]) => { const card = make('div', 'stat-card'); const number = make('div', 'stat-card__num'); card.append(number, make('div', 'stat-card__label', label)); countUp(number, value); return card; }));
+    countUp($('kpi-revenue'), data.bookingValue, fmtVND); countUp($('kpi-bookings'), data.periodBookingCount); countUp($('kpi-occupancy'), data.occupancySummary.occupancy, fmtPct);
+    const revenue = w.buckets.map(() => 0);
+    for (const row of data.series) { const i = bucketIndex(w, row.date); if (i >= 0) revenue[i] += row.bookingValue; }
+    renderRevenueChart({ w, revenue, totalRevenue: data.bookingValue });
+    $('revenue-title').textContent = 'Gi\u00e1 tr\u1ecb booking theo k\u1ef3';
+    renderStatusChart({ inP: { length: data.periodBookingCount }, byStatus: data.statusCounts });
+    renderOccupancyChart({ w, totalNights: data.occupancySummary.nights, perHs: data.occupancy.map(row => ({ ...row, pct: row.occupancy })) });
+    bookings = data.recentBookings; rooms = data.rooms; homestays = data.homestays;
+    roomsById = Object.fromEntries(rooms.map(row => [row.id, row])); hsById = Object.fromEntries(homestays.map(row => [row.id, row])); renderRecent();
+    $('period-note').textContent = `${fmtFullDate(w.start)} \u2013 ${fmtFullDate(w.end)} \u00b7 Thu th\u1ef1c ghi nh\u1eadn ${formatVND(data.payments.grossCaptured)} \u00b7 Ho\u00e0n ch\u1edd ${formatVND(data.payments.refundPending)} \u00b7 M\u00f4 ph\u1ecfng ${formatVND(data.payments.simulatedCaptured)} (kh\u00f4ng ph\u1ea3i giao d\u1ecbch ng\u00e2n h\u00e0ng).`;
+  } catch (error) {
+    if (generation !== requestGeneration) return;
+    $('period-note').textContent = error.detail || 'Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c s\u1ed1 li\u1ec7u.';
+    for (const id of ['kpi-revenue', 'kpi-bookings', 'kpi-occupancy']) $(id).textContent = '\u2014';
   }
 }
 
@@ -134,7 +177,7 @@ function renderRevenueChart({ w, revenue, totalRevenue }) {
   $('revenue-title').textContent = `Doanh thu theo ${unit}`;
   drawChart($('chart-revenue'), {
     type: 'bar',
-    data: { labels: w.buckets.map(b => b.label), datasets: [{ label: 'Doanh thu', data: revenue,
+    data: { labels: w.buckets.map(b => b.label), datasets: [{ label: ACCOUNT_API_MODE ? 'Gi\u00e1 tr\u1ecb booking' : 'Doanh thu', data: revenue,
       backgroundColor: t.primary, hoverBackgroundColor: t.dark, borderRadius: 5, maxBarThickness: 44 }] },
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -202,9 +245,18 @@ function renderOccupancyChart({ perHs, totalNights, w }) {
 }
 
 // ---------- Đặt phòng gần đây (có ảnh thật) ----------
-function renderRecent() {
-  const recent = [...bookings].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
-  if (!recent.length) { $('recent').replaceChildren(make('p', 'text-muted', 'Chưa có đặt phòng nào.')); return; }
+// items = null → 5 đơn mới nhất; items = mảng → kết quả tìm kiếm.
+function renderRecent(items = null) {
+  if (items === null && searchQuery) return;   // đang hiển thị kết quả tìm kiếm, đừng ghi đè khi đổi kỳ
+  const searching = items !== null;
+  const recent = searching ? items : [...bookings].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, RECENT_LIMIT);
+  $('recent-sub').textContent = searching
+    ? `${recent.length}${recent.length >= SEARCH_LIMIT ? '+' : ''} kết quả cho “${searchQuery}” trong toàn bộ đặt phòng.`
+    : `${RECENT_LIMIT} đặt phòng mới nhất trên các homestay của bạn.`;
+  if (!recent.length) {
+    $('recent').replaceChildren(make('p', 'text-muted', searching ? 'Không có đặt phòng phù hợp.' : 'Chưa có đặt phòng nào.'));
+    return;
+  }
 
   const wrap = make('div', 'stack host-dashboard-recent-list');
   recent.forEach(b => {
@@ -213,15 +265,15 @@ function renderRecent() {
     const row = make('div', 'row host-dashboard-booking-row');
 
     const img = make('img', 'row__img');
-    img.src = room?.images?.[0] ?? hs?.images?.[0] ?? 'img/placeholder.svg';
+    img.src = safeImageURL(ACCOUNT_API_MODE ? b.homestayImage || 'img/placeholder.svg' : room?.images?.[0] ?? hs?.images?.[0] ?? 'img/placeholder.svg');
     img.alt = room ? `${room.name} — ${hs?.name ?? ''}` : '';
     img.loading = 'lazy';
     img.onerror = () => { img.onerror = null; img.src = 'img/placeholder.svg'; };   // ảnh hỏng → ảnh mặc định
 
     const info = make('div', 'host-dashboard-booking-info');
-    const title = make('a', 'row__title', b.customerName); title.href = 'host-bookings.html';
+    const title = make('a', 'row__title', b.customerName); title.href = accountHref('host-bookings.html');
     info.append(title,
-      make('p', 'row__meta', [hs?.name, room?.name].filter(Boolean).join(' · ')),
+      make('p', 'row__meta', (ACCOUNT_API_MODE ? [b.homestayName, b.roomName] : [hs?.name, room?.name]).filter(Boolean).join(' · ')),
       make('p', 'row__meta', `${b.checkIn} → ${b.checkOut} · ${b.guests} khách`));
 
     const side = make('div', 'host-dashboard-booking-status');
@@ -234,4 +286,29 @@ function renderRecent() {
   $('recent').replaceChildren(wrap);
 }
 
+// ---------- Tìm kiếm đặt phòng (theo tên khách, SĐT, tên homestay) ----------
+async function runSearch(value) {
+  searchQuery = value;
+  const current = ++searchGeneration;
+  $('recent-all').href = accountHref(value ? `host-bookings.html?q=${encodeURIComponent(value)}` : 'host-bookings.html');
+  if (!value) { renderRecent(); return; }
+  try {
+    const sortNewest = list => [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, SEARCH_LIMIT);
+    // API mode: backend tìm trên TOÀN BỘ đặt phòng. Mock mode: `bookings` đã chứa tất cả.
+    const found = ACCOUNT_API_MODE
+      ? await getHostBookings({ q: value, page: 1, page_size: SEARCH_LIMIT })
+      : sortNewest(bookings.filter(b => matchesQuery(
+          value, b.customerName, b.customerPhone,
+          b.homestayName || hsById[roomsById[b.roomId]?.homestayId]?.name,
+          b.roomName || roomsById[b.roomId]?.name)));
+    if (current !== searchGeneration) return;
+    renderRecent(found);
+  } catch (error) {
+    if (current !== searchGeneration) return;
+    $('recent').replaceChildren(make('p', 'text-danger', `Không tìm được. ${error.detail ?? ''}`));
+  }
+}
+bindSearchbar($('recent-search'), runSearch);
+
+initHostDashboardNavigation();
 load();

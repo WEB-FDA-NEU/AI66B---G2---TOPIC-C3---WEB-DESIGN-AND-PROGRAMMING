@@ -1,5 +1,17 @@
 # LuxStay — Homestay Booking Website
 
+## Sửa lỗi kết nối local (15/11/2026)
+
+Mở **http://127.0.0.1:8000/index.html?mode=api**, không cần Live Server 5500. Xem [lệnh PowerShell, kiểm tra SQLite và báo cáo request/test](docs/LOCAL_API_FIX.md). Chạy ackend/.venv/Scripts/python.exe tools/run_local.py với DB hiện có; nếu chưa có DB, dùng --init-demo một lần rồi --demo để chạy database dev riêng. Launcher không tự seed/migrate DB cũ. Hướng dẫn PostgreSQL/deploy bên dưới là phương án triển khai riêng, không bắt buộc để chạy local SQLite.
+
+## Chạy chung cho nhiều thiết bị
+
+Để cả nhóm truy cập qua Internet, làm theo [hướng dẫn Render/Railway từng bước](docs/INTERNET_DEPLOYMENT.md). Dockerfile, render.yaml và railway.toml đã được chuẩn bị để phục vụ frontend/API cùng một HTTPS origin, kết nối PostgreSQL chung. Người vận hành cần review chi phí và chủ động tạo dịch vụ, cấu hình secrets, chạy migration và lấy public URL.
+
+Frontend hiện mặc định dùng API thật (`USE_MOCK=false`), kể cả URL thiếu `?mode=api`. Một server chạy FastAPI với `FRONTEND_MODE=shared`, `SERVE_FRONTEND=true` và `DATABASE_URL` trỏ đến PostgreSQL chung. Mọi thành viên mở cùng URL của server. Live Server không còn là bản demo độc lập: nó cần backend đang chạy; mỗi máy gọi localhost riêng vẫn không thể đồng bộ. Xem [bản sửa và cách xác minh đồng bộ](docs/BOOKING_SYNC_FIX.md).
+
+Thiết lập PostgreSQL, migration, tạo admin đầu tiên, LAN và staging HTTPS được mô tả trong [POSTGRESQL_SHARED_SETUP.md](docs/POSTGRESQL_SHARED_SETUP.md). Nguyên nhân dữ liệu tách giữa các máy xem [SHARED_DATABASE_AUDIT.md](docs/SHARED_DATABASE_AUDIT.md). Kết quả kiểm thử và các bước vận hành còn lại xem [SHARED_FULLSTACK_REPORT.md](docs/SHARED_FULLSTACK_REPORT.md).
+
 **Topic:** C3 – Homestay Booking
 **Group:** 2 — AI66B
 **Repository:** https://github.com/WEB-FDA-NEU/AI66B---G2---TOPIC-C3---WEB-DESIGN-AND-PROGRAMMING
@@ -10,16 +22,18 @@
 
 | Hạng mục | Tình trạng |
 |----------|------------|
-| Giao diện (frontend) | Hoàn thành 19 màn hình, chạy ổn định bằng dữ liệu mock |
+| Giao diện (frontend) | Giữ nguyên UI, mặc định đọc/ghi API thật |
 | Phân quyền theo role (user / host / admin) trên giao diện | Hoàn thành (`js/guard.js`) |
 | Dashboard có biểu đồ cho Host và Admin | Hoàn thành (Chart.js) |
 | Kiểm thử giao diện tự động | Có (`tests/`) |
-| Backend FastAPI | **Mới ở mức khung** từ template: có đăng ký/đăng nhập và router mẫu `items`, chưa đổi sang thực thể Homestay |
-| Nối frontend với backend thật | **Chưa làm** (`USE_MOCK = true` trong `frontend/js/config.js`) |
+| Backend FastAPI | Có migrations, JWT thu hồi được, profile, duyệt host, catalog, giữ phòng 10 phút, booking xác nhận ngay và API host/admin; hoàn tất sớm sẽ mở lại tồn chưa dùng. Migration head hiện tại: `0007_booking_holds`; xem [runbook](docs/BACKEND_RUNBOOK.md) |
+| Nối frontend với backend thật | Customer/host/admin dùng API mặc định, `USE_MOCK=false`; không dùng localStorage làm nguồn booking |
+| QA | Báo cáo Phase 9/10 là snapshot trước tính năng hủy quyền Host mới nhất; dùng các lệnh kiểm thử bên dưới để xác minh source hiện tại |
+| Triển khai production | Chưa sẵn sàng: gateway/email, TLS/deployment, backup/restore và kiểm thử vận hành còn thiếu |
 
 ---
 
-## 3.1. Project Overview
+## 1. Project Overview
 
 LuxStay là nền tảng đặt homestay trực tuyến, kết nối du khách với chủ nhà (host) trên khắp Việt Nam.
 
@@ -27,11 +41,11 @@ LuxStay là nền tảng đặt homestay trực tuyến, kết nối du khách v
 - **Host:** gửi đơn đăng ký làm host, quản lý homestay, phòng, giá và lịch trống, xử lý các đơn đặt phòng, xem dashboard doanh thu và công suất phòng.
 - **Admin:** xem dashboard tăng trưởng người dùng và đơn đặt theo tỉnh, duyệt hoặc từ chối đơn xin làm host, xem danh sách host.
 
-Hiện tại toàn bộ dữ liệu lấy từ `frontend/mock/*.json` và lưu tạm trong `localStorage` của trình duyệt. Chưa có lời gọi API thật nào được dùng trên giao diện.
+Mở `http://127.0.0.1:8000/index.html` để dùng FastAPI và database thật. Các luồng customer/host/admin dùng cùng DB; localStorage không quyết định booking/phòng/homestay/review/payment. API session riêng trong sessionStorage, backend kiểm tra quyền. Tài khoản mock cũ không thay thế tài khoản đã đăng ký trên server.
 
 ---
 
-## 3.2. Implemented Screens and Features
+## 2. Implemented Screens and Features
 
 Tất cả file giao diện nằm trong `frontend/`.
 
@@ -65,15 +79,16 @@ Tất cả file giao diện nằm trong `frontend/`.
 - **Biểu đồ:** `js/charts.js` dùng chung cho hai dashboard (bộ lọc kỳ, hiệu ứng đếm số, Chart.js).
 - **Hiệu ứng chuyển động:** `js/motion.js` và `css/motion.css`, tôn trọng cài đặt `prefers-reduced-motion`.
 - **Tầng dữ liệu:** `js/api.js` là nơi duy nhất được gọi mạng. `js/config.js` chứa công tắc `USE_MOCK`.
+- **Hủy quyền Host:** Host tự hủy trong hồ sơ; Admin có thể hủy Host. Không cho hủy khi còn booking đang chờ, đã xác nhận hoặc đang lưu trú; hủy thành công sẽ vô hiệu hóa homestay và thu hồi phiên đăng nhập Host.
 - **UI dùng chung:** thẻ homestay, huy hiệu trạng thái, toast, hộp thoại xác nhận, skeleton loading (`render.js`, `ui.js`, `css/components.css`).
 
 ---
 
-## 3.3. Instructions to Open/Run the Project
+## 3. Instructions to Open/Run the Project
 
 > Không mở `index.html` bằng cách nhấp đúp. Trang dùng ES module và đọc file mock bằng `fetch`, mà trình duyệt chặn cả hai khi mở qua `file://`. Cần chạy qua một máy chủ cục bộ.
 
-**Cách 1 — Chỉ chạy giao diện (không cần cài gì thêm, cần Python)**
+**Cách 1 — Phục vụ frontend riêng (vẫn cần backend cổng 8000)**
 
 ```bash
 cd frontend
@@ -85,18 +100,21 @@ Mở http://localhost:5500.
 **Cách 2 — Chạy qua backend FastAPI (backend phục vụ luôn thư mục `frontend/`)**
 
 ```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
-copy .env.example .env          # macOS/Linux: cp .env.example .env
-python seed.py                  # tùy chọn: nạp dữ liệu mẫu của template
-uvicorn main:app --reload --port 8000
+python -m venv backend/.venv
+backend/.venv/Scripts/Activate.ps1  # macOS/Linux: source backend/.venv/bin/activate
+python -m pip install -r backend/requirements-dev.txt
+# Chỉ copy .env.example nếu chưa có backend/.env; xem runbook để cấu hình.
+python -m alembic -c backend/alembic.ini upgrade head
+python -m uvicorn backend.main:app --reload --port 8000
 ```
 
-Mở http://localhost:8000. Tài liệu API tự sinh tại http://localhost:8000/docs. Vì `USE_MOCK = true`, giao diện vẫn đọc dữ liệu mock chứ chưa gọi API.
+Mở http://localhost:8000/index.html. Swagger tại http://localhost:8000/docs. Không cần cờ URL. Hướng dẫn .env, PostgreSQL, backup/migration và QA tại [BACKEND_RUNBOOK.md](docs/BACKEND_RUNBOOK.md). Không chạy seed cho database chung; tạo admin đầu tiên bằng `python -m backend.bootstrap_admin`, đăng ký customer, duyệt host rồi tạo phòng thật.
 
-**Tài khoản demo (mock)**
+Seed chỉ dùng development và hỏi mật khẩu ẩn do bạn chọn; không có mật khẩu backend hardcode. Email seed: `huy@test.com` (customer), `host@test.com` (host), `admin@test.com` (admin); mật khẩu chính là giá trị nhập lúc seed, khác verifier demo mock. Seed từ chối ghi đè DB đã có dữ liệu; không reset DB để chạy lại. Khách đăng ký host mới phải chờ admin duyệt và đăng nhập lại.
+
+Chạy frontend riêng: `python -m http.server 5500 --directory frontend`, mở `http://localhost:5500/index.html?mode=api`, backend ở cùng hostname cổng 8000. Dùng nhất quán localhost hoặc 127.0.0.1; CORS allowlist phải đúng origin. Port khác hoặc reverse proxy: cung cấp `globalThis.LUXSTAY_CONFIG = {apiBase: 'https://your-api.example/api'}` trước các module; đây chỉ là cấu hình URL, không chứa secret. Sandbox `?accounts=api` chỉ tài khoản và cố ý chặn nghiệp vụ khác.
+
+**Tài khoản mock cũ (không dùng để đăng nhập server)**
 
 | Role | Email |
 |------|-------|
@@ -106,7 +124,7 @@ Mở http://localhost:8000. Tài liệu API tự sinh tại http://localhost:800
 
 <!-- Nhóm bổ sung mật khẩu demo vào đây (không ghi plaintext trong mock/users.json, chỉ có hash PBKDF2). -->
 
-Có thể tự đăng ký tài khoản mới. Tài khoản mock được lưu trong `localStorage` (khóa `luxstay_mock_users_v1`) và không bị mất khi cập nhật dữ liệu mock.
+Cần đăng ký tài khoản trên server. Tài khoản và đơn mock cũ vẫn được giữ nguyên trong trình duyệt, không tự nhập lên database chung. Các test mock lịch sử không còn là kiểm thử luồng mặc định; dùng `python tools/test_backend_postgres.py --browser-only` để kiểm tra hai phiên với PostgreSQL thật.
 
 **Luồng thử nhanh**
 
@@ -118,7 +136,7 @@ Có thể tự đăng ký tài khoản mới. Tài khoản mock được lưu tr
 **Lưu ý**
 
 - Biểu đồ dùng Chart.js nạp từ CDN. Mất mạng thì trang vẫn chạy nhưng không có biểu đồ.
-- Dữ liệu mock được sao chép vào `localStorage` ở lần đọc đầu. Khi sửa `mock/*.json`, hãy **tăng `MOCK_DATA_VERSION` trong `js/api.js`** để mọi máy tự xóa cache cũ (phiên đăng nhập không bị ảnh hưởng).
+- API lỗi sẽ báo lỗi, không chuyển sang dữ liệu mock. Không xóa localStorage để chữa lỗi lịch sử; cần kiểm tra backend, tài khoản server và DATABASE_URL.
 
 ---
 
@@ -150,6 +168,20 @@ python tests/mock-accounts-browser.py [đường/dẫn/tới/chrome.exe]
 - `ui-browser.py`: kiểm tra giao diện responsive. Các cờ thêm kiểm tra chuyển động (`motion-checks.js`) và trang chủ/tìm kiếm (`home-checks.js`).
 - `mock-accounts-browser.py`: kiểm tra đăng ký, đăng nhập, đổi hồ sơ và đổi mật khẩu với tài khoản mock.
 
+Kiểm thử API/fullstack cần Python 3.12+, dependency trong `backend/requirements-dev.txt` và Chrome/Edge đã cài. Không cần Node hoặc Playwright:
+
+```powershell
+backend/.venv/Scripts/python -m pytest backend/tests -q
+backend/.venv/Scripts/python tools/test_backend_postgres.py
+backend/.venv/Scripts/python tools/smoke_backend_http.py
+backend/.venv/Scripts/python tests/api-accounts-browser.py
+backend/.venv/Scripts/python -m ruff check backend tests/api-accounts-browser.py --config backend/ruff.toml
+backend/.venv/Scripts/python -m ruff format --check backend tests/api-accounts-browser.py --config backend/ruff.toml
+backend/.venv/Scripts/python -m pip check
+```
+
+Các runner dùng DB/profile tạm riêng. PostgreSQL runner cần binaries 17 (`POSTGRES_BIN` nếu đường dẫn khác); nếu không có, báo chưa kiểm chứng PostgreSQL, không coi skip là pass. Migration head hiện tại `0007_booking_holds`. Báo cáo Phase 9/10 và báo cáo tổng là snapshot tại thời điểm lập; [runbook](docs/BACKEND_RUNBOOK.md) mô tả quy trình hiện tại.
+
 ---
 
 ## Cấu trúc thư mục
@@ -173,12 +205,12 @@ python tests/mock-accounts-browser.py [đường/dẫn/tới/chrome.exe]
 ├── backend/    FastAPI + SQLAlchemy (main, models, schemas, security, deps, database, seed, routers/)
 ├── tests/      ui-browser.py · mock-accounts-browser.py · home-checks.js · motion-checks.js
 ├── tools/      add_mock_homestays.py · gen_dashboard_mock.py · add_mock_hosts.py
-└── docs/       PHASE-A-DATA-NOTES.md · ảnh chụp giao diện
+└── docs/       API_CONTRACT.md · BACKEND_RUNBOOK.md · báo cáo QA · ảnh chụp giao diện
 ```
 
 ---
 
-## 3.4. Team Members and Individual Contributions
+## 4. Team Members and Individual Contributions
 
 | No. | Student ID | Full Name | Assigned Screens/Pages | Main Contributions | Status |
 |-----|-----------|-----------|--------------------------|----------------------|--------|
@@ -191,17 +223,17 @@ python tests/mock-accounts-browser.py [đường/dẫn/tới/chrome.exe]
 
 ---
 
-## 3.5. Incomplete Features and Screens
+## 5. Incomplete Features and Screens
 
 **Giao diện:** tất cả màn hình đã hoàn thành trên dữ liệu mock.
 
-**Việc còn lại để chuyển sang chạy thật (giai đoạn backend):**
+**Backend đã có:** schema Alembic giữ dữ liệu cũ, Argon2id/JWT revocation, ownership, catalog/phòng thật, giữ chỗ hết hạn và đặt nhiều phòng trong transaction, chống trùng bằng ledger, host/admin, review đủ điều kiện, upload, tests SQLite/PostgreSQL và hoàn tất sớm có giải phóng đêm chưa dùng. Migration hiện tại là `0007_booking_holds`.
 
-- **Backend chưa đổi sang đề tài.** `models.py` và `routers/items.py` vẫn là mẫu `Item`, tiêu đề API trong `main.py` còn là "TÊN-SẢN-PHẨM". Cần có model và router cho Homestay, Room, Booking, Review, đơn xin làm host, và các endpoint cho Host và Admin.
-- **Chưa nối frontend với API.** Cần đặt `USE_MOCK = false` và bổ sung nhánh gọi API cho các hàm còn thiếu trong `api.js`. Ví dụ `getProfile()` hiện chỉ chạy ở chế độ mock.
-- **Phân quyền thật ở backend.** `guard.js` chỉ là lớp giao diện, người dùng vẫn sửa được `localStorage`. Cần thêm `get_host` tương tự `get_admin` trong `deps.py` cho các endpoint của host. Role trong `models.py` hiện mới có `user | admin`, thiếu `host`.
-- **Chống đặt trùng phòng ở database.** Cần ràng buộc ở tầng database (ví dụ `UniqueConstraint`) thay vì chỉ kiểm tra bằng `if` trong code.
-- **Mốc thời gian của dashboard.** Với dữ liệu mock, biểu đồ lấy ngày mới nhất trong dữ liệu làm mốc. Khi có backend thật phải đổi sang ngày hôm nay (xem `getWindow()` trong `js/charts.js`).
-- **Tài liệu tham chiếu chưa có:** `config.js` nhắc `docs/api-contract.md` và `models.py` nhắc `docs/QUY-UOC-CODE.md`, nhưng hai file này chưa có trong `docs/`.
-- **Ảnh:** mock mới dùng một số ít ảnh Unsplash nên vài homestay còn trùng ảnh bìa. Cần ảnh riêng cho mỗi homestay.
+**Việc còn lại để chuyển frontend sang chạy thật:**
+
+- **Integration:** customer/host/admin đã nối và kiểm chứng qua `?mode=api`; giữ `USE_MOCK=true` để mock không bị mất. Không dùng mock làm hệ thống xác thực hoặc thanh toán an toàn.
+- **DOM safety:** đã xử lý renderer/preview/error bằng DOM và validation URL; bearer vẫn có rủi ro nếu phát sinh XSS mới, chưa pentest độc lập.
+- **Dashboard:** đã nối SQL KPI/series/inventory-aware; occupancy dùng tồn kho hiện tại, chưa có inventory history; cash không phải settlement/lợi nhuận.
+- **Dịch vụ ngoài:** payment gateway/webhook, email verification/reset và storage/deployment cần cấu hình và QA riêng; không giả lập thành công. Xem EXT-001.
+- **Contract:** tài liệu mới là [API_CONTRACT.md](docs/API_CONTRACT.md); một số comment cũ trong frontend vẫn dùng tên tài liệu trước đó và chưa bị sửa trong giai đoạn backend.
 - **File thừa từ template:** `js/pages/shop.js` và `docs/preview-shop.html` không được trang nào dùng, có thể xóa khi dọn dẹp.

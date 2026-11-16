@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/motion.css">
 </head>
-<body>
+<body data-require-role="user">
 
 <site-header active="bookings"></site-header>
 
@@ -38,11 +38,13 @@
 
   </div>
 
+  <p class="row__meta text-danger" id="bd-reject-reason" hidden></p>
+
   <!-- TIMELINE TRẠNG THÁI -->
   <div class="tabs booking-detail-timeline" id="bd-timeline" aria-label="Trạng thái đặt phòng">
 
     <span class="btn" data-step="pending">
-      1. Chờ xác nhận
+      1. Đang xử lý
     </span>
 
     <span class="btn" data-step="confirmed">

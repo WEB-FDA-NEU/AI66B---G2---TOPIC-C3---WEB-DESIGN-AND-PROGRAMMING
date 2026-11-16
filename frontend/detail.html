@@ -79,11 +79,11 @@
         <form class="stay-inline" id="stay-form" novalidate>
           <div class="field">
             <label class="field__label" for="stay-checkin">Nhận phòng</label>
-            <input class="input" type="date" id="stay-checkin" required>
+            <input class="input" type="text" id="stay-checkin" placeholder="Chọn ngày" readonly required>
           </div>
           <div class="field">
             <label class="field__label" for="stay-checkout">Trả phòng</label>
-            <input class="input" type="date" id="stay-checkout" required>
+            <input class="input" type="text" id="stay-checkout" placeholder="Chọn ngày" readonly required>
           </div>
           <div class="field">
             <label class="field__label" for="stay-adults">Người lớn</label>
@@ -96,6 +96,20 @@
           <p class="stay-inline__nights" id="stay-nights"></p>
           <p class="field__error" id="stay-error"></p>
         </form>
+
+        <section class="stay-calendar" aria-label="Lịch phòng trống">
+          <div class="stay-calendar__header">
+            <button type="button" class="btn btn--outline" id="calendar-prev" aria-label="Tháng trước">‹</button>
+            <strong id="calendar-month" aria-live="polite"></strong>
+            <button type="button" class="btn btn--outline" id="calendar-next" aria-label="Tháng sau">›</button>
+          </div>
+          <div class="stay-calendar__grid stay-calendar__weekdays" aria-hidden="true">
+            <span>CN</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span>
+          </div>
+          <div class="stay-calendar__grid" id="calendar-days" role="grid" aria-label="Ngày trong tháng"></div>
+          <p class="stay-calendar__legend"><span class="stay-calendar__legend-dot"></span> Ngày không còn phòng</p>
+        </section>
+        <p class="field__hint" id="booking-hold-timer" hidden></p>
 
         <div class="room-list" id="room-list"></div>
 
@@ -226,6 +240,7 @@
     <div class="room-card__buy">
       <p class="room-card__price"><span class="room-price"></span><small> / đêm</small></p>
       <p class="room-card__total text-muted"></p>
+      <p class="room-card__availability" role="status" hidden></p>
       <button type="button" class="btn btn--primary room-pick">Chọn</button>
       <div class="stepper" hidden>
         <button type="button" class="stepper__btn room-minus" aria-label="Bớt một phòng">−</button>

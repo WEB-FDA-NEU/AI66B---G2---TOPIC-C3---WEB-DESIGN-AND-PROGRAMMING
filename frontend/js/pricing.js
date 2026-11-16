@@ -1,3 +1,4 @@
+import { ACCOUNT_API_MODE, API_SCOPE, safeImageURL } from './config.js';
 // ============================================================
 //  Tính giá & xử lý ngày/phòng — DÙNG CHUNG cho detail (đã gộp chọn phòng)
 //  và booking-page. Một nơi duy nhất tính tiền để 3 trang luôn ra cùng một con số.
@@ -44,6 +45,7 @@ export function stayFromParams(params) {
 }
 
 export const stayToParams = (stay, extra = {}) => new URLSearchParams({
+  ...(ACCOUNT_API_MODE ? API_SCOPE === "customer" ? {mode:"api"} : {accounts:"api"} : {}),
   checkin: stay.checkin, checkout: stay.checkout, adults: stay.adults, children: stay.children, ...extra,
 });
 
@@ -54,6 +56,7 @@ export const guestText = ({ adults, children }) =>
 // Mock chỉ có 1 giá / homestay → suy ra 2 loại phòng từ giá đó.
 // Khi backend có bảng phòng thật, chỉ cần thay hàm này.
 export function roomTypesFor(item) {
+  if (ACCOUNT_API_MODE) return (item.roomTypes || []).map(r => ({...r, price:r.pricePerNight, image:safeImageURL(r.image || r.images?.[0]), policy:'Hủy theo chính sách đặt phòng'}));
   const base = Number(item.price) || 0;
   const imgs = (item.images?.length ? item.images : [item.cover_url]).filter(Boolean);
   const img = i => imgs[i] ?? imgs[0] ?? 'img/placeholder.svg';   // ảnh phòng lấy từ chính homestay đang xem
@@ -71,11 +74,11 @@ export function roomTypesFor(item) {
 
 // "superior:1,deluxe:2" ⇄ { superior: 1, deluxe: 2 }
 export function parseRooms(str) {
-  const out = {};
+  const out = Object.create(null);
   String(str ?? '').split(',').forEach(part => {
     const [k, v] = part.split(':');
     const n = parseInt(v, 10);
-    if (k && n > 0) out[k] = Math.min(n, 4);
+    if (k && n > 0) out[k] = Math.min(n, ACCOUNT_API_MODE ? 100 : 4);
   });
   return out;
 }
@@ -105,3 +108,5 @@ export const daysUntil = checkin => Math.ceil((parseISO(checkin) - parseISO(toda
 
 export const ratingLabel = r =>
   r == null ? '' : r >= 4.7 ? 'Xuất sắc' : r >= 4.4 ? 'Rất tốt' : r >= 4 ? 'Tốt' : r >= 3 ? 'Khá' : 'Trung bình';
+
+export const paymentText = payment => `${payment?.simulated ? 'Mô phỏng — không xác nhận ngân hàng. ' : ''}${({pending:'Chưa thanh toán — thanh toán tại chỗ',paid:'Đã ghi nhận thanh toán',refund_pending:'Đang chờ hoàn tiền',refunded:'Đã ghi nhận hoàn tiền',cancelled:'Thanh toán đã hủy',failed:'Thanh toán thất bại'})[payment?.status] || 'Chưa có thông tin thanh toán'}`;

@@ -470,7 +470,7 @@ dialog .btn--danger:hover {
   background: var(--c-danger);
 }
 
-dialog[open] {
+dialog {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -526,6 +526,12 @@ dialog::backdrop {
   aspect-ratio: 4/3;
   object-fit: cover;
   border-radius: var(--radius-s);
+}
+
+#application-list .row__img {
+  align-self: start;
+  aspect-ratio: 1;
+  border-radius: 50%;
 }
 
 .row__title {
@@ -1375,6 +1381,46 @@ dialog::backdrop {
   grid-column: 1 / -1;
 }
 
+.stay-calendar {
+  max-width: 560px;
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-m);
+  background: var(--c-bg);
+}
+
+.stay-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.stay-calendar__header .btn { min-width: 44px; padding-inline: var(--sp-2); }
+.stay-calendar__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--sp-1); }
+.stay-calendar__weekdays { margin-bottom: var(--sp-1); color: var(--c-muted); text-align: center; font-size: var(--fs-sm); }
+.stay-calendar__day, .stay-calendar__empty {
+  display: grid;
+  min-width: 0;
+  min-height: 40px;
+  place-items: center;
+}
+.stay-calendar__day {
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  background: var(--c-surface);
+  color: var(--c-text);
+  cursor: pointer;
+}
+.stay-calendar__day:hover:not(:disabled) { border-color: var(--c-primary); }
+.stay-calendar__day:disabled { cursor: not-allowed; opacity: .48; }
+.stay-calendar__day.is-unavailable { background: var(--c-danger-soft); color: var(--c-danger); text-decoration: line-through; }
+.stay-calendar__day.is-selected { border-color: var(--c-primary); background: var(--c-primary); color: #fff; font-weight: 700; }
+.stay-calendar__day.is-in-range { background: var(--c-primary-soft); color: var(--c-primary); }
+.stay-calendar__legend { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-3) 0 0; color: var(--c-muted); font-size: var(--fs-sm); }
+.stay-calendar__legend-dot { width: 14px; height: 14px; border-radius: 4px; background: var(--c-danger-soft); border: 1px solid var(--c-danger); }
+
 .room-list {
   display: grid;
   gap: var(--sp-3);
@@ -1397,7 +1443,7 @@ dialog::backdrop {
 
 .room-card__img {
   width: 100%;
-  height: 100%;
+  height: 140px;
   min-height: 140px;
   object-fit: cover;
   border-radius: var(--radius);
@@ -1408,6 +1454,10 @@ dialog::backdrop {
   flex-direction: column;
   align-items: flex-start;
   gap: var(--sp-2);
+}
+
+.room-card__body .room-badge {
+  align-self: flex-start;
 }
 
 .room-card__name {
@@ -1457,6 +1507,15 @@ dialog::backdrop {
   font-size: var(--fs-caption);
   min-height: 1.2em;
 }
+
+.room-card__availability {
+  flex: 1 0 100%;
+  color: var(--c-danger);
+  font-size: var(--fs-caption);
+  text-align: left;
+}
+
+.room-card__availability[hidden] { display: none; }
 
 .stepper {
   display: flex;
@@ -1954,7 +2013,71 @@ input[type="file"]::file-selector-button {
 .host-detail__sub { font-size: var(--fs-md); margin-bottom: var(--sp-2); }
 .host-detail__list { list-style: none; padding: 0; display: grid; gap: var(--sp-2); margin-bottom: var(--sp-4); }
 .host-detail__list a { font-weight: 600; color: var(--c-primary); }
-#host-dialog { width: min(560px, calc(100% - 2 * var(--sp-3))); }
+#host-dialog {
+  width: min(560px, calc(100% - 2 * var(--sp-3)));
+  scrollbar-color: var(--c-border-strong) transparent;
+  scrollbar-width: thin;
+}
+#host-dialog::-webkit-scrollbar { width: 8px; }
+#host-dialog::-webkit-scrollbar-track { background: transparent; margin-block: var(--sp-2); }
+#host-dialog::-webkit-scrollbar-thumb {
+  background: var(--c-border-strong);
+  border: 2px solid var(--c-bg);
+  border-radius: var(--radius-pill);
+}
+#host-dialog::-webkit-scrollbar-thumb:hover { background: var(--c-muted); }
+.host-dialog__header {
+  position: sticky;
+  top: calc(-1 * var(--sp-4));
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin: calc(-1 * var(--sp-4)) calc(-1 * var(--sp-4)) var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-bg);
+}
+.host-dialog__header .dialog__title { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.host-dialog__close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: var(--fs-xl);
+  line-height: 1;
+  cursor: pointer;
+}
+.host-dialog__close:hover { background: var(--c-primary-soft); color: var(--c-primary); }
+.host-dialog__close:focus-visible { outline: 2px solid var(--c-primary-l); outline-offset: 2px; }
 
 /* Trang có chặn role: ẩn nội dung cho tới khi guard.js xác nhận. */
 body[data-require-role]:not([data-guard-ok]) main { visibility: hidden; }
+/* ---------- Thanh tìm kiếm dùng chung (host + admin) ---------- */
+.searchbar { position: relative; display: block; flex: 1 1 360px; max-width: 520px; min-width: 0; margin: 0; }
+.searchbar__icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--c-muted); pointer-events: none; }
+.searchbar .input { padding-left: 42px; padding-right: 40px; }
+.searchbar .input::-webkit-search-cancel-button { display: none; }
+.searchbar__clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--c-muted); font-size: 20px; line-height: 1; cursor: pointer; }
+.searchbar__clear:hover { background: var(--c-surface); }
+.searchbar__clear:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.searchbar.has-value .searchbar__clear { display: block; }
+.list-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.list-toolbar__count { margin-left: auto; color: var(--c-muted); font-size: var(--fs-sm); }
+.list-toolbar--full .searchbar { flex-basis: 100%; max-width: none; }
+.section-head__tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--sp-3); flex: 1 1 auto; }
+.section-head > .searchbar { flex: 0 1 400px; }
+.search-empty { margin-top: var(--sp-3); }
+mark.search-hit { background: #ffe8a3; color: inherit; padding: 0 1px; border-radius: 2px; }
+@media (max-width: 767px) {
+  .searchbar, .section-head > .searchbar { flex: none; width: 100%; max-width: none; }
+  .section-head__tools { width: 100%; justify-content: flex-start; }
+  .list-toolbar__count { margin-left: 0; flex-basis: 100%; }
+}

@@ -1,3 +1,4 @@
+import { ACCOUNT_API_MODE, accountHref } from '../config.js';
 import { getItems } from '../api.js';
 import { renderCard, renderList } from '../render.js';
 import { todayISO, addDays, parseISO, toISO } from '../pricing.js';
@@ -20,6 +21,7 @@ form.addEventListener('submit', event => {
     : !Number.isInteger(guests) || guests < 1 || guests > 10 ? 'Vui lòng chọn từ 1 đến 10 khách.' : '';
   $('searchError').textContent = message; $('searchError').hidden = !message;
   if (message) event.preventDefault();
+  else if (ACCOUNT_API_MODE) { event.preventDefault(); location.href=accountHref('search.html?'+new URLSearchParams(new FormData(form))); }
 });
 
 let dispose = [];
@@ -43,10 +45,10 @@ function renderDestinations(items) {
   }));
   const nodes = [...groups.values()].sort((a, b) => b.count - a.count).slice(0, 6).map(({ name, item, count }) => {
     const node = $('tpl-destination').content.cloneNode(true);
-    node.querySelector('a').href = `search.html?${new URLSearchParams({ q: name })}`;
+    node.querySelector('a').href = accountHref(`search.html?${new URLSearchParams({ q: name })}`);
     const image = node.querySelector('img'); imageFallback(image); image.src = item.cover_url;
     node.querySelector('strong').textContent = name;
-    node.querySelector('small').textContent = `${count} homestay`;
+    node.querySelector('small').textContent = ACCOUNT_API_MODE ? 'Khám phá chỗ nghỉ' : `${count} homestay`;
     return node;
   });
   $('destinations').replaceChildren(...nodes);
@@ -58,8 +60,9 @@ async function load() {
   showSkeleton($('results'), 4);
   try {
     // Request all current listings through the existing API, not a parallel JSON source.
-    const { items } = await getItems({ sort: 'newest', page_size: 1000 });
-    const usable = items.filter(item => item.status === 'active' && item.title && item.location && Number.isFinite(item.price) && item.price >= 0 && hasCover(item));
+    const [data, ratedData] = ACCOUNT_API_MODE ? await Promise.all([getItems({sort:'newest',page_size:12}),getItems({sort:'rating_desc',rating:4.5,page_size:4})]) : [await getItems({sort:'newest',page_size:1000}),null];
+    const {items} = data;
+    const usable = items.filter(item => item.status === 'active' && item.title && item.location && Number.isFinite(item.price) && item.price >= 0 && (ACCOUNT_API_MODE || hasCover(item)));
     if (!usable.length) {
       $('hero-slides').replaceChildren();
       showEmpty($('hero-slides'), { title: 'Chưa có homestay', hint: 'Hãy quay lại sau.', actionText: 'Tìm homestay', actionHref: 'search.html' });
@@ -73,11 +76,12 @@ async function load() {
     renderDestinations(usable);
     const featured = usable.slice(0, 4);
     const used = new Set(featured.map(item => item.id));
-    const top = usable.filter(item => !used.has(item.id) && rated(item)).sort((a, b) => b.rating - a.rating).slice(0, 4);
+    const top = (ratedData?.items || usable).filter(item => !used.has(item.id) && rated(item)).sort((a, b) => b.rating - a.rating).slice(0, 4);
     top.forEach(item => used.add(item.id));
     renderGroup('results', featured);
     renderGroup('top-rated', top);
-    renderGroup('explore', usable.filter(item => !used.has(item.id)).slice(0, 8));
+    const explore = usable.filter(item => !used.has(item.id));
+    renderGroup('explore', ACCOUNT_API_MODE ? explore.slice(0, 8) : explore);
   } catch (error) {
     $('hero-slides').replaceChildren();
     showError($('hero-slides'), error, load);

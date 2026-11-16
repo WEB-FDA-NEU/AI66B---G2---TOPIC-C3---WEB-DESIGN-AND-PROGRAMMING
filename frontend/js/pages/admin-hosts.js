@@ -1,20 +1,22 @@
 // ============================================================
 //  Admin: danh sách host + hộp thoại chi tiết.
-//  Dữ liệu từ getAdminHosts() (mock: admin-hosts.json + admin-overview.json + items.json).
+//  Dữ liệu từ getAdminHosts() (mock: tài khoản Host và booking đang lưu).
 //  Chỉ dùng textContent / createElement, không innerHTML (dữ liệu có thể do người dùng nhập khi đăng ký).
 // ============================================================
-import { getAdminHosts } from '../api.js';
+import { getAdminHosts, cancelAdminHost } from '../api.js';
 import { fmtVND, fmtInt } from '../charts.js';
-import { showSkeleton, showError } from '../ui.js';
+import { showSkeleton, showError, confirmAction, toast } from '../ui.js';
 import '../guard.js';
 
+import { ACCOUNT_API_MODE, safeImageURL } from '../config.js';
+import { bindSearchbar, matchesQuery } from '../search.js';
+if (!ACCOUNT_API_MODE) {
 const $ = id => document.getElementById(id);
 const list = $('host-list'), empty = $('host-empty'), dialog = $('host-dialog');
 
 let hosts = [];
 
 const fmtDate = s => { const d = new Date(s); return Number.isNaN(+d) ? '—' : d.toLocaleDateString('vi-VN'); };
-const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').toLowerCase();
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -23,9 +25,9 @@ function el(tag, className, text) {
   return node;
 }
 
-function hostRow(h) {
+function hostRow(h, q = '') {
   const row = el('article', 'row');
-  const img = el('img', 'row__img'); img.src = h.avatar || 'img/placeholder.svg'; img.alt = '';
+  const img = el('img', 'row__img'); img.src = safeImageURL(h.avatar || 'img/placeholder.svg'); img.alt = '';
   img.onerror = () => { img.onerror = null; img.src = 'img/placeholder.svg'; };
 
   const info = el('div');
@@ -34,21 +36,40 @@ function hostRow(h) {
     el('p', 'row__meta', [h.email, h.phone].filter(Boolean).join(' · ')),
     el('p', 'row__meta', `Host từ ${fmtDate(h.createdAt)} · ${h.homestays.length} homestay · ${fmtInt(h.bookingCount)} đơn đặt`),
   );
+  // Khớp qua tên homestay (không khớp tên/email/SĐT) → nói rõ khớp homestay nào.
+  const stayHit = q && !matchesQuery(q, h.display_name, h.email, h.phone) ? h.homestays.find(i => matchesQuery(q, i.title)) : null;
+  if (stayHit) info.append(el('p', 'row__meta', `Khớp homestay: ${stayHit.title}`));
 
   const actions = el('div', 'row__actions');
   const badge = h.homestays.length ? el('span', 'badge badge--success', 'Đang hoạt động') : el('span', 'badge badge--warning', 'Chưa có homestay');
   const btn = el('button', 'btn', 'Xem chi tiết'); btn.type = 'button';
   btn.addEventListener('click', () => openDetail(h));
-  actions.append(badge, btn);
+  const cancel = el('button', 'btn btn--danger', 'Hủy làm Host'); cancel.type = 'button';
+  cancel.addEventListener('click', async () => {
+    if (cancel.disabled || !await confirmAction({
+      title: 'Hủy quyền Host?',
+      message: `Hủy quyền của ${h.display_name}? Thao tác bị chặn nếu còn booking đang chờ, đã xác nhận hoặc khách đang lưu trú.`,
+      confirmText: 'Hủy làm Host',
+    })) return;
+    cancel.disabled = true;
+    try {
+      await cancelAdminHost(h.id);
+      toast(`Đã hủy quyền Host của ${h.display_name}.`);
+      await load();
+    } catch (error) {
+      toast(error.detail || 'Không thể hủy quyền Host.', 'error');
+    } finally { cancel.disabled = false; }
+  });
+  actions.append(badge, btn, cancel);
 
   row.append(img, info, actions);
   return row;
 }
 
 function render() {
-  const q = norm($('host-search').value.trim());
-  const shown = hosts.filter(h => !q || norm(`${h.display_name} ${h.email} ${h.phone}`).includes(q));
-  list.replaceChildren(...shown.map(hostRow));
+  const q = $('host-search').value.trim();
+  const shown = hosts.filter(h => matchesQuery(q, h.display_name, h.email, h.phone, ...h.homestays.map(i => i.title)));
+  list.replaceChildren(...shown.map(h => hostRow(h, q)));
   list.hidden = !shown.length;
   empty.hidden = !!shown.length;
   $('host-count').textContent = q ? `(${shown.length}/${hosts.length})` : `(${hosts.length})`;
@@ -76,9 +97,11 @@ function openDetail(h) {
   dialog.showModal();
 }
 
-$('hd-close').addEventListener('click', () => dialog.close());
+for (const id of ['hd-close', 'hd-close-top']) {
+  $(id).addEventListener('click', () => dialog.close());
+}
 dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });   // bấm ra ngoài để đóng
-$('host-search').addEventListener('input', render);
+bindSearchbar($('host-searchbar'), render, { delay: 150 });
 
 async function load() {
   showSkeleton(list, 3);
@@ -91,3 +114,4 @@ async function load() {
   }
 }
 load();
+}
