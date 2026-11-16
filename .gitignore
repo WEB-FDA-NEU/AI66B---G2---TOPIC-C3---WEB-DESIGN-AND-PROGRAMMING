@@ -1,5 +1,6 @@
 backend/.venv/
 backend/.env
+.venv/
 # Local deployment credentials, including root .env files.
 .env
 .env.*
